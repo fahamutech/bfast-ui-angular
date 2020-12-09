@@ -1,5 +1,4 @@
 const {errorMessageComponent} = require("./error-message.component");
-const {moduleListComponent} = require("./module-list.component");
 
 /**
  *

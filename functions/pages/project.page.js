@@ -1,34 +1,33 @@
+const {projectListComponent} = require("../components/project-list.component");
 const {moduleViewResources} = require("../components/module-view-resources.component");
 const {moduleCreateComponent} = require("../components/module-create.component");
 const {appLayoutComponent} = require("../components/app-layout.component");
 const {moduleAvailablesComponent} = require("../components/module-availables.component");
 
-class ModulePage {
+class ProjectPage {
 
     /**
      *
-     * @param moduleService - {ModuleService}
+     * @param projectService - {ProjectService}
      */
-    constructor(moduleService) {
-        this.moduleService = moduleService;
+    constructor(projectService) {
+        this.projectService = projectService;
     }
 
     /**
      *
      * @param error - {string}
-     * @param projectName - {string}
      * @returns {Promise<*>}
      */
-    async index(projectName, error) {
+    async index(error) {
         try {
-            const value = await this.moduleService.getModules();
-            value.mainModuleContents = await this.moduleService.getMainModuleContents()
+            const value = await this.projectService.getProjects();
             return appLayoutComponent(
-                moduleAvailablesComponent(error, value.modules, value.name, value.mainModuleContents),
-                projectName
+                projectListComponent(value),
+                null
             );
         } catch (reason) {
-            return appLayoutComponent(moduleAvailablesComponent(reason.toString(), []), projectName);
+            return appLayoutComponent(projectListComponent());
         }
     }
 
@@ -49,5 +48,5 @@ class ModulePage {
 }
 
 module.exports = {
-    ModulePage: ModulePage
+    ProjectPage: ProjectPage
 }

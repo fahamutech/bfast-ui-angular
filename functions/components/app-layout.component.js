@@ -1,5 +1,6 @@
 const {appToolBarComponent} = require("./toolbar.component");
-exports.appLayoutComponent = function (body, projecName) {
+
+exports.appLayoutComponent = function (body, projectName) {
     return `
             <!doctype html>
             <html lang="en">
@@ -22,7 +23,7 @@ exports.appLayoutComponent = function (body, projecName) {
             </head>
             <body style="font-family: Roboto,serif">
                 <div>
-                    ${appToolBarComponent(projecName)}
+                    ${appToolBarComponent(projectName)}
                     <div class="container">
                         ${body}
                     </div>

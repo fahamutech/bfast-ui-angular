@@ -12,14 +12,18 @@ exports.appToolBarComponent = function (projectName) {
             <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
               <div class="navbar-nav">
                 <a class="nav-link active" aria-current="page" href="/project">Projects</a>
-                <a class="nav-link active" aria-current="page" href="/project/${projectName}/module">Modules</a>
-<!--                <a class="nav-link" href="#">Features</a>-->
-<!--                <a class="nav-link" href="#">Pricing</a>-->
-<!--                <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Disabled</a>-->
+                <a style="display: none" id="moduleNav" class="nav-link active" 
+                aria-current="page" href="/project/${projectName}/module">Modules</a>
               </div>
             </div>
           </div>
         </nav>
+        <script>
+            const name = "${projectName}"
+            if (name && name.toString()!== "null" && name.toString()!== "undefined") {
+                document.getElementById('moduleNav').setAttribute('style', 'display: block');
+            }
+        </script>
     </div>
     `
 }
