@@ -1,35 +1,32 @@
+const {StorageUtil} = require("../utils/storage.util");
+const {ModulePage} = require("../pages/module.page");
+const {ModuleService} = require("../services/module.service");
 const {bfast} = require('bfastnode');
-const {ModuleUi} = require('../ui/module.ui');
-const {AppUi} = require('../ui/app.ui');
-const {ModuleController} = require('../controllers/module.controller');
 
-const appUi = new AppUi();
-const moduleUi = new ModuleUi();
-const moduleController = new ModuleController('/home/josh/WebstormProjects/UdictiHub/src/app', 'udicti');
+const storageUtil = new StorageUtil();
 
-exports.moduleHome = bfast.functions().onGetHttpRequest('/module',
+exports.moduleHome = bfast.functions().onGetHttpRequest('/project/:projectName/module',
     (request, response) => {
-        moduleController.getModules().then(async value => {
-            return {
-                modules: value.modules,
-                name: value.name,
-                mainModuleContents: await moduleController.getMainModuleContents()
-            }
-        }).then(value => {
-            response.send(
-                appUi.main(
-                    moduleUi.availableModule(null, value.modules, value.name, value.mainModuleContents)
-                )
-            );
+
+        const projectName = request.params.projectName;
+        const projectPath = storageUtil.getConfig(`${projectName}:projectPath`);
+        const _moduleService = new ModuleService(projectPath, projectName);
+        const modulePage = new ModulePage(_moduleService);
+
+        modulePage.index(request.params.projectName, request.query.error).then(value => {
+            response.send(value)
         }).catch(reason => {
-            response.send(appUi.main(moduleUi.availableModule(reason.toString(), [])));
-        })
+            response.status(400).send(reason);
+        });
     }
 );
 
-exports.moduleHomeUpdateMainModule = bfast.functions().onPostHttpRequest('/module',
+exports.moduleHomeUpdateMainModule = bfast.functions().onPostHttpRequest('/project/:projectName/module',
     (request, response) => {
-        moduleController.updateMainModuleContents(request.body.code).then(value => {
+        const projectName = request.params.projectName;
+        const projectPath = storageUtil.getConfig(`${projectName}:projectPath`);
+        const _moduleService = new ModuleService(projectPath, projectName);
+        _moduleService.updateMainModuleContents(request.body.code).then(_ => {
             response.json({message: 'done update'});
         }).catch(reason => {
             response.status(400).json({message: reason.toString()});
@@ -37,14 +34,20 @@ exports.moduleHomeUpdateMainModule = bfast.functions().onPostHttpRequest('/modul
     }
 );
 
-exports.moduleCreate = bfast.functions().onGetHttpRequest('/module/create',
+exports.moduleCreate = bfast.functions().onGetHttpRequest('/project/:projectName/module/create',
     (request, response) => {
-        response.send(appUi.main(moduleUi.createModule(request.query.error)));
+
+        const projectName = request.params.projectName;
+        const projectPath = storageUtil.getConfig(`${projectName}:projectPath`);
+        const _moduleService = new ModuleService(projectPath, projectName);
+        const modulePage = new ModulePage(_moduleService);
+
+        response.send(modulePage.create(request.query.error, request.params.projectName));
     }
 );
 
 exports.moduleCreatePost = bfast.functions().onPostHttpRequest(
-    '/module/create',
+    '/project/:projectName/module/create',
     [
         (request, response, next) => {
             request.body = JSON.parse(JSON.stringify(request.body));
@@ -54,19 +57,32 @@ exports.moduleCreatePost = bfast.functions().onPostHttpRequest(
             next();
         },
         (request, response) => {
-            moduleController.createModule(request.body.name, request.body.detail).then(_ => {
-                console.log(_)
+
+            const projectName = request.params.projectName;
+            const projectPath = storageUtil.getConfig(`${projectName}:projectPath`);
+            const _moduleService = new ModuleService(projectPath, projectName);
+
+            _moduleService.createModule(request.body.name, request.body.detail).then(_ => {
                 response.redirect('/module');
             }).catch(reason => {
-                response.status(400).redirect('/module/create?error=' + reason.toString())
+                response.status(400)
+                    .redirect(`/project/${request.params.projectName}/module/create?error=` + reason.toString());
             });
         }
     ]
 );
 
-exports.moduleView = bfast.functions().onGetHttpRequest(
-    '/module/view/:module',
+exports.moduleResourcesView = bfast.functions().onGetHttpRequest(
+    '/project/:projectName/module/view/:module',
     (request, response) => {
-        // moduleController.
+        const projectName = request.params.projectName;
+        const projectPath = storageUtil.getConfig(`${projectName}:projectPath`);
+        const _moduleService = new ModuleService(projectPath, projectName);
+        const modulePage = new ModulePage(_moduleService);
+        modulePage.viewModuleResources(request.params.module, projectName).then(value => {
+            response.send(value);
+        }).catch(reason => {
+            response.redirect(`/project/${projectName}/module?error=${reason.toString()}`);
+        });
     }
 );

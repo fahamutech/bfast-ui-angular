@@ -6,7 +6,8 @@
     "start": "npx bfast fs serve"
   },
   "dependencies": {
-    "bfastnode": "^4.0.1"
+    "bfastnode": "^4.0.1",
+    "nconf": "^0.11.0"
   },
   "devDependencies": {
     "bfast-tools": "^0.7.3"

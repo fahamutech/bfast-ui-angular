@@ -2,7 +2,7 @@ const {readdir, mkdir, writeFile, readFile} = require('fs');
 const {join} = require('path');
 const {promisify} = require('util')
 
-class ModuleController {
+class ModuleService {
 
     /**
      * @param projectPath - {string} root project path
@@ -36,6 +36,15 @@ class ModuleController {
     async getMainModuleContents() {
         if (this.projectPath && this.projectName) {
             const fileBuffer = await promisify(readFile)(join(this.projectPath, `${this.projectName}.module.ts`));
+            return fileBuffer.toString('utf-8');
+        } else {
+            throw Error("Main module not found");
+        }
+    }
+
+    async getOtherModuleContents(moduleName) {
+        if (this.projectPath && this.projectName) {
+            const fileBuffer = await promisify(readFile)(join(this.projectPath, 'modules', moduleName, `${moduleName}.module.ts`));
             return fileBuffer.toString('utf-8');
         } else {
             throw Error("Main module not found");
@@ -93,5 +102,5 @@ export class WebModule {
 }
 
 module.exports = {
-    ModuleController: ModuleController
+    ModuleService: ModuleService
 }
