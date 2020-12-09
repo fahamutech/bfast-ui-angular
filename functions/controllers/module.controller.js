@@ -56,7 +56,7 @@ class ModuleController {
     }
 
     /**
-     *
+     * create a new module with initial module codes
      * @param name - {string}
      * @param detail - {string}
      * @returns {Promise<void>}
@@ -64,7 +64,25 @@ class ModuleController {
     async createModule(name, detail) {
         if (this.projectPath) {
             if (name && name !== '') {
-                return promisify(mkdir)(join(this.projectPath, 'modules', name));
+                await promisify(mkdir)(join(this.projectPath, 'modules', name));
+                return promisify(writeFile)(join(this.projectPath, 'modules', name, `${name}.module.ts`),
+                    `import {NgModule} from '@angular/core';
+import {CommonModule} from '@angular/common';
+import {RouterModule, Routes} from '@angular/router';
+
+const routes: Routes = [
+];
+
+@NgModule({
+  declarations: [],
+  imports: [
+    CommonModule,
+    RouterModule.forChild(routes)
+  ]
+})
+export class WebModule {
+}
+`);
             } else {
                 throw Error("Module name required")
             }
