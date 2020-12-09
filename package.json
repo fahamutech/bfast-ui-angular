@@ -1,0 +1,15 @@
+{
+  "name": "functions",
+  "version": "20.12.9+0",
+  "scripts": {
+    "test": "echo \"no test\"",
+    "start": "npx bfast fs serve"
+  },
+  "dependencies": {
+    "bfastnode": "^4.0.1"
+  },
+  "devDependencies": {
+    "bfast-tools": "^0.7.3"
+  },
+  "private": true
+}

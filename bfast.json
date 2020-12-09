@@ -1,0 +1,10 @@
+{
+  "projectId": "",
+  "ignore": [
+    "**/node_modules/**",
+    "**/specs/**",
+    "**/**.controller.js",
+    "**/**.ui.js",
+    "**/*.specs.js"
+  ]
+}
