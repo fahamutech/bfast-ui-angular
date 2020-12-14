@@ -1,4 +1,4 @@
-export const serviceMethodCreateForm = function (project, module) {
+export const serviceMethodCreateForm = function (project, module, service = {}) {
     return `
         <div class="d-flex flex-row" style="margin: 8px 0">
              <h3 style="margin: 0">Create</h3>
