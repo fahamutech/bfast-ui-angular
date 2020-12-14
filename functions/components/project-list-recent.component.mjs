@@ -1,4 +1,4 @@
-exports.projectListRecentComponent = function (projects) {
+export const projectListRecentComponent = function (projects) {
     let list = '';
     for (const project of projects) {
         list += `

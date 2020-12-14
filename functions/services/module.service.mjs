@@ -1,8 +1,8 @@
-const {readdir, mkdir, writeFile, readFile} = require('fs');
-const {join} = require('path');
-const {promisify} = require('util')
+import {mkdir, readdir, readFile, writeFile} from 'fs';
+import {join} from 'path';
+import {promisify} from 'util';
 
-class ModuleService {
+export class ModuleService {
 
     /**
      * @param projectPath - {string} root project path
@@ -73,7 +73,11 @@ class ModuleService {
     async createModule(name, detail) {
         if (this.projectPath) {
             if (name && name !== '') {
+                const resources = ["services", "models", "components", "pages", "states", "guards", "styles"]
                 await promisify(mkdir)(join(this.projectPath, 'modules', name));
+                for (const resource of resources) {
+                    await promisify(mkdir)(join(this.projectPath, 'modules', name, resource));
+                }
                 return promisify(writeFile)(join(this.projectPath, 'modules', name, `${name}.module.ts`),
                     `import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
@@ -99,8 +103,4 @@ export class WebModule {
             throw Error("Path to project required");
         }
     }
-}
-
-module.exports = {
-    ModuleService: ModuleService
 }

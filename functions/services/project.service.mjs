@@ -1,8 +1,8 @@
-const {readdir, mkdir, writeFile, readFile} = require('fs');
-const {join} = require('path');
-const {promisify} = require('util')
+import {readdir, mkdir, writeFile, readFile} from 'fs';
+import {join} from 'path';
+import {promisify} from 'util';
 
-class ProjectService {
+export class ProjectService {
 
     /**
      *
@@ -24,8 +24,4 @@ class ProjectService {
         });
         return projects;
     }
-}
-
-module.exports = {
-    ProjectService: ProjectService
 }

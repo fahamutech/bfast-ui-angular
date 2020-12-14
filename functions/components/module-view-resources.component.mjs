@@ -1,4 +1,4 @@
-const {errorMessageComponent} = require("./error-message.component");
+import {errorMessageComponent} from "./error-message.component.mjs";
 
 /**
  *
@@ -8,7 +8,7 @@ const {errorMessageComponent} = require("./error-message.component");
  * @param mainModuleContents - {string} project main module contents
  * @returns {string}
  */
-exports.moduleViewResources = function (error, moduleName, projectName, mainModuleContents) {
+export const moduleViewResources = function (error, moduleName, projectName, mainModuleContents) {
     return `
             <div class="container col-xl-9 col-lg-9 col-sm-12 col-md-10 col-9" style="margin-top: 24px">
             

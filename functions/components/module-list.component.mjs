@@ -4,7 +4,7 @@
  * @param projectName - {string}
  * @returns {string}
  */
-exports.moduleListComponent = function (modules, projectName) {
+export const moduleListComponent = function (modules, projectName) {
     let lists = '';
     for (const module of modules) {
         lists += (`

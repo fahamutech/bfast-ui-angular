@@ -1,4 +1,4 @@
-const {errorMessageComponent} = require("./error-message.component");
+import {errorMessageComponent} from "./error-message.component.mjs";
 
 /**
  *
@@ -6,7 +6,7 @@ const {errorMessageComponent} = require("./error-message.component");
  * @param projectName - {string} current project name
  * @returns {string}
  */
-exports.moduleCreateComponent = function (error, projectName) {
+export const moduleCreateComponent = function (error, projectName) {
     return (`
         <div style="margin-top: 24px;" class="container col-9">
             ${errorMessageComponent(error)}

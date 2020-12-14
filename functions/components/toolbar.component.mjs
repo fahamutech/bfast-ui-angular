@@ -1,6 +1,6 @@
-exports.appToolBarComponent = function (projectName) {
+export const appToolBarComponent = function (projectName) {
     return `
-    <div class="shadow">
+        <div class="shadow">
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
           <div class="container-fluid">
             <a class="navbar-brand" href="#">Bfast::UI</a>

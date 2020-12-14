@@ -1,17 +1,15 @@
-const {errorMessageComponent} = require("./error-message.component");
+import {errorMessageComponent} from "./error-message.component.mjs";
+import {moduleListComponent} from "./module-list.component.mjs";
 
 /**
  *
  * @param error - {Error}
  * @param modules - {Array<string>}
- * @param appName - {string} project name
+ * @param projectName
  * @param mainModuleContents - {string} project main module contents
  * @returns {string}
  */
-
-const {moduleListComponent} = require("./module-list.component");
-
-exports.moduleAvailablesComponent = function (error, modules, projectName, mainModuleContents) {
+export const moduleAvailablesComponent =  function (error, modules, projectName, mainModuleContents) {
     return `
             <div class="container col-xl-9 col-lg-9 col-sm-12 col-md-10 col-9" style="margin-top: 24px">
             

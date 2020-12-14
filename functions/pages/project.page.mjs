@@ -1,10 +1,9 @@
-const {projectListComponent} = require("../components/project-list.component");
-const {moduleViewResources} = require("../components/module-view-resources.component");
-const {moduleCreateComponent} = require("../components/module-create.component");
-const {appLayoutComponent} = require("../components/app-layout.component");
-const {moduleAvailablesComponent} = require("../components/module-availables.component");
+import {appLayoutComponent} from "../components/app-layout.component.mjs";
+import {projectListComponent} from "../components/project-list.component.mjs";
+import {moduleCreateComponent} from "../components/module-create.component.mjs";
+import {moduleViewResources} from "../components/module-view-resources.component.mjs";
 
-class ProjectPage {
+export class ProjectPage {
 
     /**
      *
@@ -45,8 +44,4 @@ class ProjectPage {
         const contents = await this.moduleService.getOtherModuleContents(moduleName);
         return appLayoutComponent(moduleViewResources(null, moduleName, projectName, contents), projectName)
     }
-}
-
-module.exports = {
-    ProjectPage: ProjectPage
 }

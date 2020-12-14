@@ -1,5 +1,6 @@
-const {projectListRecentComponent} = require("./project-list-recent.component");
-exports.projectListComponent = function (projects) {
+import {projectListRecentComponent} from "./project-list-recent.component.mjs";
+
+export const projectListComponent = function (projects) {
     return `
         <div class="container col-xl-9 col-lg-9 col-sm-11 col-md-10" style="margin-top: 24px">
             <div class="d-flex fle-row">
@@ -14,4 +15,4 @@ exports.projectListComponent = function (projects) {
             ${projectListRecentComponent(projects)}
         </div>
     `;
-};
+}

@@ -1,12 +1,16 @@
-const nconf = require('nconf')
+import nconf from 'nconf'
+import * as path from "path";
 
-class StorageUtil {
+export class StorageUtil {
     /**
      *
      * @param identifier - {string}
      */
+
+    __dirname = path.resolve('functions', 'utils');
+
     getConfig(identifier) {
-        nconf.use('file', {file: `${__dirname}/storage.json`});
+        nconf.use('file', {file: `${this.__dirname}/storage.json`});
         nconf.load();
         return nconf.get(identifier);
     }
@@ -17,14 +21,10 @@ class StorageUtil {
      * @param data - {string | number | {[key: string]: any}}
      */
     setConfig(identifier, data) {
-        nconf.use('file', {file: `${__dirname}/storage.json`});
+        nconf.use('file', {file: `${this.__dirname}/storage.json`});
         nconf.load();
         nconf.set(identifier, data);
         nconf.save();
         return data;
     }
-}
-
-module.exports = {
-    StorageUtil: StorageUtil
 }

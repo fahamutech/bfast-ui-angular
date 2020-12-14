@@ -1,9 +1,9 @@
-const {StorageUtil} = require("../utils/storage.util");
-const {ProjectService} = require("../services/project.service");
-const {ProjectPage} = require("../pages/project.page");
-const {bfast} = require("bfastnode");
+import {StorageUtil} from "../utils/storage.util.mjs";
+import {ProjectService} from "../services/project.service.mjs";
+import {ProjectPage} from "../pages/project.page.mjs";
+import bfastnode from "bfastnode";
 
-exports.projectAll = bfast.functions().onGetHttpRequest('/project',
+export const projectAll = bfastnode.bfast.functions().onGetHttpRequest('/project',
     (request, response) => {
         const projectService = new ProjectService(new StorageUtil());
         new ProjectPage(projectService).index(request.query.error).then(value => {

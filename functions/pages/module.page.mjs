@@ -1,9 +1,10 @@
-const {moduleViewResources} = require("../components/module-view-resources.component");
-const {moduleCreateComponent} = require("../components/module-create.component");
-const {appLayoutComponent} = require("../components/app-layout.component");
-const {moduleAvailablesComponent} = require("../components/module-availables.component");
+import {appLayoutComponent} from "../components/app-layout.component.mjs";
+import {moduleAvailablesComponent} from "../components/module-availables.component.mjs";
+import {moduleCreateComponent} from "../components/module-create.component.mjs";
+import {moduleViewResources} from "../components/module-view-resources.component.mjs";
 
-class ModulePage {
+
+export class ModulePage {
 
     /**
      *
@@ -46,8 +47,4 @@ class ModulePage {
         const contents = await this.moduleService.getOtherModuleContents(moduleName);
         return appLayoutComponent(moduleViewResources(null, moduleName, projectName, contents), projectName)
     }
-}
-
-module.exports = {
-    ModulePage: ModulePage
 }

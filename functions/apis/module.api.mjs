@@ -1,11 +1,11 @@
-const {StorageUtil} = require("../utils/storage.util");
-const {ModulePage} = require("../pages/module.page");
-const {ModuleService} = require("../services/module.service");
-const {bfast} = require('bfastnode');
+import bfastnode from 'bfastnode';
+import {StorageUtil} from "../utils/storage.util.mjs";
+import {ModuleService} from "../services/module.service.mjs";
+import {ModulePage} from "../pages/module.page.mjs";
 
 const storageUtil = new StorageUtil();
 
-exports.moduleHome = bfast.functions().onGetHttpRequest('/project/:projectName/module',
+export const moduleHome = bfastnode.bfast.functions().onGetHttpRequest('/project/:projectName/module',
     (request, response) => {
 
         const projectName = request.params.projectName;
@@ -21,7 +21,7 @@ exports.moduleHome = bfast.functions().onGetHttpRequest('/project/:projectName/m
     }
 );
 
-exports.moduleHomeUpdateMainModule = bfast.functions().onPostHttpRequest('/project/:projectName/module',
+export const moduleHomeUpdateMainModule = bfastnode.bfast.functions().onPostHttpRequest('/project/:projectName/module',
     (request, response) => {
         const projectName = request.params.projectName;
         const projectPath = storageUtil.getConfig(`${projectName}:projectPath`);
@@ -34,7 +34,7 @@ exports.moduleHomeUpdateMainModule = bfast.functions().onPostHttpRequest('/proje
     }
 );
 
-exports.moduleCreate = bfast.functions().onGetHttpRequest('/project/:projectName/module/create',
+export const moduleCreate = bfastnode.bfast.functions().onGetHttpRequest('/project/:projectName/module/create',
     (request, response) => {
 
         const projectName = request.params.projectName;
@@ -46,7 +46,7 @@ exports.moduleCreate = bfast.functions().onGetHttpRequest('/project/:projectName
     }
 );
 
-exports.moduleCreatePost = bfast.functions().onPostHttpRequest(
+export const moduleCreatePost = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:projectName/module/create',
     [
         (request, response, next) => {
@@ -63,7 +63,7 @@ exports.moduleCreatePost = bfast.functions().onPostHttpRequest(
             const _moduleService = new ModuleService(projectPath, projectName);
 
             _moduleService.createModule(request.body.name, request.body.detail).then(_ => {
-                response.redirect('/module');
+                response.redirect(`/project/${request.params.projectName}/module/`);
             }).catch(reason => {
                 response.status(400)
                     .redirect(`/project/${request.params.projectName}/module/create?error=` + reason.toString());
@@ -72,7 +72,7 @@ exports.moduleCreatePost = bfast.functions().onPostHttpRequest(
     ]
 );
 
-exports.moduleResourcesView = bfast.functions().onGetHttpRequest(
+export const moduleResourcesView = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:projectName/module/view/:module',
     (request, response) => {
         const projectName = request.params.projectName;

@@ -1,6 +1,6 @@
-const {appToolBarComponent} = require("./toolbar.component");
+import {appToolBarComponent} from "./toolbar.component.mjs";
 
-exports.appLayoutComponent = function (body, projectName) {
+export const appLayoutComponent = function (body, projectName) {
     return `
             <!doctype html>
             <html lang="en">

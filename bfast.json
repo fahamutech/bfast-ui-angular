@@ -4,7 +4,15 @@
     "**/node_modules/**",
     "**/specs/**",
     "**/**.controller.js",
+    "**/**.controller.mjs",
+    "**/**.component.js",
+    "**/**.component.mjs",
+    "**/**.service.mjs",
+    "**/**.service.js",
+    "**/**.page.js",
+    "**/**.page.mjs",
     "**/**.ui.js",
+    "**/**.ui.mjs",
     "**/*.specs.js"
   ]
 }
