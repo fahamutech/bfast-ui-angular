@@ -1,7 +1,6 @@
 import {appLayoutComponent} from "../components/app-layout.component.mjs";
 import {serviceListComponent} from "../components/services-list.component.mjs";
 import {serviceCreateComponent} from "../components/service-create.component.mjs";
-import {serviceUpdateComponent} from "../components/service-update.component.mjs";
 
 export class ServicesPage {
 
@@ -30,24 +29,26 @@ export class ServicesPage {
         }
     }
 
-    async createPage(projectName, module, error = null) {
+    async createPage(projectName, module, serviceName = null, error = null) {
+        let serviceInJson = {name: ''};
         try {
-            return appLayoutComponent(serviceCreateComponent(projectName, module, error), projectName);
+            if (serviceName) {
+                serviceInJson = await this.servicesService.serviceFileToJson(serviceName, projectName, module);
+            }
+            return appLayoutComponent(serviceCreateComponent(projectName, module, serviceInJson, error), projectName);
         } catch (e) {
-            return appLayoutComponent(serviceCreateComponent(projectName, module,
+            return appLayoutComponent(serviceCreateComponent(projectName, module, serviceInJson,
                 e && e.message ? e.message : e.toString()), projectName);
         }
     }
 
-    async updatePage(projectName, module, serviceName, error = null) {
-        try {
-            const serviceInJson = await this.servicesService.serviceFileToJson(serviceName, projectName, module);
-            console.log(serviceInJson);
-            return appLayoutComponent(serviceUpdateComponent(projectName, module, serviceInJson, error), projectName);
-        } catch (e) {
-            console.log(e);
-            return appLayoutComponent(serviceUpdateComponent(projectName, module, {name: ''},
-                e && e.message ? e.message : e.toString()), projectName);
-        }
-    }
+    // async updatePage(projectName, module, serviceName, error = null) {
+    //     try {
+    //         const serviceInJson = await this.servicesService.serviceFileToJson(serviceName, projectName, module);
+    //         return appLayoutComponent(serviceUpdateComponent(projectName, module, serviceInJson, error), projectName);
+    //     } catch (e) {
+    //         return appLayoutComponent(serviceUpdateComponent(projectName, module, {name: ''},
+    //             e && e.message ? e.message : e.toString()), projectName);
+    //     }
+    // }
 }

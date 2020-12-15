@@ -35,7 +35,7 @@ export class ServicesService {
         serviceJsonFile.name = serviceName;
         serviceJsonFile.injections = this._getInjectionsFromServiceFile(serviceFile);
         serviceJsonFile.methods = this._getMethodsFromServiceFile(serviceFile);
-        return  serviceJsonFile;
+        return serviceJsonFile;
     }
 
     /**
@@ -109,12 +109,12 @@ export class ${this._firstCaseUpper(service.name)}Service {
 
     _getInjectionsFromServiceFile(serviceFile) {
         const reg = new RegExp('constructor\\(.*\\)');
-        const results = serviceFile.toString().match(reg)[0];
-        console.log(results);
+        const results = serviceFile.toString().match(reg) ? serviceFile.toString().match(reg)[0] : [];
         if (results) {
             return results.toString()
                 .replace(new RegExp('(constructor\\()*(private)*(readonly)*\\)*', 'gim'), '')
                 .split(',')
+                .filter(x => x !== '')
                 .map(x => {
                     return {
                         name: x.split(':')[0] ? x.split(':')[0].trim() : '',
@@ -127,16 +127,11 @@ export class ${this._firstCaseUpper(service.name)}Service {
     }
 
     _getMethodsFromServiceFile(serviceFile) {
-        //   const regOld = new RegExp(`(async)+.*[\\n\\s\\w${defaultCharacters}]*}`, 'gim');
         const reg = new RegExp(`(async)+.*`, 'gim');
-        const results = serviceFile.toString().match(reg);
-
-        console.log(results);
-
+        const results = serviceFile.toString().match(reg) ? serviceFile.toString().match(reg) : [];
         const indexes = results.map(x => {
             return serviceFile.toString().indexOf(x);
         }).filter(x => x > 0);
-
         const methods = indexes.map((value, index, array) => {
             if (index === indexes.length - 1) {
                 let closingTag = serviceFile.toString().lastIndexOf("}");

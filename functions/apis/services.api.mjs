@@ -23,7 +23,7 @@ export const createAModuleService = bfastnode.bfast.functions().onGetHttpRequest
         const projectId = request.params.projectId;
         const module = request.params.module;
         if (request.query.update) {
-            new ServicesPage(servicesService).updatePage(projectId, module, request.query.update).then(value => {
+            new ServicesPage(servicesService).createPage(projectId, module, request.query.update).then(value => {
                 response.send(value);
             }).catch(_ => {
                 response.status(400).send(_);
