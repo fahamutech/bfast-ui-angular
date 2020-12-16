@@ -73,8 +73,8 @@ export const createMethodInAService = bfastnode.bfast.functions().onGetHttpReque
         const module = request.params.module;
         const service = request.params.service;
         new ServicesPage(servicesService).createMethodPage(project, module, service, {
-            name: request.query.name?request.query.name: '',
-            inputs: request.query.inputs?request.query.inputs: '',
+            name: request.query.name ? request.query.name : '',
+            inputs: request.query.inputs ? request.query.inputs : '',
             body: request.query.codes,
             return: 'any'
         }, request.query.error).then(value => {

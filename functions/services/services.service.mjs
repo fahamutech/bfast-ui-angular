@@ -194,7 +194,6 @@ export class ${this._firstCaseUpper(service.name)}Service {
         service = service.toString();
         const serviceJson = await this.serviceFileToJson(service, project, module);
         const exists = serviceJson.methods.filter(x => x.name === method.name.toString());
-        console.log(exists);
         if (exists && Array.isArray(exists) && exists.length > 0) {
             throw new Error('Service method already exist');
         } else {
