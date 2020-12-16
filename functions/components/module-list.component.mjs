@@ -10,7 +10,7 @@ export const moduleListComponent = function (modules, projectName) {
         lists += (`
                 <div class="d-flex resource-card">
                    <a style="text-underline: none; font-size: 26px" 
-                   href="/project/${projectName}/module/view/${module}">${module}</a>
+                   href="/project/${projectName}/modules/${module}/resources">${module}</a>
                 </div>
             `);
     }

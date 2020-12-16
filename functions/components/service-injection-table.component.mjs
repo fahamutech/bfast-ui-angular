@@ -2,6 +2,8 @@ export const serviceInjectionTableComponent = function (project, module, injecti
     return `
         <div class="d-flex flex-row" style="margin: 8px 0">
              <h3 style="margin: 0">Injections</h3>
+             <span style="flex: 1 1 auto"></span>
+             <button class="btn btn-sm btn-outline-primary">Add Injection</button>
         </div>
         <div class="shadow">
             <table class="table table-hover">

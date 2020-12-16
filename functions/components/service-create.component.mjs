@@ -1,6 +1,5 @@
 import {errorMessageComponent} from "./error-message.component.mjs";
 import {serviceInjectionTableComponent} from "./service-injection-table.component.mjs";
-import {serviceMethodCreateForm} from "./service-method-form.component.mjs";
 import {serviceMethodsListComponent} from "./service-methods-list.component.mjs";
 
 /**
@@ -17,17 +16,20 @@ export const serviceCreateComponent = function (project, module, service = {
     methods: []
 }, error = null) {
     return `
-        <div style="margin-top: 24px" class="container col-xl-9 col-lg-9 col-sm-11 col-md-10 col-10">
+        <div style="margin-top: 24px" class="container col-xl-12 col-lg-12 col-sm-12 col-md-12 col-12">
             ${errorMessageComponent(error)}
             <div>
                 <div>
-                    <h3>Service Name</h3>
-                    <input class="form-control" value="${service.name}" name="name" placeholder="enter service name" type="text">
+                    <div class="d-flex lex-row" style="margin-bottom: 8px">
+                        <h3>Service Name</h3>
+                        <span style="flex: 1 1 auto"></span>
+<!--                        <button class="btn btn-sm btn-primary">Save Service</button>-->
+                    </div>
+                    <input class="form-control" disabled value="${service.name}" name="name" placeholder="enter service name" type="text">
                 </div>
                 <hr>
                 ${serviceInjectionTableComponent(project, module, service.injections ? service.injections : [])}
-                ${serviceMethodCreateForm(project, module, service)}
-                ${serviceMethodsListComponent(project, module, service.methods?service.methods: [])}
+                ${serviceMethodsListComponent(project, module, service.name, service.methods ? service.methods : [])}
             </div>
         </div>
 `

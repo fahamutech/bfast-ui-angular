@@ -6,7 +6,7 @@ import bfastnode from "bfastnode";
 export const projectAll = bfastnode.bfast.functions().onGetHttpRequest('/project',
     (request, response) => {
         const projectService = new ProjectService(new StorageUtil());
-        new ProjectPage(projectService).index(request.query.error).then(value => {
+        new ProjectPage(projectService).indexPage(request.query.error).then(value => {
             response.send(value);
         }).catch(reason => {
             response.send(reason);

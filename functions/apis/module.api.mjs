@@ -5,7 +5,7 @@ import {ModulePage} from "../pages/module.page.mjs";
 
 const storageUtil = new StorageUtil();
 
-export const moduleHome = bfastnode.bfast.functions().onGetHttpRequest('/project/:projectName/module',
+export const moduleHome = bfastnode.bfast.functions().onGetHttpRequest('/project/:projectName/modules',
     (request, response) => {
 
         const projectName = request.params.projectName;
@@ -21,7 +21,7 @@ export const moduleHome = bfastnode.bfast.functions().onGetHttpRequest('/project
     }
 );
 
-export const moduleHomeUpdateMainModule = bfastnode.bfast.functions().onPostHttpRequest('/project/:projectName/module',
+export const moduleHomeUpdateMainModule = bfastnode.bfast.functions().onPostHttpRequest('/project/:projectName/modules',
     (request, response) => {
         const projectName = request.params.projectName;
         const projectPath = storageUtil.getConfig(`${projectName}:projectPath`);
@@ -34,7 +34,7 @@ export const moduleHomeUpdateMainModule = bfastnode.bfast.functions().onPostHttp
     }
 );
 
-export const moduleCreate = bfastnode.bfast.functions().onGetHttpRequest('/project/:projectName/module/create',
+export const moduleCreate = bfastnode.bfast.functions().onGetHttpRequest('/project/:projectName/modules/create',
     (request, response) => {
 
         const projectName = request.params.projectName;
@@ -47,7 +47,7 @@ export const moduleCreate = bfastnode.bfast.functions().onGetHttpRequest('/proje
 );
 
 export const moduleCreatePost = bfastnode.bfast.functions().onPostHttpRequest(
-    '/project/:projectName/module/create',
+    '/project/:projectName/modules/create',
     [
         (request, response, next) => {
             request.body = JSON.parse(JSON.stringify(request.body));
@@ -63,17 +63,17 @@ export const moduleCreatePost = bfastnode.bfast.functions().onPostHttpRequest(
             const _moduleService = new ModuleService(projectPath, projectName);
 
             _moduleService.createModule(request.body.name, request.body.detail).then(_ => {
-                response.redirect(`/project/${request.params.projectName}/module/`);
+                response.redirect(`/project/${request.params.projectName}/modules/`);
             }).catch(reason => {
                 response.status(400)
-                    .redirect(`/project/${request.params.projectName}/module/create?error=` + reason.toString());
+                    .redirect(`/project/${request.params.projectName}/modules/create?error=` + reason.toString());
             });
         }
     ]
 );
 
 export const moduleResourcesView = bfastnode.bfast.functions().onGetHttpRequest(
-    '/project/:projectName/module/view/:module',
+    '/project/:projectName/modules/:module/resources',
     (request, response) => {
         const projectName = request.params.projectName;
         const projectPath = storageUtil.getConfig(`${projectName}:projectPath`);
@@ -82,7 +82,7 @@ export const moduleResourcesView = bfastnode.bfast.functions().onGetHttpRequest(
         modulePage.viewModuleResources(request.params.module, projectName).then(value => {
             response.send(value);
         }).catch(reason => {
-            response.redirect(`/project/${projectName}/module?error=${reason.toString()}`);
+            response.redirect(`/project/${projectName}/modules?error=${reason.toString()}`);
         });
     }
 );

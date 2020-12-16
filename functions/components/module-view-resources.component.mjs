@@ -18,43 +18,43 @@ export const moduleViewResources = function (error, moduleName, projectName, mai
                 
                 <div class="d-flex flex-row flex-wrap">
                     <div class="resource-card">
-                        <a href="/project/${projectName}/module/view/${moduleName}/components">
+                        <a href="/project/${projectName}/modules/${moduleName}/resources/components">
                             <span style="font-size: 26px">Components</span>
                         </a>
                     </div>
                     
                     <div class="resource-card">
-                        <a href="/project/${projectName}/module/view/${moduleName}/pages">
+                        <a href="/project/${projectName}/modules/${moduleName}/resources/pages">
                             <span style="font-size: 26px">Pages</span>
                         </a>
                     </div>
                     
                     <div class="resource-card">
-                        <a href="/project/${projectName}/module/view/${moduleName}/services">
+                        <a href="/project/${projectName}/modules/${moduleName}/resources/services">
                             <span style="font-size: 26px">Services</span>
                         </a>
                     </div>
                     
                     <div class="resource-card">
-                        <a href="/project/${projectName}/module/view/${moduleName}/states">
+                        <a href="/project/${projectName}/modules/${moduleName}/resources/states">
                             <span style="font-size: 26px">States</span>
                         </a>
                     </div>
                     
                     <div class="resource-card">
-                        <a href="/project/${projectName}/module/view/${moduleName}/guards">
+                        <a href="/project/${projectName}/modules/${moduleName}/resources/guards">
                             <span style="font-size: 26px">Guards</span>
                         </a>
                     </div>
                     
                     <div class="resource-card">
-                        <a href="/project/${projectName}/module/view/${moduleName}/models">
+                        <a href="/project/${projectName}/modules/${moduleName}/resources/models">
                             <span style="font-size: 26px">Models</span>
                         </a>
                     </div>
                     
                     <div class="resource-card">
-                        <a href="/project/${projectName}/module/view/${moduleName}/styles">
+                        <a href="/project/${projectName}/modules/${moduleName}/resources/styles">
                             <span style="font-size: 26px">Styles</span>
                         </a>
                     </div>

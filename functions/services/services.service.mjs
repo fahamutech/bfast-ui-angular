@@ -13,9 +13,13 @@ export class ServicesService {
     }
 
     async getServices(projectName, moduleName) {
-        const projectPath = this.storageService.getConfig(`${projectName}:projectPath`);
-        const servicesDir = join(projectPath, 'modules', moduleName, 'services');
-        return promisify(readdir)(servicesDir);
+        try {
+            const projectPath = this.storageService.getConfig(`${projectName}:projectPath`);
+            const servicesDir = join(projectPath, 'modules', moduleName, 'services');
+            return promisify(readdir)(servicesDir);
+        } catch (e) {
+            return [];
+        }
     }
 
     /**
@@ -57,7 +61,7 @@ export class ServicesService {
      * @param module - {string}
      * @return {Promise<any>}
      */
-    async jsonToFile(service, project, module) {
+    async jsonToServiceFile(service, project, module) {
         const projectPath = this.storageService.getConfig(`${project}:projectPath`);
         const serviceInjectionsWithType = service.injections
             .map(x => 'private readonly ' + x.name + ': ' + this._firstCaseUpper(x.service) + 'Service')
@@ -141,10 +145,11 @@ export class ${this._firstCaseUpper(service.name)}Service {
         });
         if (methods) {
             return methods.map(x => {
-                let inputs = x.toString().trim().match(new RegExp("\\(.*\\)")).toString();
+                const inputsMatch = x.toString().trim().match(new RegExp("\\(.*\\)"));
+                let inputs = inputsMatch ? inputsMatch.toString() : '';
                 inputs = inputs.substring(1, inputs.length - 1)
                 return {
-                    name: x.toString().trim().match(new RegExp('^.*(?=\\()')).toString().replace("async", "").trim(),
+                    name: x.toString().trim().match(new RegExp('^[\\w\\d\\s]*')).toString().replace("async", "").trim(),
                     inputs: inputs.trim(),
                     return: "any",
                     body: x.toString().replace(new RegExp('(async)+.*|}', 'gim'), '').trim()
@@ -152,6 +157,49 @@ export class ${this._firstCaseUpper(service.name)}Service {
             });
         } else {
             return [];
+        }
+    }
+
+    /**
+     *
+     * @param project - {string}
+     * @param module - {string}
+     * @param serviceName - {string}
+     */
+    async createService(project, module, serviceName) {
+        serviceName = serviceName.toString().replace('.service.ts', '');
+        const services = await this.getServices(project, module);
+        const exists = services.filter(x => x === serviceName.toString().concat('.service.ts'));
+        if (exists && Array.isArray(services) && exists.length > 0) {
+            throw new Error('Service already exist');
+        } else {
+            return this.jsonToServiceFile({name: serviceName, injections: [], methods: []}, project, module);
+        }
+    }
+
+    /**
+     *
+     * @param project - {string}
+     * @param module - {string}
+     * @param service - {string}
+     * @param method - {{
+     *     name: string,
+     *     inputs: string,
+     *     return: string,
+     *     body: string
+     * }}
+     * @return {Promise<void>}
+     */
+    async addMethod(project, module, service, method) {
+        service = service.toString();
+        const serviceJson = await this.serviceFileToJson(service, project, module);
+        const exists = serviceJson.methods.filter(x => x.name === method.name.toString());
+        console.log(exists);
+        if (exists && Array.isArray(exists) && exists.length > 0) {
+            throw new Error('Service method already exist');
+        } else {
+            serviceJson.methods.push(method);
+            return this.jsonToServiceFile(serviceJson, project, module);
         }
     }
 }

@@ -18,7 +18,7 @@ export class ProjectPage {
      * @param error - {string}
      * @returns {Promise<*>}
      */
-    async index(error) {
+    async indexPage(error) {
         try {
             const value = await this.projectService.getProjects();
             return appLayoutComponent(

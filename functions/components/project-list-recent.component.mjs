@@ -3,7 +3,7 @@ export const projectListRecentComponent = function (projects) {
     for (const project of projects) {
         list += `
         <div class="d-flex flex-row">
-            <a href="/project/${project.name}/module" class="list-group-item list-group-item-action">
+            <a href="/project/${project.name}/modules" class="list-group-item list-group-item-action">
                 <div>
                     <h5 style="margin: 0">${project.name}</h5>
                 </div>

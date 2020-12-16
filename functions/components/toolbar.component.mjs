@@ -13,7 +13,7 @@ export const appToolBarComponent = function (projectName) {
               <div class="navbar-nav">
                 <a class="nav-link active" aria-current="page" href="/project">Projects</a>
                 <a style="display: none" id="moduleNav" class="nav-link active" 
-                aria-current="page" href="/project/${projectName}/module">Modules</a>
+                aria-current="page" href="/project/${projectName}/modules">Modules</a>
               </div>
             </div>
           </div>

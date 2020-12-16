@@ -21,7 +21,7 @@ export const moduleAvailablesComponent =  function (error, modules, projectName,
                     ${moduleListComponent(modules, projectName)}
                 
                     <div class="resource-card">
-                        <a href="/project/${projectName}/module/create">
+                        <a href="/project/${projectName}/modules/create">
                             <span style="font-size: 60px">+</span>
                         </a>
                     </div>

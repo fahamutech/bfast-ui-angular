@@ -1,9 +1,13 @@
-export const serviceMethodsListComponent = function (project, module, methods = []) {
+import {codeEditorComponent} from "./code-editor.component.mjs";
+
+export const serviceMethodsListComponent = function (project, module, service, methods = []) {
     return `
         <div class="d-flex flex-row" style="margin: 8px 0">
             <h3 style="margin: 0">Methods</h3>
-<!--                     <span style="flex: 1 1 auto"></span>-->
-<!--                     <button onclick="goToCreateService()" class="btn btn-md btn-primary">New Service</button>-->
+            <span style="flex: 1 1 auto"></span>
+            <a href="/project/${project}/modules/${module}/resources/services/${service}/method">
+                <button  class="btn btn-sm btn-outline-primary">Add Method</button>
+            </a>
          </div>
          <div class="shadow">
             <table class="table table-hover">
@@ -36,12 +40,13 @@ function getTableContents(project, module, methods = []) {
                   <td>${method.body}</td>
                   <td>
                     <div class="d-flex flex-row">
-                        <button class="btn-sm btn btn-primary">Update</button>
+                        <button class="btn-sm btn btn-primary" data-toggle="modal" data-target="#updateServiceModal">Update</button>
                         <div style="width: 10px; height: 10px"></div>
                         <button class="btn-sm btn btn-danger">Delete</button>
                     </div>
                   </td>
-                </tr>`
+                </tr>
+`
     }
     return row;
 }
