@@ -1,5 +1,3 @@
-import {codeEditorComponent} from "./code-editor.component.mjs";
-
 export const serviceMethodsListComponent = function (project, module, service, methods = []) {
     return `
         <div class="d-flex flex-row" style="margin: 8px 0">
@@ -22,14 +20,14 @@ export const serviceMethodsListComponent = function (project, module, service, m
                 </tr>
               </thead>
               <tbody>
-               ${getTableContents(project, module, methods)}
+               ${getTableContents(project, module, service, methods)}
               </tbody>
             </table>
         </div>
     `
 }
 
-function getTableContents(project, module, methods = []) {
+function getTableContents(project, module, service, methods = []) {
     let row = '';
     for (const method of methods) {
         row += `<tr style="cursor: pointer">
@@ -40,9 +38,22 @@ function getTableContents(project, module, methods = []) {
                   <td>${method.body}</td>
                   <td>
                     <div class="d-flex flex-row">
-                        <button class="btn-sm btn btn-primary" data-toggle="modal" data-target="#updateServiceModal">Update</button>
+                        <a href="/project/${project}/modules/${module}/resources/services/${service}/method/${method.name}">
+                            <button class="btn-sm btn btn-primary">Update</button>
+                        </a>
                         <div style="width: 10px; height: 10px"></div>
-                        <button class="btn-sm btn btn-danger">Delete</button>
+                        <form id="deleteMethod${methods.indexOf(method)}" method="post" action="/project/${project}/modules/${module}/resources/services/${service}/method/${method.name}/delete">
+                            <button class="btn-sm btn btn-danger">Delete</button>
+                        </form>
+                        <script>
+                            document.getElementById('deleteMethod${methods.indexOf(method)}').addEventListener('submit', ev => {
+                                ev.preventDefault();
+                                const answer = confirm("${method.name} and its content will be deleted permanent");
+                                if (answer === true){
+                                    ev.target.submit();
+                                }
+                            })
+                        </script>
                     </div>
                   </td>
                 </tr>

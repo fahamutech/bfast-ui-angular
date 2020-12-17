@@ -70,9 +70,8 @@ export class ServicesService {
             return `
     async ${x.name}(${x.inputs}) : Promise<any>{
         ${x.body}
-    }
-            `
-        }).join('\n\n');
+    }`
+        }).join('\n');
 
         await promisify(writeFile)(join(projectPath, 'modules', module, 'services', `${service.name}.service.ts`),
             `import {bfast, BFast} from 'bfast';
@@ -200,5 +199,63 @@ export class ${this._firstCaseUpper(service.name)}Service {
             serviceJson.methods.push(method);
             return this.jsonToServiceFile(serviceJson, project, module);
         }
+    }
+
+    /**
+     *
+     * @param project - {string}
+     * @param module - {string}
+     * @param service - {string}
+     * @param method - {string}
+     * @return {Promise<any>}
+     */
+    async getMethod(project, module, service, method) {
+        const serviceJson = await this.serviceFileToJson(service, project, module);
+        const exists = serviceJson.methods.filter(x => x.name === method.toString());
+        if (exists && Array.isArray(exists) && exists.length > 0) {
+            return exists[0];
+        } else {
+            throw new Error('Service method does not exist');
+        }
+    }
+
+    /**
+     *
+     * @param project - {string}
+     * @param module - {string}
+     * @param service - {string}
+     * @param method - {string}
+     * @param update - {{
+     *     name: string,
+     *     inputs: string,
+     *     body: string,
+     *     return: string
+     * }}
+     * @return {Promise<any>}
+     */
+    async updateMethod(project, module, service, method, update) {
+        const serviceJson = await this.serviceFileToJson(service, project, module);
+        serviceJson.methods = serviceJson.methods.map(x => {
+            if (x.name === method.toString()) {
+                return update;
+            } else {
+                return x;
+            }
+        });
+        return this.jsonToServiceFile(serviceJson, project, module);
+    }
+
+    /**
+     *
+     * @param project - {string}
+     * @param module - {string}
+     * @param service - {string}
+     * @param method - {string}
+     * @return {Promise<any>}
+     */
+    async deleteMethod(project, module, service, method) {
+        const serviceJson = await this.serviceFileToJson(service, project, module);
+        serviceJson.methods = serviceJson.methods.filter(x => x.name !== method.toString());
+        return this.jsonToServiceFile(serviceJson, project, module);
     }
 }
