@@ -158,11 +158,67 @@ export const deleteMethodInAServiceSubmit = bfastnode.bfast.functions().onPostHt
         const module = request.params.module;
         const service = request.params.service;
         const method = request.params.method;
-        const body = JSON.parse(JSON.stringify(request.body));
+        //  const body = JSON.parse(JSON.stringify(request.body));
         servicesService.deleteMethod(project, module, service, method).then(_ => {
             response.redirect(`/project/${project}/modules/${module}/resources/services/${service}`);
         }).catch(reason => {
             response.redirect(`/project/${project}/modules/${module}/resources/services/${service}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())}`);
+        });
+    }
+);
+
+export const addInjectionInAServiceSubmit = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/:module/resources/services/:service/injections/:injection',
+    (request, response) => {
+        const servicesService = new ServicesService(new StorageUtil());
+        const project = request.params.project;
+        const module = request.params.module;
+        const service = request.params.service;
+        const injection = request.params.injection;
+        servicesService.getService(project, module, service).then(async value => {
+            if (value && value.injections && Array.isArray(value.injections)) {
+                const exist = value.injections.filter(x => x.service.toString().toLowerCase()
+                    === injection.toString().split('.')[0].toLowerCase());
+                if (exist.length === 0) {
+                    value.injections.push({
+                        name: injection.toString().split('.')[0].toString().toLowerCase() + 'Service'.trim(),
+                        service: injection.toString().split('.')[0].toString().toLowerCase().trim()
+                    });
+                    await servicesService.jsonToServiceFile(value, project, module)
+                }
+            }
+            response.redirect(`/project/${project}/modules/${module}/resources/services/${service}`)
+        }).catch(reason => {
+            console.log(reason);
+            response.redirect(`/project/${project}/modules/${module}/resources/services/${service}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
+        });
+    }
+);
+
+export const deleteInjectionInAServiceSubmit = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/:module/resources/services/:service/injections/:injection/delete',
+    (request, response) => {
+        const servicesService = new ServicesService(new StorageUtil());
+        const project = request.params.project;
+        const module = request.params.module;
+        const service = request.params.service;
+        const injection = request.params.injection;
+        servicesService.getService(project, module, service).then(async value => {
+            if (value && value.injections && Array.isArray(value.injections)) {
+                value.injections = value.injections.filter(x => x.service.toString().toLowerCase()
+                    !== injection.toString().split('.')[0].toLowerCase());
+                // if (exist.length === 0) {
+                //     value.injections.push({
+                //         name: injection.toString().split('.')[0].toString().toLowerCase() + 'Service'.trim(),
+                //         service: injection.toString().split('.')[0].toString().toLowerCase().trim()
+                //     });
+                await servicesService.jsonToServiceFile(value, project, module)
+                //  }
+            }
+            response.redirect(`/project/${project}/modules/${module}/resources/services/${service}`)
+        }).catch(reason => {
+            console.log(reason);
+            response.redirect(`/project/${project}/modules/${module}/resources/services/${service}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
         });
     }
 );

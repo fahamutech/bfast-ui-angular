@@ -33,13 +33,21 @@ export class ServicesPage {
 
     async viewServicePage(projectName, module, serviceName = null, error = null) {
         let serviceInJson = {name: ''};
+        let services = [];
         try {
             if (serviceName) {
+                if (!serviceName.toString().includes('.service.ts')) {
+                    serviceName += '.service.ts';
+                }
                 serviceInJson = await this.servicesService.serviceFileToJson(serviceName, projectName, module);
+                services = await this.servicesService.getServices(projectName, module);
+                services = services.filter(x => x.toString() !== serviceName);
+                console.log(serviceName)
+                console.log(services);
             }
-            return appLayoutComponent(serviceCreateComponent(projectName, module, serviceInJson, error), projectName);
+            return appLayoutComponent(await serviceCreateComponent(projectName, module, serviceInJson, services, error), projectName);
         } catch (e) {
-            return appLayoutComponent(serviceCreateComponent(projectName, module, serviceInJson,
+            return appLayoutComponent(await serviceCreateComponent(projectName, module, serviceInJson, services,
                 e && e.message ? e.message : e.toString()), projectName);
         }
     }
@@ -58,9 +66,9 @@ export class ServicesPage {
      * @return {Promise<string>}
      */
     async updateMethodPage(project, module, service, method, error = null) {
-       // try {
-            const methodMap = await this.servicesService.getMethod(project, module, service, method);
-            return appLayoutComponent(serviceMethodUpdateComponent(project, module, service, methodMap, error));
+        // try {
+        const methodMap = await this.servicesService.getMethod(project, module, service, method);
+        return appLayoutComponent(serviceMethodUpdateComponent(project, module, service, methodMap, error));
         // } catch (e) {
         //     return this.viewServicePage(project, module, service, error);
         // }

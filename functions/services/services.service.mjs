@@ -12,10 +12,10 @@ export class ServicesService {
         this.storageService = storageService;
     }
 
-    async getServices(projectName, moduleName) {
+    async getServices(project, module) {
         try {
-            const projectPath = this.storageService.getConfig(`${projectName}:projectPath`);
-            const servicesDir = join(projectPath, 'modules', moduleName, 'services');
+            const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+            const servicesDir = join(projectPath, 'modules', module, 'services');
             return promisify(readdir)(servicesDir);
         } catch (e) {
             return [];
@@ -40,6 +40,10 @@ export class ServicesService {
         serviceJsonFile.injections = this._getInjectionsFromServiceFile(serviceFile);
         serviceJsonFile.methods = this._getMethodsFromServiceFile(serviceFile);
         return serviceJsonFile;
+    }
+
+    async getService(project, module, service) {
+        return this.serviceFileToJson(service, project, module);
     }
 
     /**
@@ -74,7 +78,7 @@ export class ServicesService {
         }).join('\n');
 
         await promisify(writeFile)(join(projectPath, 'modules', module, 'services', `${service.name}.service.ts`),
-            `import {bfast, BFast} from 'bfast';
+            `import {bfast, BFast} from 'bfastjs';
 import {Injectable} from '@angular/core';
 ${this._getServiceImports(service.injections)}
 
@@ -258,4 +262,18 @@ export class ${this._firstCaseUpper(service.name)}Service {
         serviceJson.methods = serviceJson.methods.filter(x => x.name !== method.toString());
         return this.jsonToServiceFile(serviceJson, project, module);
     }
+
+    /**
+     *
+     * @param project - {string}
+     * @param module - {string}
+     * @param service - {string} current service which want injection
+     * @return {Promise<*>}
+     */
+    async getInjections(project, module, service) {
+        const allServices = await this.getServices(project, module);
+        console.log(allServices);
+        return allServices.filter(x => x !== service);
+    }
+
 }
