@@ -1,6 +1,6 @@
 import {appToolBarComponent} from "./toolbar.component.mjs";
 
-export const appLayoutComponent = function (body, projectName) {
+export const appLayoutComponent = function (body, project) {
     return `
             <!doctype html>
             <html lang="en">
@@ -22,7 +22,7 @@ export const appLayoutComponent = function (body, projectName) {
             </head>
                 <body style="font-family: Roboto,serif">
                     <div>
-                        ${appToolBarComponent(projectName)}
+                        ${appToolBarComponent(project)}
                         <div class="container">
                             ${body}
                         </div>

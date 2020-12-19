@@ -16,22 +16,22 @@ export class ServicesPage {
 
     /**
      *
-     * @param projectName - {string}
+     * @param project - {string}
      * @param module - {string}
      * @param error - {string}
      * @return {Promise<string>}
      */
-    async indexPage(projectName, module, error = null) {
+    async indexPage(project, module, error = null) {
         try {
-            const services = await this.servicesService.getServices(projectName, module)
-            return appLayoutComponent(await serviceListComponent(projectName, module, services, error), projectName);
+            const services = await this.servicesService.getServices(project, module)
+            return appLayoutComponent(await serviceListComponent(project, module, services, error), project);
         } catch (e) {
-            return appLayoutComponent(await serviceListComponent(projectName, module, [],
-                e && e.message ? e.message : e.toString()), projectName);
+            return appLayoutComponent(await serviceListComponent(project, module, [],
+                e && e.message ? e.message : e.toString()), project);
         }
     }
 
-    async viewServicePage(projectName, module, serviceName = null, error = null) {
+    async viewServicePage(project, module, serviceName = null, error = null) {
         let serviceInJson = {name: ''};
         let services = [];
         try {
@@ -39,16 +39,16 @@ export class ServicesPage {
                 if (!serviceName.toString().includes('.service.ts')) {
                     serviceName += '.service.ts';
                 }
-                serviceInJson = await this.servicesService.serviceFileToJson(serviceName, projectName, module);
-                services = await this.servicesService.getServices(projectName, module);
+                serviceInJson = await this.servicesService.serviceFileToJson(serviceName, project, module);
+                services = await this.servicesService.getServices(project, module);
                 services = services.filter(x => x.toString() !== serviceName);
                 console.log(serviceName)
                 console.log(services);
             }
-            return appLayoutComponent(await serviceCreateComponent(projectName, module, serviceInJson, services, error), projectName);
+            return appLayoutComponent(await serviceCreateComponent(project, module, serviceInJson, services, error), project);
         } catch (e) {
-            return appLayoutComponent(await serviceCreateComponent(projectName, module, serviceInJson, services,
-                e && e.message ? e.message : e.toString()), projectName);
+            return appLayoutComponent(await serviceCreateComponent(project, module, serviceInJson, services,
+                e && e.message ? e.message : e.toString()), project);
         }
     }
 
@@ -66,11 +66,8 @@ export class ServicesPage {
      * @return {Promise<string>}
      */
     async updateMethodPage(project, module, service, method, error = null) {
-        // try {
         const methodMap = await this.servicesService.getMethod(project, module, service, method);
+        console.log(methodMap);
         return appLayoutComponent(serviceMethodUpdateComponent(project, module, service, methodMap, error));
-        // } catch (e) {
-        //     return this.viewServicePage(project, module, service, error);
-        // }
     }
 }

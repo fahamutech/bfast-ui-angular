@@ -1,4 +1,4 @@
-export const appToolBarComponent = function (projectName) {
+export const appToolBarComponent = function (project) {
     return `
         <div class="shadow">
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
@@ -13,13 +13,13 @@ export const appToolBarComponent = function (projectName) {
               <div class="navbar-nav">
                 <a class="nav-link active" aria-current="page" href="/project">Projects</a>
                 <a style="display: none" id="moduleNav" class="nav-link active" 
-                aria-current="page" href="/project/${projectName}/modules">Modules</a>
+                aria-current="page" href="/project/${project}/modules">Modules</a>
               </div>
             </div>
           </div>
         </nav>
         <script>
-            const name = "${projectName}"
+            const name = "${project}"
             if (name && name.toString()!== "null" && name.toString()!== "undefined") {
                 document.getElementById('moduleNav').setAttribute('style', 'display: block');
             }

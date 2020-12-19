@@ -1,16 +1,16 @@
 /**
  *
  * @param modules - {Array<string>}
- * @param projectName - {string}
+ * @param project - {string}
  * @returns {string}
  */
-export const moduleListComponent = function (modules, projectName) {
+export const moduleListComponent = function (modules, project) {
     let lists = '';
     for (const module of modules) {
         lists += (`
                 <div class="d-flex resource-card">
                    <a style="text-underline: none; font-size: 26px" 
-                   href="/project/${projectName}/modules/${module}/resources">${module}</a>
+                   href="/project/${project}/modules/${module}/resources">${module}</a>
                 </div>
             `);
     }

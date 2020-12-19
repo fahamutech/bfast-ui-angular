@@ -13,6 +13,7 @@
     "**/**.page.mjs",
     "**/**.ui.js",
     "**/**.ui.mjs",
-    "**/*.specs.js"
+    "**/*.specs.js",
+    "**/storage.json"
   ]
 }

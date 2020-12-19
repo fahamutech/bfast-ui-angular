@@ -4,11 +4,11 @@ import {errorMessageComponent} from "./error-message.component.mjs";
  *
  * @param error - {Error}
  * @param moduleName - {string}
- * @param projectName - {string} project name
+ * @param project - {string} project name
  * @param mainModuleContents - {string} project main module contents
  * @returns {string}
  */
-export const moduleViewResources = function (error, moduleName, projectName, mainModuleContents) {
+export const moduleViewResources = function (error, moduleName, project, mainModuleContents) {
     return `
             <div class="container col-xl-9 col-lg-9 col-sm-12 col-md-10 col-9" style="margin-top: 24px">
             
@@ -18,43 +18,43 @@ export const moduleViewResources = function (error, moduleName, projectName, mai
                 
                 <div class="d-flex flex-row flex-wrap">
                     <div class="resource-card">
-                        <a href="/project/${projectName}/modules/${moduleName}/resources/components">
+                        <a href="/project/${project}/modules/${moduleName}/resources/components">
                             <span style="font-size: 26px">Components</span>
                         </a>
                     </div>
                     
                     <div class="resource-card">
-                        <a href="/project/${projectName}/modules/${moduleName}/resources/pages">
+                        <a href="/project/${project}/modules/${moduleName}/resources/pages">
                             <span style="font-size: 26px">Pages</span>
                         </a>
                     </div>
                     
                     <div class="resource-card">
-                        <a href="/project/${projectName}/modules/${moduleName}/resources/services">
+                        <a href="/project/${project}/modules/${moduleName}/resources/services">
                             <span style="font-size: 26px">Services</span>
                         </a>
                     </div>
                     
                     <div class="resource-card">
-                        <a href="/project/${projectName}/modules/${moduleName}/resources/states">
+                        <a href="/project/${project}/modules/${moduleName}/resources/states">
                             <span style="font-size: 26px">States</span>
                         </a>
                     </div>
                     
                     <div class="resource-card">
-                        <a href="/project/${projectName}/modules/${moduleName}/resources/guards">
+                        <a href="/project/${project}/modules/${moduleName}/resources/guards">
                             <span style="font-size: 26px">Guards</span>
                         </a>
                     </div>
                     
                     <div class="resource-card">
-                        <a href="/project/${projectName}/modules/${moduleName}/resources/models">
+                        <a href="/project/${project}/modules/${moduleName}/resources/models">
                             <span style="font-size: 26px">Models</span>
                         </a>
                     </div>
                     
                     <div class="resource-card">
-                        <a href="/project/${projectName}/modules/${moduleName}/resources/styles">
+                        <a href="/project/${project}/modules/${moduleName}/resources/styles">
                             <span style="font-size: 26px">Styles</span>
                         </a>
                     </div>

@@ -3,14 +3,14 @@ import {errorMessageComponent} from "./error-message.component.mjs";
 /**
  *
  * @param error - {string}
- * @param projectName - {string} current project name
+ * @param project - {string} current project name
  * @returns {string}
  */
-export const moduleCreateComponent = function (error, projectName) {
+export const moduleCreateComponent = function (error, project) {
     return (`
         <div style="margin-top: 24px;" class="container col-9">
             ${errorMessageComponent(error)}
-            <form class="form" action="/project/${projectName}/modules/create" method="post" enctype="application/json">
+            <form class="form" action="/project/${project}/modules/create" method="post" enctype="application/json">
                 <div class="form-group">
                     <label for="name" class="form-label">Module Name</label>
                     <input id="name" class="form-control" name="name" type="text" placeholder="module name">

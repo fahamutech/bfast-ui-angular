@@ -189,7 +189,6 @@ export const addInjectionInAServiceSubmit = bfastnode.bfast.functions().onPostHt
             }
             response.redirect(`/project/${project}/modules/${module}/resources/services/${service}`)
         }).catch(reason => {
-            console.log(reason);
             response.redirect(`/project/${project}/modules/${module}/resources/services/${service}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
         });
     }

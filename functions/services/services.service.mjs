@@ -72,8 +72,8 @@ export class ServicesService {
             .join(',');
         const methods = service.methods.map(x => {
             return `
-    async ${x.name}(${x.inputs}) : Promise<any>{
-        ${x.body}
+    async ${x.name}(${x.inputs}): Promise<any> {
+        ${x.body.toString().trim()}
     }`
         }).join('\n');
 
@@ -84,14 +84,15 @@ ${this._getServiceImports(service.injections)}
 
 @Injectable({
     providedIn: 'any'
-)
+})
 export class ${this._firstCaseUpper(service.name)}Service {
     constructor(${serviceInjectionsWithType}){
     }
     
     ${methods}
 }
-            `);
+
+`);
         return 'done write service'
     }
 
@@ -99,7 +100,7 @@ export class ${this._firstCaseUpper(service.name)}Service {
         let im = '';
         for (const injection of injections) {
             const serviceName = this._firstCaseUpper(injection.service)
-            im += `import {${serviceName}Service} from './services/${injection.service.toLowerCase()}.service.ts'\n`
+            im += `import {${serviceName}Service} from './${injection.service.toLowerCase()}.service';\n`
         }
 
         return im;
@@ -151,11 +152,13 @@ export class ${this._firstCaseUpper(service.name)}Service {
                 const inputsMatch = x.toString().trim().match(new RegExp("\\(.*\\)"));
                 let inputs = inputsMatch ? inputsMatch.toString() : '';
                 inputs = inputs.substring(1, inputs.length - 1)
+                let methodBody = x.toString().replace(new RegExp('(async)+.*', 'gim'), '').trim();
+                methodBody = methodBody.substring(0, methodBody.lastIndexOf('}'));
                 return {
                     name: x.toString().trim().match(new RegExp('^[\\w\\d\\s]*')).toString().replace("async", "").trim(),
                     inputs: inputs.trim(),
                     return: "any",
-                    body: x.toString().replace(new RegExp('(async)+.*|}', 'gim'), '').trim()
+                    body: methodBody
                 }
             });
         } else {

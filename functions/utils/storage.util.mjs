@@ -27,4 +27,15 @@ export class StorageUtil {
         nconf.save();
         return data;
     }
+
+    /**
+     *
+     * @param identifier - {string}
+     */
+    removeConfig(identifier) {
+        nconf.use('file', {file: `${this.__dirname}/storage.json`});
+        nconf.load();
+        nconf.set(identifier, undefined);
+        nconf.save();
+    }
 }

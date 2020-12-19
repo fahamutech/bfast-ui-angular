@@ -1,5 +1,12 @@
 {
-  "udicti": {
+  "smartstock-stocks": {
+    "name": "smartstock-stocks",
+    "module": "stock",
+    "projectPath": "/home/josh/WebstormProjects/smartstock-stocks/projects/stocks/src"
+  },
+  "UdictiHUb": {
+    "name": "UdictiHUb",
+    "module": "udicti",
     "projectPath": "/home/josh/WebstormProjects/UdictiHub/src/app"
   }
 }

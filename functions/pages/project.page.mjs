@@ -22,26 +22,26 @@ export class ProjectPage {
         try {
             const value = await this.projectService.getProjects();
             return appLayoutComponent(
-                projectListComponent(value),
+                projectListComponent(value, error),
                 null
             );
         } catch (reason) {
-            return appLayoutComponent(projectListComponent());
+            return appLayoutComponent(projectListComponent([], error), null);
         }
     }
 
     /**
      *
      * @param error - {string}
-     * @param projectName - {string}
+     * @param project - {string}
      * @returns {*}
      */
-    create(error, projectName) {
-        return appLayoutComponent(moduleCreateComponent(error, projectName), projectName);
+    create(error, project) {
+        return appLayoutComponent(moduleCreateComponent(error, project), project);
     }
 
-    async viewModuleResources(moduleName, projectName) {
-        const contents = await this.moduleService.getOtherModuleContents(moduleName);
-        return appLayoutComponent(moduleViewResources(null, moduleName, projectName, contents), projectName)
+    async viewModuleResources(moduleName, project) {
+        const contents = await this.moduleService.getOtherModuleContents(project, moduleName);
+        return appLayoutComponent(moduleViewResources(null, moduleName, project, contents), project)
     }
 }

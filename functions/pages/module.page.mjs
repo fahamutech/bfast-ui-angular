@@ -17,34 +17,34 @@ export class ModulePage {
     /**
      *
      * @param error - {string}
-     * @param projectName - {string}
+     * @param project - {string}
      * @returns {Promise<*>}
      */
-    async index(projectName, error) {
+    async indexPage(project, error) {
         try {
-            const value = await this.moduleService.getModules();
-            value.mainModuleContents = await this.moduleService.getMainModuleContents()
+            const value = await this.moduleService.getModules(project);
+            value.mainModuleContents = await this.moduleService.getMainModuleContents(project)
             return appLayoutComponent(
-                moduleAvailablesComponent(error, value.modules, value.name, value.mainModuleContents),
-                projectName
+                moduleAvailablesComponent(error, value.modules, project, value.name, value.mainModuleContents !== '' ? value.mainModuleContents : null),
+                project
             );
         } catch (reason) {
-            return appLayoutComponent(moduleAvailablesComponent(reason.toString(), []), projectName);
+            return appLayoutComponent(moduleAvailablesComponent(reason.toString(), [], project, '', null), project);
         }
     }
 
     /**
      *
      * @param error - {string}
-     * @param projectName - {string}
+     * @param project - {string}
      * @returns {*}
      */
-    create(error, projectName) {
-        return appLayoutComponent(moduleCreateComponent(error, projectName), projectName);
+    create(error, project) {
+        return appLayoutComponent(moduleCreateComponent(error, project), project);
     }
 
-    async viewModuleResources(moduleName, projectName) {
-        const contents = await this.moduleService.getOtherModuleContents(moduleName);
-        return appLayoutComponent(moduleViewResources(null, moduleName, projectName, contents), projectName)
+    async viewModuleResources(moduleName, project) {
+        const contents = await this.moduleService.getOtherModuleContents(project, moduleName);
+        return appLayoutComponent(moduleViewResources(null, moduleName, project, contents), project)
     }
 }

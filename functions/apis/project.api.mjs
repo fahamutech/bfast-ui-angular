@@ -13,3 +13,31 @@ export const projectAll = bfastnode.bfast.functions().onGetHttpRequest('/project
         });
     }
 );
+
+export const projectAdd = bfastnode.bfast.functions().onPostHttpRequest('/project',
+    (request, response) => {
+        const projectService = new ProjectService(new StorageUtil());
+        const body = JSON.parse(JSON.stringify(request.body));
+        if (body && body.name && body.module && body.projectPath && body.name !== '' && body.module !== '' && body.projectPath !== '') {
+            projectService.addProject(body).then(_ => {
+                response.redirect('/project');
+            }).catch(reason => {
+                response.redirect(`/project?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())}`);
+            });
+        } else {
+            response.redirect(`/project?error=${encodeURIComponent('fill all require fields')}`);
+        }
+    }
+);
+
+export const projectDelete = bfastnode.bfast.functions().onPostHttpRequest('/project/:project/delete',
+    (request, response) => {
+        const projectService = new ProjectService(new StorageUtil());
+        const project = request.params.project;
+        projectService.deleteProject(project).then(_ => {
+            response.redirect('/project');
+        }).catch(reason => {
+            response.redirect('/project?error=' + encodeURIComponent(reason && reason.message ? reason.message : reason.toString()))
+        })
+    }
+);

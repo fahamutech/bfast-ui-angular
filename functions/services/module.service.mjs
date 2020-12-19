@@ -5,23 +5,23 @@ import {promisify} from 'util';
 export class ModuleService {
 
     /**
-     * @param projectPath - {string} root project path
-     * @param projectName - {string} root project name
+     * @param storageUtil
      */
-    constructor(projectPath, projectName) {
-        this.projectPath = projectPath;
-        this.projectName = projectName;
+    constructor(storageUtil) {
+        this.storageUtil = storageUtil;
     }
 
     /**
      *
      * @returns {Promise<{modules: Array<string>, name: string}>}
      */
-    async getModules() {
-        if (this.projectPath) {
-            const modules = await promisify(readdir)(join(this.projectPath, 'modules'));
+    async getModules(project) {
+        const projectPath = this.storageUtil.getConfig(`${project}:projectPath`);
+        const mainModuleName = this.storageUtil.getConfig(`${project}:module`);
+        if (projectPath) {
+            const modules = await promisify(readdir)(join(projectPath, 'modules'));
             return {
-                name: this.projectName,
+                name: mainModuleName,
                 modules: modules
             }
         } else {
@@ -33,19 +33,26 @@ export class ModuleService {
      * get main module contents
      * @returns {Promise<string>}
      */
-    async getMainModuleContents() {
-        if (this.projectPath && this.projectName) {
-            const fileBuffer = await promisify(readFile)(join(this.projectPath, `${this.projectName}.module.ts`));
-            return fileBuffer.toString('utf-8');
-        } else {
-            throw Error("Main module not found");
+    async getMainModuleContents(project) {
+        try{
+            const projectPath = this.storageUtil.getConfig(`${project}:projectPath`);
+            const mainModule = this.storageUtil.getConfig(`${project}:module`);
+            if (projectPath && project) {
+                const fileBuffer = await promisify(readFile)(join(projectPath, `${mainModule}.module.ts`));
+                return fileBuffer.toString();
+            } else {
+                return  '';
+            }
+        }catch (e){
+            return  '';
         }
     }
 
-    async getOtherModuleContents(moduleName) {
-        if (this.projectPath && this.projectName) {
-            const fileBuffer = await promisify(readFile)(join(this.projectPath, 'modules', moduleName, `${moduleName}.module.ts`));
-            return fileBuffer.toString('utf-8');
+    async getOtherModuleContents(project, module) {
+        const projectPath = this.storageUtil.getConfig(`${project}:projectPath`);
+        if (projectPath && project) {
+            const fileBuffer = await promisify(readFile)(join(projectPath, 'modules', module, `${module}.module.ts`));
+            return fileBuffer.toString();
         } else {
             throw Error("Main module not found");
         }
@@ -53,12 +60,15 @@ export class ModuleService {
 
     /**
      *
+     * @param project
      * @param contents - {string}
      * @returns {Promise<unknown>}
      */
-    async updateMainModuleContents(contents) {
+    async updateMainModuleContents(project, contents) {
+        const projectPath = this.storageUtil.getConfig(`${project}:projectPath`);
+        const mainModule = this.storageUtil.getConfig(`${project}:module`);
         if (contents) {
-            return await promisify(writeFile)(join(this.projectPath, `${this.projectName}.module.ts`), contents);
+            return await promisify(writeFile)(join(projectPath, `${mainModule}.module.ts`), contents);
         } else {
             throw Error("module contents required");
         }
@@ -66,19 +76,21 @@ export class ModuleService {
 
     /**
      * create a new module with initial module codes
+     * @param project
      * @param name - {string}
      * @param detail - {string}
      * @returns {Promise<void>}
      */
-    async createModule(name, detail) {
-        if (this.projectPath) {
+    async createModule(project, name, detail) {
+        const projectPath = this.storageUtil.getConfig(`${project}:projectPath`);
+        if (projectPath) {
             if (name && name !== '') {
                 const resources = ["services", "models", "components", "pages", "states", "guards", "styles"]
-                await promisify(mkdir)(join(this.projectPath, 'modules', name));
+                await promisify(mkdir)(join(projectPath, 'modules', name));
                 for (const resource of resources) {
-                    await promisify(mkdir)(join(this.projectPath, 'modules', name, resource));
+                    await promisify(mkdir)(join(projectPath, 'modules', name, resource));
                 }
-                return promisify(writeFile)(join(this.projectPath, 'modules', name, `${name}.module.ts`),
+                return promisify(writeFile)(join(projectPath, 'modules', name, `${name}.module.ts`),
                     `import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterModule, Routes} from '@angular/router';
