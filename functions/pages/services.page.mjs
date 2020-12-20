@@ -42,8 +42,6 @@ export class ServicesPage {
                 serviceInJson = await this.servicesService.serviceFileToJson(serviceName, project, module);
                 services = await this.servicesService.getServices(project, module);
                 services = services.filter(x => x.toString() !== serviceName);
-                console.log(serviceName)
-                console.log(services);
             }
             return appLayoutComponent(await serviceCreateComponent(project, module, serviceInJson, services, error), project);
         } catch (e) {
@@ -67,7 +65,6 @@ export class ServicesPage {
      */
     async updateMethodPage(project, module, service, method, error = null) {
         const methodMap = await this.servicesService.getMethod(project, module, service, method);
-        console.log(methodMap);
         return appLayoutComponent(serviceMethodUpdateComponent(project, module, service, methodMap, error));
     }
 }

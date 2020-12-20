@@ -275,7 +275,6 @@ export class ${this._firstCaseUpper(service.name)}Service {
      */
     async getInjections(project, module, service) {
         const allServices = await this.getServices(project, module);
-        console.log(allServices);
         return allServices.filter(x => x !== service);
     }
 

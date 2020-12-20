@@ -206,13 +206,7 @@ export const deleteInjectionInAServiceSubmit = bfastnode.bfast.functions().onPos
             if (value && value.injections && Array.isArray(value.injections)) {
                 value.injections = value.injections.filter(x => x.service.toString().toLowerCase()
                     !== injection.toString().split('.')[0].toLowerCase());
-                // if (exist.length === 0) {
-                //     value.injections.push({
-                //         name: injection.toString().split('.')[0].toString().toLowerCase() + 'Service'.trim(),
-                //         service: injection.toString().split('.')[0].toString().toLowerCase().trim()
-                //     });
                 await servicesService.jsonToServiceFile(value, project, module)
-                //  }
             }
             response.redirect(`/project/${project}/modules/${module}/resources/services/${service}`)
         }).catch(reason => {
