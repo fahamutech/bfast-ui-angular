@@ -43,7 +43,7 @@ function mainModuleCodeEditor(project, module, mainModuleContents = null) {
             <span style="flex: 1 1 auto"></span>
             <button style="display: none" id="saveCode" onclick="saveCode()" class="btn btn-primary">Update</button>
             <div style="display: none" id="saveProgress" class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
+<!--              <span class="visually-hidden">Loading...</span>-->
             </div>
         </div>
         
@@ -54,7 +54,7 @@ function mainModuleCodeEditor(project, module, mainModuleContents = null) {
                 document.getElementById('saveProgress').setAttribute('style','display:block');
                 document.getElementById('saveCode').setAttribute('style','display:none');
                 const code = editor.getValue();
-                fetch('/project/${project}/module', {
+                fetch('/project/${project}/modules', {
                     method: 'POST',
                     headers: {
                         'content-type': 'application/json'

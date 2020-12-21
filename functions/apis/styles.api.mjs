@@ -1,16 +1,18 @@
 import bfastnode from 'bfastnode'
-import {ServicesPage} from "../pages/services.page.mjs";
-import {ServicesService} from "../services/services.service.mjs";
 import {StorageUtil} from "../utils/storage.util.mjs";
 import {StylesPage} from "../pages/styles.page.mjs";
+import {StylesService} from "../services/styles.service.mjs";
+
+const stylesService = new StylesService(new StorageUtil());
+const stylesPage = new StylesPage(stylesService);
 
 export const viewModuleStyles = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/styles',
     (request, response) => {
-        const servicesService = new ServicesService(new StorageUtil());
+        const stylesService = new StylesService(new StorageUtil());
         const project = request.params.project;
         const module = request.params.module;
-        new StylesPage(servicesService).indexPage(project, module).then(value => {
+        new StylesPage(stylesService).indexPage(project, module).then(value => {
             response.send(value);
         }).catch(_ => {
             response.status(400).send(_);
@@ -21,13 +23,12 @@ export const viewModuleStyles = bfastnode.bfast.functions().onGetHttpRequest(
 export const createModuleStyles = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/styles',
     (request, response) => {
-        const servicesService = new ServicesService(new StorageUtil());
         const project = request.params.project;
         const module = request.params.module;
         const body = JSON.parse(JSON.stringify(request.body));
 
-        function servicePage(error = null) {
-            new ServicesPage(servicesService).indexPage(project, module, error).then(value => {
+        function stylePage(error = null) {
+            stylesPage.indexPage(project, module, error).then(value => {
                 response.send(value);
             }).catch(_ => {
                 response.status(400).send(_);
@@ -35,14 +36,14 @@ export const createModuleStyles = bfastnode.bfast.functions().onPostHttpRequest(
         }
 
         if (body && body.name && body.name !== '') {
-            const serviceName = body.name.toString().toLowerCase();
-            servicesService.createService(project, module, serviceName).then(_ => {
-                servicePage();
+            const styleName = body.name.toString().trim().toLowerCase();
+            stylesService.createStyle(project, module, styleName).then(_ => {
+                stylePage();
             }).catch(reason => {
-                servicePage(reason && reason.message ? reason.message : reason.toString());
+                stylePage(reason && reason.message ? reason.message : reason.toString());
             });
         } else {
-            servicePage("Please enter valid service name");
+            stylePage("Please enter valid style name");
         }
     }
 );
@@ -50,18 +51,17 @@ export const createModuleStyles = bfastnode.bfast.functions().onPostHttpRequest(
 export const viewModuleStyle = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/styles/:style',
     (request, response) => {
-        const servicesService = new ServicesService(new StorageUtil());
         const project = request.params.project;
         const module = request.params.module;
-        const selectedService = request.params.service;
-        if (selectedService) {
-            new ServicesPage(servicesService).viewServicePage(project, module, selectedService, request.query.error).then(value => {
+        const selectedStyle = request.params.style;
+        if (selectedStyle) {
+            stylesPage.viewStylePage(project, module, selectedStyle, request.query.error).then(value => {
                 response.send(value);
             }).catch(_ => {
                 response.status(400).send(_);
             });
         } else {
-            new ServicesPage(servicesService).viewServicePage(project, module,).then(value => {
+            stylesPage.viewStylePage(project, module).then(value => {
                 response.send(value);
             }).catch(_ => {
                 response.status(400).send(_);
@@ -70,3 +70,22 @@ export const viewModuleStyle = bfastnode.bfast.functions().onGetHttpRequest(
     }
 );
 
+
+export const updateModuleStyle = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/:module/resources/styles/:style',
+    (request, response) => {
+        const project = request.params.project;
+        const module = request.params.module;
+        const body = JSON.parse(JSON.stringify(request.body));
+        if (body && body.name && body.name !== '' && body.body !== undefined && body.body !== null) {
+            body.name = body.name.toString().trim().toLowerCase();
+            stylesService.updateStyle(project, module, body).then(_ => {
+                response.send({message: 'done update style'})
+            }).catch(reason => {
+                response.status(400).send(reason.toString());
+            });
+        } else {
+            response.status(400).send("Please enter valid style name and body");
+        }
+    }
+);

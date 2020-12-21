@@ -1,6 +1,6 @@
 import {errorMessageComponent} from "./error-message.component.mjs";
-import {ServicesService} from "../services/services.service.mjs";
 import {StorageUtil} from "../utils/storage.util.mjs";
+import {StylesService} from "../services/styles.service.mjs";
 
 /**
  *
@@ -28,7 +28,7 @@ export const styleListComponent = async function (project, module, styles, error
                         <tr>
                           <th scope="col">#</th>
                           <th scope="col">Name</th>
-<!--                          <th scope="col">Injections</th>-->
+                          <th scope="col">Lines</th>
 <!--                          <th scope="col">Methods</th>-->
                         </tr>
                       </thead>
@@ -36,7 +36,7 @@ export const styleListComponent = async function (project, module, styles, error
                        ${await getTableContents(project, module, styles)}
                       </tbody>
                     </table>
-                    ${newServiceModal(project, module)}
+                    ${newStyleModal(project, module)}
                 </div>
             </div>
         </div>
@@ -44,21 +44,20 @@ export const styleListComponent = async function (project, module, styles, error
 }
 
 
-async function getTableContents(project, module, styles = []) {
+async function getTableContents(project, module, styles = [], lines = 0) {
     let row = '';
     for (const style of styles) {
         row += `<tr style="cursor: pointer">
                   <th scope="row">${styles.indexOf(style) + 1}</th>
                   <td><a href="/project/${project}/modules/${module}/resources/styles/${style}">${style}</a></td>
-<!--                  <td>${await countInjections(project, module, style)}</td>-->
-<!--                  <td>${await countMethods(project, module, styles)}</td>-->
+                  <td>${await countLines(project, module, style)}</td>
                 </tr>`
     }
     return row;
 }
 
 
-function newServiceModal(project, module) {
+function newStyleModal(project, module) {
     return `
     <!-- Modal -->
     <div class="modal fade" id="newServiceModal" data-backdrop="static" data-keyboard="false" tabindex="-1"
@@ -66,47 +65,37 @@ function newServiceModal(project, module) {
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="staticBackdropLabel">Create Method</h5>
+            <h5 class="modal-title" id="staticBackdropLabel">Create Style</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>
           </div>
           <div class="modal-body">
-            <form action="/project/${project}/modules/${module}/resources/services" method="post">
+            <form action="/project/${project}/modules/${module}/resources/styles" method="post">
                  <div>
                     <label class="form-label">Name</label>
-                    <input placeholder="service name" name="name" type="text" class="form-control">
+                    <input placeholder="style name" name="name" type="text" class="form-control">
                  </div>
                  <div style="padding: 8px 0">
                     <button type="submit" class="btn btn-primary btn-block">Save</button>
                  </div>
             </form>
           </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-          </div>
+<!--          <div class="modal-footer">-->
+<!--            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>-->
+<!--          </div>-->
         </div>
       </div>
     </div>
     `
 }
 
-// async function countMethods(project, module, service) {
-//     try {
-//         const storage = new StorageUtil();
-//         const serInJson = await new ServicesService(storage).serviceFileToJson(service, project, module);
-//         return serInJson.methods.length;
-//     } catch (e) {
-//         return 0;
-//     }
-// }
-//
-// async function countInjections(project, module, service) {
-//     try {
-//         const storage = new StorageUtil();
-//         const serInJson = await new ServicesService(storage).serviceFileToJson(service, project, module);
-//         return serInJson.injections.length;
-//     } catch (e) {
-//         return 0;
-//     }
-// }
+async function countLines(project, module, style) {
+    try {
+        const storage = new StorageUtil();
+        const styleInJson = await new StylesService(storage).getStyle(project, module, style);
+        return styleInJson.body.length;
+    } catch (e) {
+        return 0;
+    }
+}
