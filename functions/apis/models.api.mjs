@@ -1,17 +1,17 @@
 import bfastnode from 'bfastnode'
 import {StorageUtil} from "../utils/storage.util.mjs";
-import {StylesPage} from "../pages/styles.page.mjs";
-import {StylesService} from "../services/styles.service.mjs";
+import {ModelsService} from "../services/models.service.mjs";
+import {ModelsPage} from "../pages/models.page.mjs";
 
-const stylesService = new StylesService(new StorageUtil());
-const stylesPage = new StylesPage(stylesService);
+const modelsService = new ModelsService(new StorageUtil());
+const modelsPage = new ModelsPage(modelsService);
 
-export const viewModuleStyles = bfastnode.bfast.functions().onGetHttpRequest(
-    '/project/:project/modules/:module/resources/styles',
+export const viewModuleModels = bfastnode.bfast.functions().onGetHttpRequest(
+    '/project/:project/modules/:module/resources/models',
     (request, response) => {
         const project = request.params.project;
         const module = request.params.module;
-        stylesPage.indexPage(project, module).then(value => {
+        modelsPage.indexPage(project, module).then(value => {
             response.send(value);
         }).catch(_ => {
             response.status(400).send(_);
@@ -19,15 +19,15 @@ export const viewModuleStyles = bfastnode.bfast.functions().onGetHttpRequest(
     }
 );
 
-export const createModuleStyles = bfastnode.bfast.functions().onPostHttpRequest(
-    '/project/:project/modules/:module/resources/styles',
+export const createModuleModels = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/:module/resources/models',
     (request, response) => {
         const project = request.params.project;
         const module = request.params.module;
         const body = JSON.parse(JSON.stringify(request.body));
 
-        function stylePage(error = null) {
-            stylesPage.indexPage(project, module, error).then(value => {
+        function _modelsPage(error = null) {
+            modelsPage.indexPage(project, module, error).then(value => {
                 response.send(value);
             }).catch(_ => {
                 response.status(400).send(_);
@@ -35,32 +35,32 @@ export const createModuleStyles = bfastnode.bfast.functions().onPostHttpRequest(
         }
 
         if (body && body.name && body.name !== '') {
-            const styleName = body.name.toString().trim().toLowerCase();
-            stylesService.createStyle(project, module, styleName).then(_ => {
-                stylePage();
+            const modelName = body.name.toString().trim().toLowerCase();
+            modelsService.createModel(project, module, modelName).then(_ => {
+                _modelsPage();
             }).catch(reason => {
-                stylePage(reason && reason.message ? reason.message : reason.toString());
+                _modelsPage(reason && reason.message ? reason.message : reason.toString());
             });
         } else {
-            stylePage("Please enter valid style name");
+            _modelsPage("Please enter valid model name");
         }
     }
 );
 
-export const viewModuleStyle = bfastnode.bfast.functions().onGetHttpRequest(
-    '/project/:project/modules/:module/resources/styles/:style',
+export const viewModuleModel = bfastnode.bfast.functions().onGetHttpRequest(
+    '/project/:project/modules/:module/resources/models/:model',
     (request, response) => {
         const project = request.params.project;
         const module = request.params.module;
-        const selectedStyle = request.params.style;
+        const selectedStyle = request.params.model;
         if (selectedStyle) {
-            stylesPage.viewStylePage(project, module, selectedStyle, request.query.error).then(value => {
+            modelsPage.viewModelPage(project, module, selectedStyle, request.query.error).then(value => {
                 response.send(value);
             }).catch(_ => {
                 response.status(400).send(_);
             });
         } else {
-            stylesPage.viewStylePage(project, module).then(value => {
+            modelsPage.viewModelPage(project, module).then(value => {
                 response.send(value);
             }).catch(_ => {
                 response.status(400).send(_);
@@ -70,21 +70,21 @@ export const viewModuleStyle = bfastnode.bfast.functions().onGetHttpRequest(
 );
 
 
-export const updateModuleStyle = bfastnode.bfast.functions().onPostHttpRequest(
-    '/project/:project/modules/:module/resources/styles/:style',
+export const updateModuleModel = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/:module/resources/models/:model',
     (request, response) => {
         const project = request.params.project;
         const module = request.params.module;
         const body = JSON.parse(JSON.stringify(request.body));
         if (body && body.name && body.name !== '' && body.body !== undefined && body.body !== null) {
             body.name = body.name.toString().trim().toLowerCase();
-            stylesService.updateStyle(project, module, body).then(_ => {
-                response.send({message: 'done update style'})
+            modelsService.updateModel(project, module, body).then(_ => {
+                response.send({message: 'done update model'})
             }).catch(reason => {
                 response.status(400).send(reason.toString());
             });
         } else {
-            response.status(400).send("Please enter valid style name and body");
+            response.status(400).send("Please enter valid model name and body");
         }
     }
 );
