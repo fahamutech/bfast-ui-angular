@@ -1,6 +1,7 @@
 {
   "name": "functions",
   "version": "20.12.13+0",
+  "type": "module",
   "scripts": {
     "test": "echo \"no test\"",
     "start": "npx bfast fs serve --port 4000"
