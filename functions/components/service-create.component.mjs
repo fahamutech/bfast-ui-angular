@@ -6,7 +6,8 @@ import {serviceMethodsListComponent} from "./service-methods-list.component.mjs"
  *
  * @param project
  * @param module
- * @param serviceInJson
+ * @param service
+ * @param services
  * @param error - {string} - error to show
  * @return {string} - template of service list
  */

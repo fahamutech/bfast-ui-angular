@@ -28,6 +28,7 @@ export const guardListComponent = async function (project, module, guards, error
                         <tr>
                           <th scope="col">#</th>
                           <th scope="col">Name</th>
+                          <th scope="col">Injections</th>
                           <th scope="col">Lines</th>
 <!--                          <th scope="col">Methods</th>-->
                         </tr>
@@ -50,6 +51,7 @@ async function getTableContents(project, module, guards = [], lines = 0) {
         row += `<tr style="cursor: pointer">
                   <th scope="row">${guards.indexOf(guard) + 1}</th>
                   <td><a href="/project/${project}/modules/${module}/resources/guards/${guard}">${guard}</a></td>
+                  <td>${await countInjections(project, module, guard)}</td>
                   <td>${await countLines(project, module, guard)}</td>
                 </tr>`
     }
@@ -95,6 +97,16 @@ async function countLines(project, module, guard) {
         const storage = new StorageUtil();
         const guardInJson = await new GuardsService(storage).getGuard(project, module, guard);
         return guardInJson.body.split(/\r\n|\r|\n/).length;
+    } catch (e) {
+        return 0;
+    }
+}
+
+async function countInjections(project, module, guard) {
+    try {
+        const storage = new StorageUtil();
+        const guardInJson = await new GuardsService(storage).getGuard(project, module, guard);
+        return guardInJson.injections.length;
     } catch (e) {
         return 0;
     }

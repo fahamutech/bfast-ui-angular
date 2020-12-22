@@ -1,15 +1,18 @@
 import {appLayoutComponent} from "../components/app-layout.component.mjs";
 import {guardListComponent} from "../components/guards-list.component.mjs";
 import {guardCreateComponent} from "../components/guard-create.component.mjs";
+import {guardMethodUpdateComponent} from "../components/guard-method-update.component.mjs";
 
 export class GuardsPage {
 
     /**
      *
      * @param guardsService
+     * @param servicesService
      */
-    constructor(guardsService) {
-        this.guardsService = guardsService
+    constructor(guardsService, servicesService) {
+        this.guardsService = guardsService;
+        this.servicesService = servicesService;
     }
 
     /**
@@ -30,21 +33,42 @@ export class GuardsPage {
     }
 
     async viewGuardPage(project, module, guard = null, error = null) {
-        let guardFileInJson = {name: '', body: ''};
-        let guards = [];
+        let guardFileInJson = {name: '', body: '', injections: []};
+        // let guards = [];
+        let services = [];
         try {
+            services = await this.servicesService.getServices(project, module);
             if (guard) {
-                if (!guard.toString().includes('.style.scss')) {
-                    guard += '.style.scss';
+                if (!guard.toString().includes('.guard.ts')) {
+                    guard += '.guard.ts';
                 }
                 guardFileInJson = await this.guardsService.guardFileToJson(project, module, guard);
-                console.log(guardFileInJson);
-                guards = await this.guardsService.getGuards(project, module);
-                guards = guards.filter(x => x.toString() !== guard);
+                // guards = await this.guardsService.getGuards(project, module);
+                // guards = guards.filter(x => x.toString() !== guard);
+                // console.log(guardFileInJson);
             }
-            return appLayoutComponent(await guardCreateComponent(project, module, guardFileInJson, guards, error), project);
+            return appLayoutComponent(await guardCreateComponent(project, module, guardFileInJson, services, error), project);
         } catch (e) {
-            return appLayoutComponent(await guardCreateComponent(project, module, guardFileInJson, guards,
+            console.log(e);
+            return appLayoutComponent(await guardCreateComponent(project, module, guardFileInJson, services,
+                e && e.message ? e.message : e.toString()), project);
+        }
+    }
+
+    /**
+     *
+     * @param project - {string}
+     * @param module - {string}
+     * @param guard - {string}
+     * @param error - {string}
+     * @return {Promise<string>}
+     */
+    async updateGuardPage(project, module, guard, error = null) {
+        try {
+            const guardInJson = await this.guardsService.guardFileToJson(project, module, guard)
+            return appLayoutComponent(guardMethodUpdateComponent(project, module, guardInJson, error), project);
+        } catch (e) {
+            return appLayoutComponent(guardMethodUpdateComponent(project, module, null,
                 e && e.message ? e.message : e.toString()), project);
         }
     }
