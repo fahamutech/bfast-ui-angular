@@ -181,13 +181,13 @@ export const addInjectionInAStateSubmit = bfastnode.bfast.functions().onPostHttp
                     === injection.toString().split('.')[0].toLowerCase());
                 if (exist.length === 0) {
                     value.injections.push({
-                        name: injection.toString().split('.')[0].toString().toLowerCase() + 'State'.trim(),
+                        name: injection.toString().split('.')[0].toString().toLowerCase() + 'Service'.trim(),
                         service: injection.toString().split('.')[0].toString().toLowerCase().trim()
                     });
                     await stateState.jsonToStateFile(value, project, module)
                 }
             }
-            response.redirect(`/project/${project}/modules/${module}/resources/states/${state}`)
+            response.redirect(`/project/${project}/modules/${module}/resources/states/${state}`);
         }).catch(reason => {
             console.log(reason);
             response.redirect(`/project/${project}/modules/${module}/resources/states/${state}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)

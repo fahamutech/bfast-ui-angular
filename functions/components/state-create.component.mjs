@@ -7,6 +7,8 @@ import {stateFieldsTableComponent} from "./state-fields-table.component.mjs";
  *
  * @param project
  * @param module
+ * @param state
+ * @param services
  * @param error - {string} - error to show
  * @return {string} - template of state list
  */
