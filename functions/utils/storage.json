@@ -8,5 +8,10 @@
     "name": "UdictiHUb",
     "module": "udicti",
     "projectPath": "/home/josh/WebstormProjects/UdictiHub/src/app"
+  },
+  "isquaare": {
+    "name": "isquaare",
+    "module": "app",
+    "projectPath": "/home/josh/WebstormProjects/ISquare/src/app"
   }
 }
