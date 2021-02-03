@@ -1,6 +1,7 @@
 import {readdir, readFile, writeFile} from 'fs';
 import {join} from 'path';
 import {promisify} from 'util';
+import {AppUtil} from "../utils/app.util.mjs";
 
 export class ComponentService {
 
@@ -69,7 +70,7 @@ export class ComponentService {
         componentJsonFile.styles = this._geStylesFromComponentFile(componentFile);
         componentJsonFile.template = this._getTemplateFromComponentFile(componentFile);
         // componentJsonFile.fields = this._getComponentFieldFromComponentFile(componentFile);
-        componentJsonFile.methods = this._getMethodsFromComponentFile(componentFile);
+        componentJsonFile.methods = AppUtil.getMethodsFromFile(componentFile);
         return componentJsonFile;
     }
 
@@ -190,38 +191,6 @@ export class ${this._firstCaseUpper(component.name)}Component implements OnInit,
                         state: x.split(':')[1] ? x.split(':')[1].replace('State', '').toLowerCase().trim() : ''
                     }
                 });
-        } else {
-            return [];
-        }
-    }
-
-    _getMethodsFromComponentFile(componentFile) {
-        const reg = new RegExp(`(async)+.*`, 'gim');
-        const results = componentFile.toString().match(reg) ? componentFile.toString().match(reg) : [];
-        const indexes = results.map(x => {
-            return componentFile.toString().indexOf(x);
-        }).filter(x => x > 0);
-        const methods = indexes.map((value, index, array) => {
-            if (index === indexes.length - 1) {
-                let closingTag = componentFile.toString().lastIndexOf("}");
-                return componentFile.toString().substring(value, closingTag);
-            }
-            return componentFile.toString().substring(value, indexes[index + 1]);
-        });
-        if (methods) {
-            return methods.map(x => {
-                const inputsMatch = x.toString().trim().match(new RegExp("\\(.*\\)"));
-                let inputs = inputsMatch ? inputsMatch.toString() : '';
-                inputs = inputs.substring(1, inputs.length - 1)
-                let methodBody = x.toString().replace(new RegExp('(async)+.*', 'gim'), '').trim();
-                methodBody = methodBody.substring(0, methodBody.lastIndexOf('}'));
-                return {
-                    name: x.toString().trim().match(new RegExp('^[\\w\\d\\s]*')).toString().replace("async", "").trim(),
-                    inputs: inputs.trim(),
-                    return: "any",
-                    body: methodBody
-                }
-            });
         } else {
             return [];
         }

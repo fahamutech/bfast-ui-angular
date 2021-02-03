@@ -1,6 +1,7 @@
 import {readdir, readFile, writeFile} from 'fs';
 import {join} from 'path';
 import {promisify} from 'util';
+import {AppUtil} from "../utils/app.util.mjs";
 
 export class GuardsService {
 
@@ -39,7 +40,7 @@ export class GuardsService {
         const guardJsonFile = {};
         guardJsonFile.name = this._getGuardName(guardFile.toString());
         guardJsonFile.body = this._getGuardBody(guardFile.toString());
-        guardJsonFile.injections = this._getInjectionsFromGuardFile(guardFile.toString());
+        guardJsonFile.injections = AppUtil.getInjectionsFromFile(guardFile.toString());
         return guardJsonFile;
     }
 
@@ -153,25 +154,6 @@ export class ${this._firstCaseUpper(guard.name)}Guard implements CanActivate {
             return guardFile.substring(0, guardFile.lastIndexOf('}')).trim();
         } else {
             throw new Error('Fail to get guard body');
-        }
-    }
-
-    _getInjectionsFromGuardFile(guardFile) {
-        const reg = new RegExp('constructor\\(.*\\)');
-        const results = guardFile.toString().match(reg) ? guardFile.toString().match(reg)[0] : [];
-        if (results) {
-            return results.toString()
-                .replace(new RegExp('(constructor\\()*(private)*(readonly)*\\)*', 'gim'), '')
-                .split(',')
-                .filter(x => x !== '')
-                .map(x => {
-                    return {
-                        name: x.split(':')[0] ? x.split(':')[0].trim() : '',
-                        service: x.split(':')[1] ? x.split(':')[1].replace('Service', '').toLowerCase().trim() : ''
-                    }
-                });
-        } else {
-            return [];
         }
     }
 

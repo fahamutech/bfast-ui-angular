@@ -1,6 +1,7 @@
 import {readdir, readFile, writeFile} from 'fs';
 import {join} from 'path';
 import {promisify} from 'util';
+import {AppUtil} from "../utils/app.util.mjs";
 
 export class StateService {
 
@@ -47,7 +48,7 @@ export class StateService {
         const stateFile = await promisify(readFile)(join(projectPath, 'modules', module, 'states', `${stateName}.state.ts`));
         const stateJsonFile = {};
         stateJsonFile.name = stateName;
-        stateJsonFile.injections = this._getInjectionsFromStateFile(stateFile);
+        stateJsonFile.injections = AppUtil.getInjectionsFromFile(stateFile);
         stateJsonFile.states = this._getStateFieldFromStateFile(stateFile);
         stateJsonFile.methods = this._getMethodsFromStateFile(stateFile);
         return stateJsonFile;
@@ -129,25 +130,6 @@ export class ${this._firstCaseUpper(state.name)}State {
             }
             return value;
         }).join('');
-    }
-
-    _getInjectionsFromStateFile(stateFile) {
-        const reg = new RegExp('constructor\\(.*\\)');
-        const results = stateFile.toString().match(reg) ? stateFile.toString().match(reg)[0] : [];
-        if (results) {
-            return results.toString()
-                .replace(new RegExp('(constructor\\()*(private)*(readonly)*\\)*', 'gim'), '')
-                .split(',')
-                .filter(x => x !== '')
-                .map(x => {
-                    return {
-                        name: x.split(':')[0] ? x.split(':')[0].trim() : '',
-                        service: x.split(':')[1] ? x.split(':')[1].replace('Service', '').toLowerCase().trim() : ''
-                    }
-                });
-        } else {
-            return [];
-        }
     }
 
     _getMethodsFromStateFile(stateFile) {

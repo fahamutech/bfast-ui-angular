@@ -2,6 +2,7 @@ import bfastnode from 'bfastnode'
 import {ComponentsPage} from "../pages/components.page.mjs";
 import {ComponentService} from "../services/component.service.mjs";
 import {StorageUtil} from "../utils/storage.util.mjs";
+import {ModuleService} from "../services/module.service.mjs";
 
 export const viewModuleComponents = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/components',
@@ -73,17 +74,33 @@ export const viewModuleComponent = bfastnode.bfast.functions().onGetHttpRequest(
 
 export const updateComponentTemplate = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/components/:component/template',
-    (request, response) => {
-        const componentService = new ComponentService(new StorageUtil());
-        const project = request.params.project;
-        const module = request.params.module;
-        const selectedComponent = request.params.component;
-        new ComponentsPage(componentService).updateTemplatePage(project, module, selectedComponent, request.query.error).then(value => {
-            response.send(value);
-        }).catch(_ => {
-            response.status(400).send(_);
-        });
-    }
+    [
+        (request, response, next) => {
+            const componentService = new ComponentService(new StorageUtil());
+            const project = request.params.project;
+            const module = request.params.module;
+            const selectedComponent = request.params.component;
+            new ComponentsPage(componentService).updateTemplatePage(project, module, selectedComponent, request.query.error).then(value => {
+                request.body._results = value;
+                next();
+            }).catch(_ => {
+                response.status(400).send(_);
+            });
+        },
+        // update module
+        (request, response) => {
+            const moduleService = new ModuleService(new StorageUtil());
+            const project = request.params.project;
+            const module = request.params.module;
+            moduleService.moduleFileToJson(project, module).then(value => {
+                // console.log(value);
+                response.send(request.body._results);
+            }).catch(reason => {
+                console.log(reason);
+                response.status(400).send(reason);
+            });
+        }
+    ]
 );
 
 export const updateComponentTemplateSubmit = bfastnode.bfast.functions().onPostHttpRequest(

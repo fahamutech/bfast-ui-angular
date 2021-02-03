@@ -1,6 +1,7 @@
 import {readdir, readFile, writeFile} from 'fs';
 import {join} from 'path';
 import {promisify} from 'util';
+import {AppUtil} from "../utils/app.util.mjs";
 
 export class ServicesService {
 
@@ -37,8 +38,8 @@ export class ServicesService {
         const serviceFile = await promisify(readFile)(join(projectPath, 'modules', module, 'services', `${serviceName}.service.ts`));
         const serviceJsonFile = {};
         serviceJsonFile.name = serviceName;
-        serviceJsonFile.injections = this._getInjectionsFromServiceFile(serviceFile);
-        serviceJsonFile.methods = this._getMethodsFromServiceFile(serviceFile);
+        serviceJsonFile.injections = AppUtil.getInjectionsFromFile(serviceFile);
+        serviceJsonFile.methods = AppUtil.getMethodsFromFile(serviceFile);
         return serviceJsonFile;
     }
 
@@ -68,7 +69,7 @@ export class ServicesService {
     async jsonToServiceFile(service, project, module) {
         const projectPath = this.storageService.getConfig(`${project}:projectPath`);
         const serviceInjectionsWithType = service.injections
-            .map(x => 'private readonly ' + x.name + ': ' + this._firstCaseUpper(x.service) + 'Service')
+            .map(x => 'private readonly ' + x.name + ': ' + AppUtil.firstCaseUpper(x.service) + 'Service')
             .join(',');
         const methods = service.methods.map(x => {
             return `
@@ -85,7 +86,7 @@ ${this._getServiceImports(service.injections)}
 @Injectable({
     providedIn: 'any'
 })
-export class ${this._firstCaseUpper(service.name)}Service {
+export class ${AppUtil.firstCaseUpper(service.name)}Service {
     constructor(${serviceInjectionsWithType}){
     }
     
@@ -99,71 +100,11 @@ export class ${this._firstCaseUpper(service.name)}Service {
     _getServiceImports(injections = []) {
         let im = '';
         for (const injection of injections) {
-            const serviceName = this._firstCaseUpper(injection.service)
+            const serviceName = AppUtil.firstCaseUpper(injection.service)
             im += `import {${serviceName}Service} from './${injection.service.toLowerCase()}.service';\n`
         }
 
         return im;
-    }
-
-    _firstCaseUpper(name) {
-        return name.toLowerCase().split('').map((value, index, array) => {
-            if (index === 0) {
-                return value.toUpperCase();
-            }
-            return value;
-        }).join('');
-    }
-
-    _getInjectionsFromServiceFile(serviceFile) {
-        const reg = new RegExp('constructor\\(.*\\)');
-        const results = serviceFile.toString().match(reg) ? serviceFile.toString().match(reg)[0] : [];
-        if (results) {
-            return results.toString()
-                .replace(new RegExp('(constructor\\()*(private)*(readonly)*\\)*', 'gim'), '')
-                .split(',')
-                .filter(x => x !== '')
-                .map(x => {
-                    return {
-                        name: x.split(':')[0] ? x.split(':')[0].trim() : '',
-                        service: x.split(':')[1] ? x.split(':')[1].replace('Service', '').toLowerCase().trim() : ''
-                    }
-                });
-        } else {
-            return [];
-        }
-    }
-
-    _getMethodsFromServiceFile(serviceFile) {
-        const reg = new RegExp(`(async)+.*`, 'gim');
-        const results = serviceFile.toString().match(reg) ? serviceFile.toString().match(reg) : [];
-        const indexes = results.map(x => {
-            return serviceFile.toString().indexOf(x);
-        }).filter(x => x > 0);
-        const methods = indexes.map((value, index, array) => {
-            if (index === indexes.length - 1) {
-                let closingTag = serviceFile.toString().lastIndexOf("}");
-                return serviceFile.toString().substring(value, closingTag);
-            }
-            return serviceFile.toString().substring(value, indexes[index + 1]);
-        });
-        if (methods) {
-            return methods.map(x => {
-                const inputsMatch = x.toString().trim().match(new RegExp("\\(.*\\)"));
-                let inputs = inputsMatch ? inputsMatch.toString() : '';
-                inputs = inputs.substring(1, inputs.length - 1)
-                let methodBody = x.toString().replace(new RegExp('(async)+.*', 'gim'), '').trim();
-                methodBody = methodBody.substring(0, methodBody.lastIndexOf('}'));
-                return {
-                    name: x.toString().trim().match(new RegExp('^[\\w\\d\\s]*')).toString().replace("async", "").trim(),
-                    inputs: inputs.trim(),
-                    return: "any",
-                    body: methodBody
-                }
-            });
-        } else {
-            return [];
-        }
     }
 
     /**

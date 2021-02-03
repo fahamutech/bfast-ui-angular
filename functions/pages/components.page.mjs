@@ -72,7 +72,6 @@ export class ComponentsPage {
 
     async updateTemplatePage(project, module, selectedComponent, error) {
         const template = await this.componentsService.getTemplate(project, module, selectedComponent);
-        console.log(template, 'template ***********');
         return appLayoutComponent(componentTemplateUpdateComponent(project, module, selectedComponent, template, error));
     }
 }
