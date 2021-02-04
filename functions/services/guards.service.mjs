@@ -31,7 +31,6 @@ export class GuardsService {
      * @return {Promise<void>}
      */
     async guardFileToJson(project, module, guard) {
-        console.log(guard);
         if (guard.toString().includes('.guard.ts')) {
             guard = guard.toString().split('.')[0];
         }
@@ -126,19 +125,19 @@ export class ${this._firstCaseUpper(guard.name)}Guard implements CanActivate {
     }
 
     _getGuardName(guardFile) {
-        // export class TestGuard implements CanActivate
-        const reg = new RegExp('(export).*(class).*(\\{)', 'i');
+        const reg = new RegExp('(export).*(class).*({)', 'i');
         const result = guardFile.toString().match(reg);
         if (result && result[0]) {
-            return result[0].toString()
-                .replace('export', '')
-                .replace('class', '')
-                .replace('Guard', '')
-                .replace('implements', '')
-                .replace('CanActivate', '')
-                .replace('{', '')
-                .trim()
-                .toLowerCase();
+            return AppUtil.camelCaseToKebal(
+                result[0].toString()
+                    .replace('export', '')
+                    .replace('class', '')
+                    .replace('Guard', '')
+                    .replace('implements', '')
+                    .replace('CanActivate', '')
+                    .replace('{', '')
+                    .trim()
+            );
         } else {
             throw new Error('Fail to get guard name');
         }
@@ -146,7 +145,7 @@ export class ${this._firstCaseUpper(guard.name)}Guard implements CanActivate {
 
     _getGuardBody(guardFile) {
         guardFile = guardFile.toString();
-        const reg = new RegExp('(canActivate).*(\\{)', 'gm');
+        const reg = new RegExp('(canActivate).*(.|\\n)+?(<.*>.*{)', 'gm');
         const result = guardFile.toString().match(reg);
         if (result && result[0]) {
             guardFile = guardFile.substring(guardFile.indexOf(result[0]), guardFile.lastIndexOf('}'));

@@ -14,6 +14,28 @@ export class AppUtil {
         }).join('');
     }
 
+    /**
+     *
+     * @param kebalCase {string}
+     * @return {*}
+     */
+    static kebalCaseToCamelCase(kebalCase) {
+        return kebalCase
+            .trim()
+            .split('-')
+            .map(y => AppUtil.firstCaseUpper(y))
+            .join('')
+    }
+
+    static camelCaseToKebal(camelCase) {
+        let guardNameParts = camelCase.match(new RegExp('[A-Z][a-z]+', 'g'));
+        if (guardNameParts) {
+            return guardNameParts.map(x => x.toLowerCase()).join('-');
+        } else {
+            return camelCase;
+        }
+    }
+
     static getInjectionsFromFile(file) {
         const reg = new RegExp('(constructor).*\:(.|\\n)+?\\)', 'ig');
         const results = file.toString().match(reg) ? file.toString().match(reg)[0] : [];
