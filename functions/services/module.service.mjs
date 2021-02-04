@@ -127,8 +127,8 @@ export class WebModule {
      *     routes: {
      *         path: string,
      *         guards: Array<*>,
-     *         component: *
-     *     },
+     *         page: *
+     *     }[],
      *     declarations: Array<*>,
      *     exports: Array<*>,
      *     imports: Array<{name: string, ref: string}>,
@@ -152,7 +152,6 @@ export class WebModule {
         moduleJson.imports = this._getUserImportsFromModuleFile(moduleFile);
         moduleJson.injections = AppUtil.getInjectionsFromFile(moduleFile);
         moduleJson.constructor = AppUtil.getConstructorBodyFromModuleFile(moduleFile);
-        console.log(moduleJson);
         return moduleJson;
     }
 
@@ -170,9 +169,9 @@ export class WebModule {
                 .replace(new RegExp('const.*routes.*\:.*\=', 'gim'), '')
                 .replace(';', '')
                 .trim();
-            let routesItemsMatch = routesString.toString().match(new RegExp('\{.*\}', 'igm'));
+            let routesItemsMatch = routesString.toString().match(new RegExp('\{(.|\\n)+?\}', 'igm'));
             if (!routesItemsMatch) {
-                routesItemsMatch = []
+                routesItemsMatch = [];
             }
             let routesItems = routesItemsMatch
                 .map(x =>
@@ -288,15 +287,17 @@ export class WebModule {
         }
     }
 
-    // @angular module must be automated during save module file
-    // components, service, guards must be auto imported.
     _getUserImportsFromModuleFile(moduleFile) {
         const reg = new RegExp('(import).*(.|\\n)*(from).*;', 'ig');
         let results = moduleFile.toString().match(reg) ? moduleFile.toString().match(reg)[0] : [];
         if (results) {
             results = results.toString()
-                // remove angular core and material imports
-                .replace(new RegExp('(import).*(@angular).*', 'ig'), '')
+                // remove angular core imports
+                .replace(new RegExp('(import).*(@angular/core).*', 'ig'), '')
+                // remove angular route imports
+                .replace(new RegExp('(import).*(@angular/router).*', 'ig'), '')
+                // remove angular common imports
+                .replace(new RegExp('(import).*(@angular/common).*', 'ig'), '')
                 // remove component imports
                 .replace(new RegExp('(import).*(\\.\/component).*', 'ig'), '')
                 // remove page imports
@@ -326,7 +327,17 @@ export class WebModule {
                         ref: xParts[1] ? xParts[1].replace(new RegExp('[\'\"]', 'ig'), '').trim() : null
                     }
                 });
-            return results;
+            const singleImports = results.filter(x => x.name.split(',').length === 1);
+            const multipleImports = results.filter(x => x.name.split(',').length > 1);
+            multipleImports.forEach(mImport => {
+                singleImports.push(...mImport.name.split(',').map(y => {
+                    return {
+                        name: y.trim(),
+                        ref: mImport.ref
+                    }
+                }))
+            });
+            return singleImports;
         } else {
             return [];
         }
@@ -335,6 +346,7 @@ export class WebModule {
     /**
      *
      * @param project {string}
+     * @param module {string}
      * @param moduleJson {{
      *     name: string,
      *     routes: {
@@ -350,7 +362,7 @@ export class WebModule {
      * }}
      * @return {Promise<*>}
      */
-    async moduleJsonToFile(project, moduleJson) {
+    async moduleJsonToFile(project, module, moduleJson) {
         module = module.replace('.module.ts', '').trim();
         const projectPath = this.storageService.getConfig(`${project}:projectPath`);
         const moduleInjectionsWithType = moduleJson.injections.map(
@@ -363,12 +375,11 @@ import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
 import {Routes} from '@angular/router';
 import {ROUTES} from '@angular/router';
-{this._getAngularMaterialImports()}
 ${this._getServiceImports(moduleJson.injections)}
 ${this._getGuardsImports(moduleJson.routes)}
-${this._getComponentsImports()}
-${this._getPagesImports()}
-${moduleJson.imports.map(x => `import {${x.name} from ${x.ref};`).join('\n')}
+${await this._getComponentsImports(project, module)}
+${await this._getPagesImports(project, module)}
+${moduleJson.imports.map(x => `import {${x.name}} from '${x.ref}';`).join('\n')}
 
 const routes: Routes = [
    ${this._getModuleRoutesFromModuleJson(moduleJson.routes)}
@@ -376,7 +387,7 @@ const routes: Routes = [
 
 @NgModule({
   declarations: [
-     ${moduleJson.declarations.map(x => x.toString().concat(',')).join('\n')}
+     ${moduleJson.declarations.map(x => x.toString().concat(',')).join('\n     ')}
   ],
   imports: [
     CommonModule,
@@ -390,23 +401,22 @@ const routes: Routes = [
         }
       ]
     },
-    ${moduleJson.imports.map(x => x.name.concat(',')).join('\n')}
+    ${moduleJson.imports.map(x => x.name.concat(',')).join('\n    ')}
   ],
   exports: [
-    ${moduleJson.exports.map(x => x.toString().concat('Component,')).join('\n')}
+    ${moduleJson.exports.map(x => x.toString().concat('Component,')).join('\n    ')}
   ],
 })
 export class ${AppUtil.firstCaseUpper(moduleJson.name)}Module {
     constructor(${moduleInjectionsWithType}){
         ${moduleJson.constructor}
-    }//end
+    }// end
 }
 
 `
-        // await promisify(writeFile)(
-        //     join(projectPath, 'modules', moduleJson.name, `${moduleJson.name}.module.ts`), moduleInString
-        // );
-        console.log(moduleInString);
+        await promisify(writeFile)(
+            join(projectPath, 'modules', moduleJson.name, `${moduleJson.name}.module.ts`), moduleInString
+        );
         return 'done write module'
     }
 
@@ -423,8 +433,8 @@ export class ${AppUtil.firstCaseUpper(moduleJson.name)}Module {
      */
     _getModuleRoutesFromModuleJson(routes) {
         return routes.map(x => {
-            return `{ path: '${x.path}', canActivate: [ ${x.guards.map(y => y.toString().trim().concat('Guard')).join(',')} ], component: ${x.page}Page }`
-        }).join('\n')
+            return `{ path: '${x.path}', canActivate: [ ${x.guards.filter(x => x !== '').map(y => y.toString().trim().concat('Guard')).join(',')} ], component: ${x.page}Page },`
+        }).join('\n   ')
     }
 
     _getServiceImports(injections = []) {
@@ -438,17 +448,92 @@ export class ${AppUtil.firstCaseUpper(moduleJson.name)}Module {
 
     /**
      *
-     * @param guards {string[]}
+     * @param routes {{
+     *         path: string,
+     *         guards: Array<*>,
+     *         page: *
+     *     }[]
+     *     }
      * @return {string}
      * @private
      */
-    _getGuardsImports(guards) {
-        let im = '';
-        for (const guard of guards) {
-            const guardName = AppUtil.firstCaseUpper(guard);
+    _getGuardsImports(routes) {
+        let im = [];
+        let result = '';
+        routes.forEach(route => {
+            route.guards.forEach(guard => {
+                const guardName = AppUtil.firstCaseUpper(guard);
+                let guardNameParts = guardName.match(new RegExp('[A-Z][a-z]+', 'g'));
+                if (guardNameParts) {
+                    guardNameParts.map(x => x.toLowerCase()).join('-');
+                    im.push(`import {${guardName}Guard} from './guards/${guardNameParts}.guard';`);
+                }
+            });
+        })
+        return result.concat(im.filter(x => x !== '').join('\n'));
+    }
 
-            im += `import {${guardName}Guard} from './guards/${injection.service.toLowerCase()}.guard';\n`
+    /**
+     *
+     * @param project {string} - current project
+     * @param module {string} - current module
+     * @return {Promise<string>}
+     * @private
+     */
+    async _getComponentsImports(project, module) {
+        if (module.toString().includes('.module.ts')) {
+            module = module.toString().split('.')[0];
         }
-        return im;
+        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        /**
+         *
+         * @type {string[]}
+         */
+        let components = await promisify(readdir)(join(projectPath, 'modules', module, 'components'));
+
+        return components.map(x => {
+            const componentName = x.toString()
+                .replace('.component.ts', '')
+                .trim()
+                .split('-')
+                .map(y => AppUtil.firstCaseUpper(y))
+                .join('')
+                .concat('Component');
+            return `import {${componentName}} from './components/${x.replace('.ts', '').trim()}';`
+        }).join('\n');
+    }
+
+    /**
+     *
+     * @param project {string} - current project
+     * @param module {string} - current module
+     * @return {Promise<string>}
+     * @private
+     */
+    async _getPagesImports(project, module) {
+        if (module.toString().includes('.module.ts')) {
+            module = module.toString().split('.')[0];
+        }
+        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        /**
+         *
+         * @type {string[]}
+         */
+        let pages = await promisify(readdir)(join(projectPath, 'modules', module, 'pages'));
+
+        return pages.map(x => {
+            const componentName = x.toString()
+                .replace('.page.ts', '')
+                .trim()
+                .split('-')
+                .map(y => AppUtil.firstCaseUpper(y))
+                .join('')
+                .concat('Page');
+            return `import {${componentName}} from './pages/${x.replace('.ts', '').trim()}';`
+        }).join('\n');
+    }
+
+    _getAngularMaterialImports() {
+        return '';
     }
 }

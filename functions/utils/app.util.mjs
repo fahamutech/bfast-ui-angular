@@ -76,7 +76,7 @@ export class AppUtil {
             result = result.toString()
                 .replace(new RegExp('(constructor).*:(.|\\n)+?\\).*', 'ig'), '')
                 .replace(new RegExp('(constructor).*(.|\\n)+?\\).*', 'ig'), '')
-                .replace(new RegExp('\}.*', 'ig'), '')
+                .replace(new RegExp('\}.*(end)', 'ig'), '')
                 .trim()
             return result;
         } else {

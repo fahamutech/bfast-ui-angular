@@ -93,7 +93,8 @@ export const updateComponentTemplate = bfastnode.bfast.functions().onGetHttpRequ
             const project = request.params.project;
             const module = request.params.module;
             moduleService.moduleFileToJson(project, module).then(value => {
-                // console.log(value);
+                return moduleService.moduleJsonToFile(project, module, value);
+            }).then(value => {
                 response.send(request.body._results);
             }).catch(reason => {
                 console.log(reason);
