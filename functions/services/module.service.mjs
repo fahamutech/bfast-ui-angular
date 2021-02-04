@@ -463,11 +463,8 @@ export class ${AppUtil.firstCaseUpper(moduleJson.name)}Module {
         routes.forEach(route => {
             route.guards.forEach(guard => {
                 const guardName = AppUtil.firstCaseUpper(guard);
-                let guardNameParts = guardName.match(new RegExp('[A-Z][a-z]+', 'g'));
-                if (guardNameParts) {
-                    guardNameParts.map(x => x.toLowerCase()).join('-');
-                    im.push(`import {${guardName}Guard} from './guards/${guardNameParts}.guard';`);
-                }
+                let guardNameInKebal = AppUtil.camelCaseToKebal(guardName);
+                im.push(`import {${guardName}Guard} from './guards/${guardNameInKebal}.guard';`);
             });
         })
         return result.concat(im.filter(x => x !== '').join('\n'));
@@ -492,12 +489,8 @@ export class ${AppUtil.firstCaseUpper(moduleJson.name)}Module {
         let components = await promisify(readdir)(join(projectPath, 'modules', module, 'components'));
 
         return components.map(x => {
-            const componentName = x.toString()
-                .replace('.component.ts', '')
-                .trim()
-                .split('-')
-                .map(y => AppUtil.firstCaseUpper(y))
-                .join('')
+            const componentName = AppUtil
+                .kebalCaseToCamelCase(x.toString().replace('.component.ts', ''))
                 .concat('Component');
             return `import {${componentName}} from './components/${x.replace('.ts', '').trim()}';`
         }).join('\n');
@@ -522,12 +515,8 @@ export class ${AppUtil.firstCaseUpper(moduleJson.name)}Module {
         let pages = await promisify(readdir)(join(projectPath, 'modules', module, 'pages'));
 
         return pages.map(x => {
-            const componentName = x.toString()
-                .replace('.page.ts', '')
-                .trim()
-                .split('-')
-                .map(y => AppUtil.firstCaseUpper(y))
-                .join('')
+            const componentName = AppUtil
+                .kebalCaseToCamelCase(x.replace('.page.ts', ''))
                 .concat('Page');
             return `import {${componentName}} from './pages/${x.replace('.ts', '').trim()}';`
         }).join('\n');
