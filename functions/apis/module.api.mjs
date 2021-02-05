@@ -82,6 +82,7 @@ export const moduleResourcesView = bfastnode.bfast.functions().onGetHttpRequest(
         modulePage.viewModuleResources(request.params.module, project).then(value => {
             response.send(value);
         }).catch(reason => {
+            console.log(reason);
             response.redirect(`/project/${project}/modules?error=${reason.toString()}`);
         });
     }
@@ -169,6 +170,54 @@ export const deleteExportInModuleSubmit = bfastnode.bfast.functions().onPostHttp
             response.redirect(`/project/${project}/modules/${module}/resources`);
         }).catch(reason => {
             response.redirect(`/project/${project}/modules/${module}/resources?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
+        });
+    }
+);
+
+export const addImportToModuleSubmit = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/:module/resources/imports',
+    (request, response) => {
+        const project = request.params.project;
+        const module = request.params.module;
+        const body = JSON.parse(JSON.stringify(request.body));
+        if (body && body.name && body.ref) {
+            _moduleService.moduleFileToJson(project, module).then(async value => {
+                if (value && value.imports && Array.isArray(value.imports)) {
+                    const exist = value.imports.filter(x => x.name.toString().toLowerCase()
+                        === AppUtil.kebalCaseToCamelCase(body.name.toString().split('.')[0]).toLowerCase());
+                    if (exist.length === 0) {
+                        value.imports.push({
+                            name: AppUtil.kebalCaseToCamelCase(body.name.toString().split('.')[0]),
+                            ref: body.ref.toString().replace('.ts', '')
+                        });
+                        await _moduleService.moduleJsonToFile(project, module, value);
+                    }
+                }
+                response.redirect(`/project/${project}/modules/${module}/resources`);
+            }).catch(reason => {
+                response.redirect(`/project/${project}/modules/${module}/resources?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`);
+            });
+        } else {
+            response.redirect(`/project/${project}/modules/${module}/resources?error=${encodeURIComponent('name and ref attribute in a body is required')})`);
+        }
+    }
+);
+
+export const deleteImportInModuleSubmit = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/:module/resources/imports/:name/delete',
+    (request, response) => {
+        const project = request.params.project;
+        const module = request.params.module;
+        const name = request.params.name;
+        _moduleService.moduleFileToJson(project, module).then(async value => {
+            if (value && value.imports && Array.isArray(value.imports)) {
+                value.imports = value.imports.filter(x => x.name.toString().toLowerCase()
+                    !== name.toString().trim().toLowerCase());
+                await _moduleService.moduleJsonToFile(project, module, value);
+            }
+            response.redirect(`/project/${project}/modules/${module}/resources`);
+        }).catch(reason => {
+            response.redirect(`/project/${project}/modules/${module}/resources?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`);
         });
     }
 );

@@ -50,6 +50,7 @@ export class ModulePage {
 
     async viewModuleResources(moduleName, project) {
         const contents = await this.moduleService.getOtherModuleContents(project, moduleName);
+        const module = await this.moduleService.getModules(project);
         const moduleObject = await this.moduleService.moduleFileToJson(project, moduleName);
         const services = await this.servicesService.getServices(project, moduleName);
         const components = await this.componentService.getComponents(project, moduleName);
@@ -58,7 +59,9 @@ export class ModulePage {
                 null, moduleName, project, contents, moduleObject.injections,
                 services ? services : [],
                 moduleObject.exports,
-                components
+                components,
+                moduleObject.imports,
+                module.modules
             ),
             project
         )

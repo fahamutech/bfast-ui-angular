@@ -19,7 +19,7 @@ export const guardListComponent = async function (project, module, guards, error
                      <h2>Guards</h2>
                      <span style="flex: 1 1 auto"></span>
                      <a>
-                        <button data-toggle="modal" data-target="#newServiceModal" class="btn btn-sm btn-primary">New Style</button>
+                        <button data-toggle="modal" data-target="#newServiceModal" class="btn btn-sm btn-primary">New Guard</button>
                      </a>
                 </div>
                 <div class="shadow">

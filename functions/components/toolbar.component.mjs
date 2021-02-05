@@ -1,6 +1,6 @@
 export const appToolBarComponent = function (project) {
     return `
-        <div class="shadow">
+        <div class="shadow" style="z-index: 1000; position:sticky;top: 0;">
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
           <div class="container-fluid">
             <a class="navbar-brand" href="#">Bfast::UI</a>
