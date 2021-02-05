@@ -1,5 +1,6 @@
 import {errorMessageComponent} from "./error-message.component.mjs";
 import {moduleInjectionsTableComponent} from "./module-injections-table.component.mjs";
+import {moduleExportsTableComponent} from "./module-exports-table.component.mjs";
 
 /**
  *
@@ -9,9 +10,13 @@ import {moduleInjectionsTableComponent} from "./module-injections-table.componen
  * @param mainModuleContents - {string} project main module contents
  * @param injections {Array<*>}
  * @param services {Array<*>}
+ * @param exports
+ * @param components
  * @returns {string}
  */
-export const moduleViewResources = async function (error, moduleName, project, mainModuleContents, injections = [], services = []) {
+export const moduleViewResources = async function (
+    error, moduleName, project, mainModuleContents,
+    injections = [], services = [], exports = [], components = []) {
     return `
             <div class="container col-xl-9 col-lg-9 col-sm-12 col-md-10 col-9" style="margin-top: 24px">
             
@@ -67,6 +72,8 @@ export const moduleViewResources = async function (error, moduleName, project, m
                 ${await moduleInjectionsTableComponent(project, moduleName, injections, services)}
                 
                 <hr>
+                
+                ${await moduleExportsTableComponent(project, moduleName, exports, components)}
                 
 <!--                <div class="d-flex flex-row" style="align-items: center; margin: 8px 0">-->
 <!--                    <h2 style="margin: 0">${moduleName}.module.ts</h2>-->
