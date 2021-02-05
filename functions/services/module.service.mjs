@@ -369,7 +369,7 @@ export class WebModule {
             x => 'private readonly ' + x.name + ': ' + AppUtil.firstCaseUpper(x.service) + 'Service'
         ).join(',');
 
-        const moduleInString = `import bfast from 'bfastjs';
+        const moduleInString = `import {bfast} from 'bfastjs';
 import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
@@ -438,12 +438,13 @@ export class ${AppUtil.firstCaseUpper(moduleJson.name)}Module {
     }
 
     _getServiceImports(injections = []) {
-        let im = '';
+        let im = new Set();
+        let result = '';
         for (const injection of injections) {
             const serviceName = AppUtil.firstCaseUpper(injection.service)
-            im += `import {${serviceName}Service} from './services/${injection.service.toLowerCase()}.service';\n`
+            im.add(`import {${serviceName}Service} from './services/${injection.service.toLowerCase()}.service';`)
         }
-        return im;
+        return result.concat(Array.from(im).filter(x => x !== '').join('\n'));
     }
 
     /**
@@ -458,16 +459,18 @@ export class ${AppUtil.firstCaseUpper(moduleJson.name)}Module {
      * @private
      */
     _getGuardsImports(routes) {
-        let im = [];
+        let im = new Set();
         let result = '';
         routes.forEach(route => {
             route.guards.forEach(guard => {
                 const guardName = AppUtil.firstCaseUpper(guard);
                 let guardNameInKebal = AppUtil.camelCaseToKebal(guardName);
-                im.push(`import {${guardName}Guard} from './guards/${guardNameInKebal}.guard';`);
+                if (guardNameInKebal !== '') {
+                    im.add(`import {${guardName}Guard} from './guards/${guardNameInKebal}.guard';`);
+                }
             });
         })
-        return result.concat(im.filter(x => x !== '').join('\n'));
+        return result.concat(Array.from(im).filter(x => x !== '').join('\n'));
     }
 
     /**

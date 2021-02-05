@@ -6,7 +6,7 @@ export class AppUtil {
      * @public
      */
     static firstCaseUpper(name) {
-        return name.toLowerCase().split('').map((value, index, array) => {
+        return name.split('').map((value, index, array) => {
             if (index === 0) {
                 return value.toUpperCase();
             }
@@ -96,9 +96,9 @@ export class AppUtil {
         let result = moduleFile.toString().match(reg) ? moduleFile.toString().match(reg)[0] : [];
         if (result) {
             result = result.toString()
-                .replace(new RegExp('(constructor).*:(.|\\n)+?\\).*', 'ig'), '')
-                .replace(new RegExp('(constructor).*(.|\\n)+?\\).*', 'ig'), '')
-                .replace(new RegExp('\}.*(end)', 'ig'), '')
+                .replace(new RegExp('(constructor).*\\(.*(.|\\n)*.*\\).*{', 'ig'), '')
+                // .replace(new RegExp('(constructor).*(.|\\n)+?\\).*', 'ig'), '')
+                .replace(new RegExp('}.*\\/\\/.*(end)', 'ig'), '')
                 .trim()
             return result;
         } else {
