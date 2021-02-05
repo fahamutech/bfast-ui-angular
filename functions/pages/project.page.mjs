@@ -42,6 +42,6 @@ export class ProjectPage {
 
     async viewModuleResources(moduleName, project) {
         const contents = await this.moduleService.getOtherModuleContents(project, moduleName);
-        return appLayoutComponent(moduleViewResources(null, moduleName, project, contents), project)
+        return appLayoutComponent(await moduleViewResources(null, moduleName, project, contents), project)
     }
 }

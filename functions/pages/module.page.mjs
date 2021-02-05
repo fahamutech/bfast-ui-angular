@@ -2,16 +2,19 @@ import {appLayoutComponent} from "../components/app-layout.component.mjs";
 import {moduleAvailablesComponent} from "../components/module-availables.component.mjs";
 import {moduleCreateComponent} from "../components/module-create.component.mjs";
 import {moduleViewResources} from "../components/module-view-resources.component.mjs";
+import {ModuleService} from '../services/module.service.mjs'
 
 
 export class ModulePage {
 
     /**
      *
-     * @param moduleService - {ModuleService}
+     * @param moduleService {ModuleService}
+     * @param servicesService {ServicesService}
      */
-    constructor(moduleService) {
+    constructor(moduleService, servicesService) {
         this.moduleService = moduleService;
+        this.servicesService = servicesService;
     }
 
     /**
@@ -45,6 +48,14 @@ export class ModulePage {
 
     async viewModuleResources(moduleName, project) {
         const contents = await this.moduleService.getOtherModuleContents(project, moduleName);
-        return appLayoutComponent(moduleViewResources(null, moduleName, project, contents), project)
+        const moduleObject = await this.moduleService.moduleFileToJson(project, moduleName);
+        let services = await this.servicesService.getServices(project, moduleName);
+        return appLayoutComponent(
+            await moduleViewResources(
+                null, moduleName, project, contents, moduleObject.injections,
+                services ? services : []
+            ),
+            project
+        )
     }
 }
