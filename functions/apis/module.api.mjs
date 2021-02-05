@@ -5,7 +5,8 @@ import {ModulePage} from "../pages/module.page.mjs";
 
 const storageUtil = new StorageUtil();
 
-export const moduleHome = bfastnode.bfast.functions().onGetHttpRequest('/project/:project/modules',
+export const moduleHome = bfastnode.bfast.functions().onGetHttpRequest(
+    '/project/:project/modules',
     (request, response) => {
         const project = request.params.project;
         const _moduleService = new ModuleService(storageUtil);
@@ -18,7 +19,8 @@ export const moduleHome = bfastnode.bfast.functions().onGetHttpRequest('/project
     }
 );
 
-export const moduleHomeUpdateMainModule = bfastnode.bfast.functions().onPostHttpRequest('/project/:project/modules',
+export const moduleHomeUpdateMainModule = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules',
     (request, response) => {
         const project = request.params.project;
         const _moduleService = new ModuleService(storageUtil);
@@ -30,7 +32,8 @@ export const moduleHomeUpdateMainModule = bfastnode.bfast.functions().onPostHttp
     }
 );
 
-export const moduleCreate = bfastnode.bfast.functions().onGetHttpRequest('/project/:project/modules/create',
+export const moduleCreate = bfastnode.bfast.functions().onGetHttpRequest(
+    '/project/:project/modules/create',
     (request, response) => {
 
         const project = request.params.project;
