@@ -184,10 +184,10 @@ export const addImportToModuleSubmit = bfastnode.bfast.functions().onPostHttpReq
             _moduleService.moduleFileToJson(project, module).then(async value => {
                 if (value && value.imports && Array.isArray(value.imports)) {
                     const exist = value.imports.filter(x => x.name.toString().toLowerCase()
-                        === AppUtil.kebalCaseToCamelCase(body.name.toString().split('.')[0]).toLowerCase());
+                        === AppUtil.kebalCaseToCamelCase(body.name.toString().split('.')[0]).concat('Module').toLowerCase());
                     if (exist.length === 0) {
                         value.imports.push({
-                            name: AppUtil.kebalCaseToCamelCase(body.name.toString().split('.')[0]),
+                            name: AppUtil.kebalCaseToCamelCase(body.name.toString().split('.')[0]).concat('Module'),
                             ref: body.ref.toString().replace('.ts', '')
                         });
                         await _moduleService.moduleJsonToFile(project, module, value);

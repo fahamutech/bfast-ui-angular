@@ -17,7 +17,7 @@ export class AppUtil {
     /**
      *
      * @param kebalCase {string}
-     * @return {*}
+     * @return {string}
      */
     static kebalCaseToCamelCase(kebalCase) {
         return kebalCase
@@ -27,6 +27,11 @@ export class AppUtil {
             .join('')
     }
 
+    /**
+     *
+     * @param camelCase {string}
+     * @return {string}
+     */
     static camelCaseToKebal(camelCase) {
         let guardNameParts = camelCase.match(new RegExp('[A-Z][a-z]+', 'g'));
         if (guardNameParts) {
