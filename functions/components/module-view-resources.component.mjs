@@ -1,6 +1,7 @@
 import {errorMessageComponent} from "./error-message.component.mjs";
 import {moduleInjectionsTableComponent} from "./module-injections-table.component.mjs";
 import {moduleExportsTableComponent} from "./module-exports-table.component.mjs";
+import {moduleImportsTableComponent} from "./module-imports-table.component.mjs";
 
 /**
  *
@@ -12,18 +13,19 @@ import {moduleExportsTableComponent} from "./module-exports-table.component.mjs"
  * @param services {Array<*>}
  * @param exports
  * @param components
+ * @param imports
+ * @param modules
  * @returns {string}
  */
 export const moduleViewResources = async function (
     error, moduleName, project, mainModuleContents,
-    injections = [], services = [], exports = [], components = []) {
+    injections = [], services = [], exports = [], components = [],
+    imports = [],
+    modules = []) {
     return `
             <div class="container col-xl-9 col-lg-9 col-sm-12 col-md-10 col-9" style="margin-top: 24px">
-            
                 ${errorMessageComponent(error)}
-               
                 <h2>Resources</h2>
-                
                 <div class="d-flex flex-row flex-wrap">
                     <div class="resource-card">
                         <a href="/project/${project}/modules/${moduleName}/resources/components">
@@ -67,14 +69,12 @@ export const moduleViewResources = async function (
                         </a>
                     </div>
                 </div>
-                
                 <hr>
                 ${await moduleInjectionsTableComponent(project, moduleName, injections, services)}
-                
-                <hr>
-                
+                <hr>  
                 ${await moduleExportsTableComponent(project, moduleName, exports, components)}
-                
+                <hr>
+                ${await moduleImportsTableComponent(project, moduleName, imports, modules)}
 <!--                <div class="d-flex flex-row" style="align-items: center; margin: 8px 0">-->
 <!--                    <h2 style="margin: 0">${moduleName}.module.ts</h2>-->
 <!--                    <span style="flex: 1 1 auto"></span>-->

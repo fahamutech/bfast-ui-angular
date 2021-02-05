@@ -1,3 +1,5 @@
+import {AppUtil} from "../utils/app.util.mjs";
+
 export const moduleExportsTableComponent = async function (project, module, exports = [], components = []) {
     return `
         <div class="d-flex flex-row" style="margin: 8px 0">
@@ -11,7 +13,7 @@ export const moduleExportsTableComponent = async function (project, module, expo
                 <tr>
                   <th scope="col">#</th>
                   <th scope="col">Name</th>
-<!--                  <th scope="col">Component</th>-->
+                  <th scope="col">Reference</th>
                   <th scope="col">Actions</th>
                 </tr>
               </thead>
@@ -30,7 +32,7 @@ function getTableContents(project, module, exports = []) {
         row += `<tr style="cursor: pointer">
                   <th scope="row">${exports.indexOf(exportComponent) + 1}</th>
                   <td>${exportComponent}</td>
-<!--                  <td style="flex-grow: 1">${exportComponent}</td>-->
+                  <td style="flex-grow: 1">./components/${AppUtil.camelCaseToKebal(exportComponent)}.component.ts</td>
                   <td>
                     <div class="d-flex flex-row">
                         <form method="post" action="/project/${project}/modules/${module}/resources/exports/${exportComponent}/delete">

@@ -19,7 +19,7 @@ export const modelListComponent = async function (project, module, models, error
                      <h2>Models</h2>
                      <span style="flex: 1 1 auto"></span>
                      <a>
-                        <button data-toggle="modal" data-target="#newServiceModal" class="btn btn-sm btn-primary">New Style</button>
+                        <button data-toggle="modal" data-target="#newServiceModal" class="btn btn-sm btn-primary">New Model</button>
                      </a>
                 </div>
                 <div class="shadow">
