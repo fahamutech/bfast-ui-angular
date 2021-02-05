@@ -62,7 +62,6 @@ export class GuardsService {
      * @return {Promise<any>}
      */
     async jsonToGuardFile(project, module, guard) {
-        console.log(guard);
         const projectPath = this.storageService.getConfig(`${project}:projectPath`);
         const serviceInjectionsWithType = guard.injections
             .map(x => 'private readonly ' + x.name + ': ' + this._firstCaseUpper(x.service) + 'Service')
@@ -119,7 +118,6 @@ export class ${this._firstCaseUpper(guard.name)}Guard implements CanActivate {
     async updateGuard(project, module, guard) {
         guard.name = guard.name.toString().replace('.guard.ts', '').toLowerCase().trim();
         const oldGuard = await this.guardFileToJson(project, module, guard.name);
-        console.log(oldGuard);
         guard.injections = oldGuard.injections;
         return this.jsonToGuardFile(project, module, guard);
     }
