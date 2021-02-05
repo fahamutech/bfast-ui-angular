@@ -3,16 +3,19 @@ import {StorageUtil} from "../utils/storage.util.mjs";
 import {ModuleService} from "../services/module.service.mjs";
 import {ModulePage} from "../pages/module.page.mjs";
 import {ServicesService} from "../services/services.service.mjs";
+import {ComponentService} from "../services/component.service.mjs";
+import {AppUtil} from "../utils/app.util.mjs";
 
 const storageUtil = new StorageUtil();
 const _moduleService = new ModuleService(storageUtil);
 const servicesService = new ServicesService(storageUtil);
+const componentService = new ComponentService(storageUtil);
 
 export const moduleHome = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules',
     (request, response) => {
         const project = request.params.project;
-        const modulePage = new ModulePage(_moduleService, servicesService);
+        const modulePage = new ModulePage(_moduleService, servicesService, componentService);
         modulePage.indexPage(project, request.query.error).then(value => {
             response.send(value);
         }).catch(reason => {
@@ -40,8 +43,7 @@ export const moduleCreate = bfastnode.bfast.functions().onGetHttpRequest(
 
         const project = request.params.project;
         const _moduleService = new ModuleService(storageUtil);
-        const modulePage = new ModulePage(_moduleService, servicesService);
-
+        const modulePage = new ModulePage(_moduleService, servicesService, componentService);
         response.send(modulePage.create(request.query.error, request.params.project));
     }
 );
@@ -76,7 +78,7 @@ export const moduleResourcesView = bfastnode.bfast.functions().onGetHttpRequest(
     (request, response) => {
         const project = request.params.project;
         const _moduleService = new ModuleService(storageUtil);
-        const modulePage = new ModulePage(_moduleService, servicesService);
+        const modulePage = new ModulePage(_moduleService, servicesService, componentService);
         modulePage.viewModuleResources(request.params.module, project).then(value => {
             response.send(value);
         }).catch(reason => {
@@ -120,6 +122,48 @@ export const deleteInjectionInModuleSubmit = bfastnode.bfast.functions().onPostH
             if (value && value.injections && Array.isArray(value.injections)) {
                 value.injections = value.injections.filter(x => x.service.toString().toLowerCase()
                     !== injection.toString().split('.')[0].toLowerCase());
+                await _moduleService.moduleJsonToFile(project, module, value);
+            }
+            response.redirect(`/project/${project}/modules/${module}/resources`);
+        }).catch(reason => {
+            response.redirect(`/project/${project}/modules/${module}/resources?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
+        });
+    }
+);
+
+
+export const addExportToModuleSubmit = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/:module/resources/exports/:component',
+    (request, response) => {
+        const project = request.params.project;
+        const module = request.params.module;
+        const component = request.params.component;
+        _moduleService.moduleFileToJson(project, module).then(async value => {
+            if (value && value.exports && Array.isArray(value.exports)) {
+                const exist = value.exports.filter(x => x.toString().toLowerCase()
+                    === AppUtil.kebalCaseToCamelCase(component.toString().split('.')[0]).toLowerCase());
+                if (exist.length === 0) {
+                    value.exports.push(AppUtil.kebalCaseToCamelCase(component.toString().split('.')[0]));
+                    await _moduleService.moduleJsonToFile(project, module, value);
+                }
+            }
+            response.redirect(`/project/${project}/modules/${module}/resources`);
+        }).catch(reason => {
+            response.redirect(`/project/${project}/modules/${module}/resources?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
+        });
+    }
+);
+
+export const deleteExportInModuleSubmit = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/:module/resources/exports/:component/delete',
+    (request, response) => {
+        const project = request.params.project;
+        const module = request.params.module;
+        const component = request.params.component;
+        _moduleService.moduleFileToJson(project, module).then(async value => {
+            if (value && value.exports && Array.isArray(value.exports)) {
+                value.exports = value.exports.filter(x => x.toString().toLowerCase()
+                    !== component.toString().trim().toLowerCase());
                 await _moduleService.moduleJsonToFile(project, module, value);
             }
             response.redirect(`/project/${project}/modules/${module}/resources`);

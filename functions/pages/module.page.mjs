@@ -11,10 +11,12 @@ export class ModulePage {
      *
      * @param moduleService {ModuleService}
      * @param servicesService {ServicesService}
+     * @param componentService {ComponentService}
      */
-    constructor(moduleService, servicesService) {
+    constructor(moduleService, servicesService, componentService) {
         this.moduleService = moduleService;
         this.servicesService = servicesService;
+        this.componentService = componentService;
     }
 
     /**
@@ -49,11 +51,14 @@ export class ModulePage {
     async viewModuleResources(moduleName, project) {
         const contents = await this.moduleService.getOtherModuleContents(project, moduleName);
         const moduleObject = await this.moduleService.moduleFileToJson(project, moduleName);
-        let services = await this.servicesService.getServices(project, moduleName);
+        const services = await this.servicesService.getServices(project, moduleName);
+        const components = await this.componentService.getComponents(project, moduleName);
         return appLayoutComponent(
             await moduleViewResources(
                 null, moduleName, project, contents, moduleObject.injections,
-                services ? services : []
+                services ? services : [],
+                moduleObject.exports,
+                components
             ),
             project
         )
