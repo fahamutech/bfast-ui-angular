@@ -5,17 +5,21 @@ import {ModulePage} from "../pages/module.page.mjs";
 import {ServicesService} from "../services/services.service.mjs";
 import {ComponentService} from "../services/component.service.mjs";
 import {AppUtil} from "../utils/app.util.mjs";
+import {PageService} from "../services/page.service.mjs";
+import {GuardsService} from "../services/guards.service.mjs";
 
 const storageUtil = new StorageUtil();
 const _moduleService = new ModuleService(storageUtil);
 const servicesService = new ServicesService(storageUtil);
 const componentService = new ComponentService(storageUtil);
+const pageService = new PageService(storageUtil);
+const guardsService = new GuardsService(storageUtil);
 
 export const moduleHome = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules',
     (request, response) => {
         const project = request.params.project;
-        const modulePage = new ModulePage(_moduleService, servicesService, componentService);
+        const modulePage = new ModulePage(_moduleService, servicesService, componentService, pageService, guardsService);
         modulePage.indexPage(project, request.query.error).then(value => {
             response.send(value);
         }).catch(reason => {
@@ -43,7 +47,7 @@ export const moduleCreate = bfastnode.bfast.functions().onGetHttpRequest(
 
         const project = request.params.project;
         const _moduleService = new ModuleService(storageUtil);
-        const modulePage = new ModulePage(_moduleService, servicesService, componentService);
+        const modulePage = new ModulePage(_moduleService, servicesService, componentService, pageService, guardsService);
         response.send(modulePage.create(request.query.error, request.params.project));
     }
 );
@@ -78,7 +82,7 @@ export const moduleResourcesView = bfastnode.bfast.functions().onGetHttpRequest(
     (request, response) => {
         const project = request.params.project;
         const _moduleService = new ModuleService(storageUtil);
-        const modulePage = new ModulePage(_moduleService, servicesService, componentService);
+        const modulePage = new ModulePage(_moduleService, servicesService, componentService, pageService, guardsService);
         modulePage.viewModuleResources(request.params.module, project).then(value => {
             response.send(value);
         }).catch(reason => {
@@ -213,6 +217,68 @@ export const deleteImportInModuleSubmit = bfastnode.bfast.functions().onPostHttp
             if (value && value.imports && Array.isArray(value.imports)) {
                 value.imports = value.imports.filter(x => x.name.toString().toLowerCase()
                     !== name.toString().trim().toLowerCase());
+                await _moduleService.moduleJsonToFile(project, module, value);
+            }
+            response.redirect(`/project/${project}/modules/${module}/resources`);
+        }).catch(reason => {
+            response.redirect(`/project/${project}/modules/${module}/resources?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`);
+        });
+    }
+);
+
+
+export const addRouteToModuleSubmit = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/:module/resources/routes',
+    (request, response) => {
+        const project = request.params.project;
+        const module = request.params.module;
+        const body = JSON.parse(JSON.stringify(request.body));
+        if (body && body.page && body.path) {
+            if (!body.guards) {
+                body.guards = [];
+            }
+            if (typeof body.guards === "string") {
+                body.guards = [body.guards];
+            }
+            if (body.path.toString().startsWith('/')) {
+                body.path = body.path.toString().substring(1);
+            }
+            _moduleService.moduleFileToJson(project, module).then(async value => {
+                if (value && value.routes && Array.isArray(value.routes)) {
+                    const exist = value.routes.filter(x => x.path.toString().toLowerCase()
+                        === body.path.toString().toLowerCase());
+                    if (exist.length === 0) {
+                        value.routes.push({
+                            path: body.path,
+                            page: AppUtil.kebalCaseToCamelCase(body.page.toString().replace('.page.ts', '')),
+                            guards: body.guards.map(x => AppUtil.kebalCaseToCamelCase(x.replace('.guard.ts', '')))
+                        });
+                        await _moduleService.moduleJsonToFile(project, module, value);
+                    }
+                }
+                response.redirect(`/project/${project}/modules/${module}/resources`);
+            }).catch(reason => {
+                response.redirect(`/project/${project}/modules/${module}/resources?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`);
+            });
+        } else {
+            response.redirect(`/project/${project}/modules/${module}/resources?error=${encodeURIComponent('name and ref attribute in a body is required')})`);
+        }
+    }
+);
+
+export const deleteRouteInModuleSubmit = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/:module/resources/routes/:route/delete',
+    (request, response) => {
+        const project = request.params.project;
+        const module = request.params.module;
+        let route = decodeURIComponent(request.params.route);
+        if (route === '-') {
+            route = '';
+        }
+        _moduleService.moduleFileToJson(project, module).then(async value => {
+            if (value && value.routes && Array.isArray(value.routes)) {
+                value.routes = value.routes.filter(x => x.path.toString().toLowerCase()
+                    !== route.toString().trim().toLowerCase());
                 await _moduleService.moduleJsonToFile(project, module, value);
             }
             response.redirect(`/project/${project}/modules/${module}/resources`);

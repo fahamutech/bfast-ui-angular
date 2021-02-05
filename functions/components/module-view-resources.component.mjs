@@ -2,6 +2,7 @@ import {errorMessageComponent} from "./error-message.component.mjs";
 import {moduleInjectionsTableComponent} from "./module-injections-table.component.mjs";
 import {moduleExportsTableComponent} from "./module-exports-table.component.mjs";
 import {moduleImportsTableComponent} from "./module-imports-table.component.mjs";
+import {moduleRoutesTableComponent} from "./module-routes-table.component.mjs";
 
 /**
  *
@@ -15,13 +16,19 @@ import {moduleImportsTableComponent} from "./module-imports-table.component.mjs"
  * @param components
  * @param imports
  * @param modules
+ * @param routes
+ * @param pages
+ * @param guards
  * @returns {string}
  */
 export const moduleViewResources = async function (
     error, moduleName, project, mainModuleContents,
     injections = [], services = [], exports = [], components = [],
     imports = [],
-    modules = []) {
+    modules = [],
+    routes = [],
+    pages = [],
+    guards = []) {
     return `
             <div class="container col-xl-9 col-lg-9 col-sm-12 col-md-10 col-9" style="margin-top: 24px">
                 ${errorMessageComponent(error)}
@@ -69,6 +76,8 @@ export const moduleViewResources = async function (
                         </a>
                     </div>
                 </div>
+                <hr>
+                ${await moduleRoutesTableComponent(project, moduleName,routes, pages, guards)}
                 <hr>
                 ${await moduleInjectionsTableComponent(project, moduleName, injections, services)}
                 <hr>  

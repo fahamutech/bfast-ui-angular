@@ -33,7 +33,7 @@ export class AppUtil {
      * @return {string}
      */
     static camelCaseToKebal(camelCase) {
-        let guardNameParts = camelCase.match(new RegExp('[A-Z][a-z]+', 'g'));
+        let guardNameParts = camelCase.match(new RegExp('[A-Z][a-z0-9]+', 'g'));
         if (guardNameParts) {
             return guardNameParts.map(x => x.toLowerCase()).join('-');
         } else {

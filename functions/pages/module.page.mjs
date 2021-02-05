@@ -12,11 +12,17 @@ export class ModulePage {
      * @param moduleService {ModuleService}
      * @param servicesService {ServicesService}
      * @param componentService {ComponentService}
+     * @param pageService {PageService}
+     * @param guardsService {GuardsService}
      */
-    constructor(moduleService, servicesService, componentService) {
+    constructor(moduleService, servicesService,
+                componentService, pageService,
+                guardsService) {
         this.moduleService = moduleService;
         this.servicesService = servicesService;
         this.componentService = componentService;
+        this.pageServive = pageService;
+        this.guardsService = guardsService;
     }
 
     /**
@@ -54,6 +60,8 @@ export class ModulePage {
         const moduleObject = await this.moduleService.moduleFileToJson(project, moduleName);
         const services = await this.servicesService.getServices(project, moduleName);
         const components = await this.componentService.getComponents(project, moduleName);
+        const pages = await this.pageServive.getPages(project, moduleName);
+        const guards = await this.guardsService.getGuards(project, moduleName);
         return appLayoutComponent(
             await moduleViewResources(
                 null, moduleName, project, contents, moduleObject.injections,
@@ -61,7 +69,10 @@ export class ModulePage {
                 moduleObject.exports,
                 components,
                 moduleObject.imports,
-                module.modules
+                module.modules,
+                moduleObject.routes,
+                pages,
+                guards
             ),
             project
         )

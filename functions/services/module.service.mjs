@@ -173,45 +173,51 @@ export class WebModule {
             if (!routesItemsMatch) {
                 routesItemsMatch = [];
             }
-            let routesItems = routesItemsMatch
-                .map(x =>
-                    x.replace('{', '')
-                        .replace('}', '')
-                        .split(',')
-                        .map(y =>
-                            y.replace(new RegExp('\{', 'ig'), '')
-                                .replace(new RegExp('\}', 'ig'), '')
-                                .trim()
-                                .split(':')
-                                .map(z =>
-                                    z.replace(new RegExp('\'', 'ig'), '')
-                                        .replace(new RegExp('\"', 'ig'), '')
-                                        .trim()
-                                )
-                        )
-                );
-            routesItems = routesItems.map(x => {
+            let routesItems = routesItemsMatch.map(x =>
+                x.replace('{', '').replace('}', '').replace(new RegExp('].+?,', 'ig'), '],')
+            );
+            routesItems = routesItems.map(_x => {
                 const routeObject = {};
-                for (const _x of x) {
-                    if (_x[0] === 'canActivate') {
-                        routeObject.guards = _x[1].toString()
-                            .replace(new RegExp('\\[', 'ig'), '')
-                            .replace(new RegExp('\]', 'ig'), '')
-                            .trim()
-                            .split(',')
-                            .map(x =>
-                                x.replace('Guard', '')
-                                    .trim()
-                            );
-                    } else if (_x[0] === 'component') {
-                        routeObject.page = _x[1].toString().replace('Page', '').replace('Component', '').trim();
-                    } else {
-                        routeObject[_x[0]] = _x[1];
-                    }
-                    if (!routeObject.guards) {
-                        routeObject.guards = [];
-                    }
+                const path = _x.toString().match(new RegExp('path.+?,', 'ig')) ?
+                    _x.toString().match(new RegExp('path.+?,', 'ig'))[0] : '';
+                routeObject.path = path.toString()
+                    .replace('path', '')
+                    .replace(':', '')
+                    .replace(',', '')
+                    .replace(new RegExp('\'', 'ig'), '')
+                    .replace(new RegExp('\"', 'ig'), '')
+                    .trim();
+
+                const page = _x.toString().match(new RegExp('component.*:.*', 'ig')) ?
+                    _x.toString().match(new RegExp('component.*:.*', 'ig'))[0] : '';
+                routeObject.page = page.toString()
+                    .replace('component', '')
+                    .replace(':', '')
+                    .replace(',', '')
+                    .replace('Page', '')
+                    .replace(new RegExp('\'', 'ig'), '')
+                    .replace(new RegExp('\"', 'ig'), '')
+                    .trim();
+
+                const guards = _x.toString().match(new RegExp('canActivate.*]', 'ig')) ?
+                    _x.toString().match(new RegExp('canActivate.*]', 'ig'))[0] : '';
+                routeObject.guards = guards.toString()
+                    .replace('canActivate', '')
+                    .replace(':', '')
+                    .replace('[', '')
+                    .replace(']', '')
+                    .replace(new RegExp('\'', 'ig'), '')
+                    .replace(new RegExp('\"', 'ig'), '')
+                    .trim()
+                    .split(',')
+                    .map(t => t.toString().replace('Guard', '').trim())
+                    .filter(z => z !== '');
+
+                if (!routeObject.guards) {
+                    routeObject.guards = [];
                 }
+                routeObject.guards = routeObject.guards.filter(x => x.toString() !== '');
+                // }
                 return routeObject;
             });
             return routesItems;
@@ -270,7 +276,6 @@ export class WebModule {
         return declarations;
     }
 
-    // exports can be only component for now
     _getExportsFromModuleFile(moduleFile) {
         const reg = new RegExp('(exports.*:.*\\[)((.|\\n)+?)(\].*\,)', 'ig');
         let results = moduleFile.toString().match(reg) ? moduleFile.toString().match(reg)[0] : [];

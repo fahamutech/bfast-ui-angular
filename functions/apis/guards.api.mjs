@@ -92,7 +92,6 @@ export const updateModuleGuard = bfastnode.bfast.functions().onPostHttpRequest(
         const module = request.params.module;
         const guard = request.params.guard;
         const body = JSON.parse(JSON.stringify(request.body));
-        console.log(body);
         if (body && body.name && body.name !== '' && body.body !== undefined && body.body !== null) {
             body.name = body.name.toString().trim().toLowerCase();
             guardsService.updateGuard(project, module, body).then(_ => {
