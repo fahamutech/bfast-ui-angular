@@ -3,9 +3,12 @@ import {StorageUtil} from "../utils/storage.util.mjs";
 import {GuardsService} from "../services/guards.service.mjs";
 import {GuardsPage} from "../pages/guards.page.mjs";
 import {ServicesService} from "../services/services.service.mjs";
+import {AppUtil} from "../utils/app.util.mjs";
 
-const guardsService = new GuardsService(new StorageUtil());
-const servicesService = new ServicesService(new StorageUtil());
+const storage = new StorageUtil();
+const appUtil = new AppUtil();
+const guardsService = new GuardsService(storage, appUtil);
+const servicesService = new ServicesService(storage, appUtil);
 const guardsPage = new GuardsPage(guardsService, servicesService);
 
 export const viewModuleGuards = bfastnode.bfast.functions().onGetHttpRequest(

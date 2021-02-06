@@ -8,9 +8,11 @@ export class GuardsService {
     /**
      *
      * @param storageService {StorageUtil}
+     * @param appUtil {AppUtil}
      */
-    constructor(storageService) {
+    constructor(storageService, appUtil) {
         this.storageService = storageService;
+        this.appUtil = appUtil;
     }
 
     async getGuards(project, module) {
@@ -39,7 +41,7 @@ export class GuardsService {
         const guardJsonFile = {};
         guardJsonFile.name = this._getGuardName(guardFile.toString());
         guardJsonFile.body = this._getGuardBody(guardFile.toString());
-        guardJsonFile.injections = AppUtil.getInjectionsFromFile(guardFile.toString());
+        guardJsonFile.injections = this.appUtil.getInjectionsFromFile(guardFile.toString());
         return guardJsonFile;
     }
 
@@ -126,7 +128,7 @@ export class ${this._firstCaseUpper(guard.name)}Guard implements CanActivate {
         const reg = new RegExp('(export).*(class).*({)', 'i');
         const result = guardFile.toString().match(reg);
         if (result && result[0]) {
-            return AppUtil.camelCaseToKebal(
+            return this.appUtil.camelCaseToKebal(
                 result[0].toString()
                     .replace('export', '')
                     .replace('class', '')

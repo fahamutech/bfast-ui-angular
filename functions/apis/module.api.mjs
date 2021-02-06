@@ -9,11 +9,12 @@ import {PageService} from "../services/page.service.mjs";
 import {GuardsService} from "../services/guards.service.mjs";
 
 const storageUtil = new StorageUtil();
-const _moduleService = new ModuleService(storageUtil);
-const servicesService = new ServicesService(storageUtil);
-const componentService = new ComponentService(storageUtil);
-const pageService = new PageService(storageUtil);
-const guardsService = new GuardsService(storageUtil);
+const appUtil = new AppUtil();
+const _moduleService = new ModuleService(storageUtil, appUtil);
+const servicesService = new ServicesService(storageUtil, appUtil);
+const componentService = new ComponentService(storageUtil, appUtil);
+const pageService = new PageService(storageUtil, appUtil);
+const guardsService = new GuardsService(storageUtil, appUtil);
 
 export const moduleHome = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules',
@@ -32,7 +33,6 @@ export const moduleHomeUpdateMainModule = bfastnode.bfast.functions().onPostHttp
     '/project/:project/modules',
     (request, response) => {
         const project = request.params.project;
-        const _moduleService = new ModuleService(storageUtil);
         _moduleService.updateMainModuleContents(project, request.body.code).then(_ => {
             response.json({message: 'done update'});
         }).catch(reason => {
@@ -44,9 +44,7 @@ export const moduleHomeUpdateMainModule = bfastnode.bfast.functions().onPostHttp
 export const moduleCreate = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/create',
     (request, response) => {
-
         const project = request.params.project;
-        const _moduleService = new ModuleService(storageUtil);
         const modulePage = new ModulePage(_moduleService, servicesService, componentService, pageService, guardsService);
         response.send(modulePage.create(request.query.error, request.params.project));
     }
@@ -63,10 +61,7 @@ export const moduleCreatePost = bfastnode.bfast.functions().onPostHttpRequest(
             next();
         },
         (request, response) => {
-
             const project = request.params.project;
-            const _moduleService = new ModuleService(storageUtil);
-
             _moduleService.createModule(project, request.body.name, request.body.detail).then(_ => {
                 response.redirect(`/project/${request.params.project}/modules/`);
             }).catch(reason => {
@@ -81,7 +76,6 @@ export const moduleResourcesView = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources',
     (request, response) => {
         const project = request.params.project;
-        const _moduleService = new ModuleService(storageUtil);
         const modulePage = new ModulePage(_moduleService, servicesService, componentService, pageService, guardsService);
         modulePage.viewModuleResources(request.params.module, project).then(value => {
             response.send(value);
@@ -146,9 +140,9 @@ export const addExportToModuleSubmit = bfastnode.bfast.functions().onPostHttpReq
         _moduleService.moduleFileToJson(project, module).then(async value => {
             if (value && value.exports && Array.isArray(value.exports)) {
                 const exist = value.exports.filter(x => x.toString().toLowerCase()
-                    === AppUtil.kebalCaseToCamelCase(component.toString().split('.')[0]).toLowerCase());
+                    === appUtil.kebalCaseToCamelCase(component.toString().split('.')[0]).toLowerCase());
                 if (exist.length === 0) {
-                    value.exports.push(AppUtil.kebalCaseToCamelCase(component.toString().split('.')[0]));
+                    value.exports.push(appUtil.kebalCaseToCamelCase(component.toString().split('.')[0]));
                     await _moduleService.moduleJsonToFile(project, module, value);
                 }
             }
@@ -188,10 +182,10 @@ export const addImportToModuleSubmit = bfastnode.bfast.functions().onPostHttpReq
             _moduleService.moduleFileToJson(project, module).then(async value => {
                 if (value && value.imports && Array.isArray(value.imports)) {
                     const exist = value.imports.filter(x => x.name.toString().toLowerCase()
-                        === AppUtil.kebalCaseToCamelCase(body.name.toString().split('.')[0]).concat('Module').toLowerCase());
+                        === appUtil.kebalCaseToCamelCase(body.name.toString().split('.')[0]).concat('Module').toLowerCase());
                     if (exist.length === 0) {
                         value.imports.push({
-                            name: AppUtil.kebalCaseToCamelCase(body.name.toString().split('.')[0]).concat('Module'),
+                            name: appUtil.kebalCaseToCamelCase(body.name.toString().split('.')[0]).concat('Module'),
                             ref: body.ref.toString().replace('.ts', '')
                         });
                         await _moduleService.moduleJsonToFile(project, module, value);
@@ -250,8 +244,8 @@ export const addRouteToModuleSubmit = bfastnode.bfast.functions().onPostHttpRequ
                     if (exist.length === 0) {
                         value.routes.push({
                             path: body.path,
-                            page: AppUtil.kebalCaseToCamelCase(body.page.toString().replace('.page.ts', '')),
-                            guards: body.guards.map(x => AppUtil.kebalCaseToCamelCase(x.replace('.guard.ts', '')))
+                            page: appUtil.kebalCaseToCamelCase(body.page.toString().replace('.page.ts', '')),
+                            guards: body.guards.map(x => appUtil.kebalCaseToCamelCase(x.replace('.guard.ts', '')))
                         });
                         await _moduleService.moduleJsonToFile(project, module, value);
                     }
@@ -283,7 +277,46 @@ export const deleteRouteInModuleSubmit = bfastnode.bfast.functions().onPostHttpR
             }
             response.redirect(`/project/${project}/modules/${module}/resources`);
         }).catch(reason => {
-            response.redirect(`/project/${project}/modules/${module}/resources?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`);
+            response.status(400).redirect(`/project/${project}/modules/${module}/resources?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`);
         });
+    }
+);
+
+export const moduleConstructorUpdate = bfastnode.bfast.functions().onGetHttpRequest(
+    '/project/:project/modules/:module/resources/constructor',
+    (request, response) => {
+        const project = request.params.project;
+        const module = request.params.module;
+        const error = decodeURIComponent(request.query.error);
+        const modulePage = new ModulePage(_moduleService, servicesService, componentService, pageService, guardsService);
+        modulePage.moduleConstructorUpdateView(project, module).then(value => {
+            response.send(value);
+        }).catch(reason => {
+            console.log(reason);
+            response.status(400).redirect(`/project/${project}/modules/${module}/resources/constructor?error=${reason.toString()}`);
+        });
+    }
+);
+
+
+export const moduleConstructorUpdateSubmit = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/:module/resources/constructor',
+    (request, response) => {
+        const project = request.params.project;
+        const module = request.params.module;
+        const body = JSON.parse(JSON.stringify(request.body));
+        if (body && body.body) {
+            _moduleService.moduleFileToJson(project, module).then(async value => {
+                value.constructor = body.body
+                return _moduleService.moduleJsonToFile(project, module, value);
+            }).then(_ => {
+                // response.redirect(`/project/${project}/modules/${module}/resources`);
+                response.json({message: 'Constructor Updated, Successful'});
+            }).catch(reason => {
+                response.status(400).json({message: reason && reason.message ? reason.message : reason.toString()});
+            });
+        } else {
+            response.status(400).json({message: 'Please provide constructor body to update'});
+        }
     }
 );

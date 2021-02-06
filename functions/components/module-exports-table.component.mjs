@@ -32,7 +32,7 @@ function getTableContents(project, module, exports = []) {
         row += `<tr style="cursor: pointer">
                   <th scope="row">${exports.indexOf(exportComponent) + 1}</th>
                   <td>${exportComponent}</td>
-                  <td style="flex-grow: 1">./components/${AppUtil.camelCaseToKebal(exportComponent)}.component.ts</td>
+                  <td style="flex-grow: 1">./components/${new AppUtil().camelCaseToKebal(exportComponent)}.component.ts</td>
                   <td>
                     <div class="d-flex flex-row">
                         <form method="post" action="/project/${project}/modules/${module}/resources/exports/${exportComponent}/delete">

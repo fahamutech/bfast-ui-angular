@@ -8,9 +8,11 @@ export class ModuleService {
 
     /**
      * @param storageService {StorageUtil}
+     * @param appUtil {AppUtil}
      */
-    constructor(storageService) {
+    constructor(storageService, appUtil) {
         this.storageService = storageService;
+        this.appUtil = appUtil;
     }
 
     /**
@@ -141,17 +143,18 @@ export class WebModule {
             module = module.toString().split('.')[0];
         }
         const projectPath = this.storageService.getConfig(`${project}:projectPath`);
-        const moduleFile = await promisify(readFile)(join(
+        let moduleFile = await promisify(readFile)(join(
             projectPath, 'modules', module, `${module}.module.ts`)
         );
+        moduleFile = moduleFile.toString();
         const moduleJson = {};
         moduleJson.name = module;
         moduleJson.routes = this._getRoutesFromModuleFile(moduleFile);
         moduleJson.declarations = await this._getDeclarationsFromModuleFolder(project, module);
         moduleJson.exports = this._getExportsFromModuleFile(moduleFile);
         moduleJson.imports = this._getUserImportsFromModuleFile(moduleFile);
-        moduleJson.injections = AppUtil.getInjectionsFromFile(moduleFile);
-        moduleJson.constructor = AppUtil.getConstructorBodyFromModuleFile(moduleFile);
+        moduleJson.injections = this.appUtil.getInjectionsFromFile(moduleFile);
+        moduleJson.constructor = this.appUtil.getConstructorBodyFromModuleFile(moduleFile);
         return moduleJson;
     }
 
@@ -258,7 +261,7 @@ export class WebModule {
             x => x.toString()
                 .replace('.component.ts', '').trim()
                 .split('-').map(
-                    y => AppUtil.firstCaseUpper(y)
+                    y => this.appUtil.firstCaseUpper(y)
                 ).join('')
                 .concat('Component')
         );
@@ -266,7 +269,7 @@ export class WebModule {
             x => x.toString()
                 .replace('.page.ts', '').trim()
                 .split('-').map(
-                    y => AppUtil.firstCaseUpper(y)
+                    y => this.appUtil.firstCaseUpper(y)
                 ).join('')
                 .concat('Page')
         );
@@ -371,7 +374,7 @@ export class WebModule {
         module = module.replace('.module.ts', '').trim();
         const projectPath = this.storageService.getConfig(`${project}:projectPath`);
         const moduleInjectionsWithType = moduleJson.injections.map(
-            x => 'private readonly ' + x.name + ': ' + AppUtil.firstCaseUpper(x.service) + 'Service'
+            x => 'private readonly ' + x.name + ': ' + this.appUtil.firstCaseUpper(x.service) + 'Service'
         ).join(',');
 
         const moduleInString = `import {bfast} from 'bfastjs';
@@ -412,7 +415,7 @@ const routes: Routes = [
     ${moduleJson.exports.map(x => x.toString().concat('Component,')).join('\n    ')}
   ],
 })
-export class ${AppUtil.firstCaseUpper(moduleJson.name)}Module {
+export class ${this.appUtil.firstCaseUpper(moduleJson.name)}Module {
     constructor(${moduleInjectionsWithType}){
         ${moduleJson.constructor}
     }// end
@@ -446,7 +449,7 @@ export class ${AppUtil.firstCaseUpper(moduleJson.name)}Module {
         let im = new Set();
         let result = '';
         for (const injection of injections) {
-            const serviceName = AppUtil.firstCaseUpper(injection.service)
+            const serviceName = this.appUtil.firstCaseUpper(injection.service)
             im.add(`import {${serviceName}Service} from './services/${injection.service.toLowerCase()}.service';`)
         }
         return result.concat(Array.from(im).filter(x => x !== '').join('\n'));
@@ -468,8 +471,8 @@ export class ${AppUtil.firstCaseUpper(moduleJson.name)}Module {
         let result = '';
         routes.forEach(route => {
             route.guards.forEach(guard => {
-                const guardName = AppUtil.firstCaseUpper(guard);
-                let guardNameInKebal = AppUtil.camelCaseToKebal(guardName);
+                const guardName = this.appUtil.firstCaseUpper(guard);
+                let guardNameInKebal = this.appUtil.camelCaseToKebal(guardName);
                 if (guardNameInKebal !== '') {
                     im.add(`import {${guardName}Guard} from './guards/${guardNameInKebal}.guard';`);
                 }
@@ -497,8 +500,8 @@ export class ${AppUtil.firstCaseUpper(moduleJson.name)}Module {
         let components = await promisify(readdir)(join(projectPath, 'modules', module, 'components'));
 
         return components.map(x => {
-            const componentName = AppUtil
-                .kebalCaseToCamelCase(x.toString().replace('.component.ts', ''))
+            const componentName =
+                this.appUtil.kebalCaseToCamelCase(x.toString().replace('.component.ts', ''))
                 .concat('Component');
             return `import {${componentName}} from './components/${x.replace('.ts', '').trim()}';`
         }).join('\n');
@@ -523,8 +526,8 @@ export class ${AppUtil.firstCaseUpper(moduleJson.name)}Module {
         let pages = await promisify(readdir)(join(projectPath, 'modules', module, 'pages'));
 
         return pages.map(x => {
-            const componentName = AppUtil
-                .kebalCaseToCamelCase(x.replace('.page.ts', ''))
+            const componentName =
+                this.appUtil.kebalCaseToCamelCase(x.replace('.page.ts', ''))
                 .concat('Page');
             return `import {${componentName}} from './pages/${x.replace('.ts', '').trim()}';`
         }).join('\n');
