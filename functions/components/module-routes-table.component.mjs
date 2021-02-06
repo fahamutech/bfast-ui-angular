@@ -9,7 +9,7 @@ export const moduleRoutesTableComponent = async function (
         <div class="d-flex flex-row" style="margin: 8px 0">
              <h3 style="margin: 0">Routing</h3>
              <span style="flex: 1 1 auto"></span>
-             <button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#addImportToModuleModal">
+             <button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#addRouteToModuleModal">
                 Add Route
              </button>
         </div>
@@ -121,7 +121,7 @@ async function addInjectionModal(project, module, pages, guards) {
 
     return `
     <!-- Modal -->
-    <div class="modal fade" id="addImportToModuleModal" data-backdrop="static" data-keyboard="false" tabindex="-1"
+    <div class="modal fade" id="addRouteToModuleModal" data-backdrop="static" data-keyboard="false" tabindex="-1"
      aria-labelledby="staticBackdropLabel" aria-hidden="true">
       <div class="modal-dialog">
         <div class="modal-content">

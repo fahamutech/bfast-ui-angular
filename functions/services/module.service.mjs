@@ -94,7 +94,7 @@ export class ModuleService {
                 for (const resource of resources) {
                     await promisify(mkdir)(join(projectPath, 'modules', name, resource));
                 }
-                return promisify(writeFile)(join(projectPath, 'modules', name, `${name}.module.ts`),
+                return promisify(writeFile)(join(projectPath, 'modules', name, `${this.appUtil.camelCaseToKebal(name)}.module.ts`),
                     `import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterModule, Routes} from '@angular/router';
@@ -109,7 +109,9 @@ const routes: Routes = [
     RouterModule.forChild(routes)
   ]
 })
-export class WebModule {
+export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
+    constructor(){
+    }// end
 }
 `);
             } else {
@@ -502,7 +504,7 @@ export class ${this.appUtil.firstCaseUpper(moduleJson.name)}Module {
         return components.map(x => {
             const componentName =
                 this.appUtil.kebalCaseToCamelCase(x.toString().replace('.component.ts', ''))
-                .concat('Component');
+                    .concat('Component');
             return `import {${componentName}} from './components/${x.replace('.ts', '').trim()}';`
         }).join('\n');
     }
@@ -528,7 +530,7 @@ export class ${this.appUtil.firstCaseUpper(moduleJson.name)}Module {
         return pages.map(x => {
             const componentName =
                 this.appUtil.kebalCaseToCamelCase(x.replace('.page.ts', ''))
-                .concat('Page');
+                    .concat('Page');
             return `import {${componentName}} from './pages/${x.replace('.ts', '').trim()}';`
         }).join('\n');
     }
