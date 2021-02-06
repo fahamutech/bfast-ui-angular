@@ -97,12 +97,12 @@ export class AppUtil {
     }
 
     getConstructorBodyFromModuleFile(moduleFile) {
-        const reg = new RegExp('(constructor).*(.|\\n)*}(.|\\n)+?\\/\\/(.|\\n)+?(end)', 'ig');
+        const reg = new RegExp('(constructor).*(.|\\n)*}(.|\\n)*\\/\\/(\\s|\\n)*(end)', 'ig');
         let result = moduleFile.toString().match(reg) ? moduleFile.toString().match(reg)[0] : null;
         // console.log(result);
         if (result) {
             result = result.toString()
-                .replace(new RegExp('(constructor)(.|\\n)*\\(.*(.|\\n)*:(.|\\n)+?(\\)(\\s|\\n)*{)', 'ig'), '')
+                .replace(new RegExp('(constructor)(\\W|\\n){0,}?\\((.|\\s|\\n){0,}?\\)(\\W|\\n)*\\{', 'ig'), '')
                 // .replace(new RegExp('(constructor).*(.|\\n)+?\\).*', 'ig'), '')
                 .replace(new RegExp('}(\\s|\\n)*\\/\\/(.|\\n)*(end)', 'ig'), '')
                 .trim()
