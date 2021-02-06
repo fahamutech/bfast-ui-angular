@@ -3,14 +3,20 @@ import {ComponentsPage} from "../pages/components.page.mjs";
 import {ComponentService} from "../services/component.service.mjs";
 import {StorageUtil} from "../utils/storage.util.mjs";
 import {ModuleService} from "../services/module.service.mjs";
+import {AppUtil} from "../utils/app.util.mjs";
+
+const storage = new StorageUtil();
+const appUtil = new AppUtil();
+const componentService = new ComponentService(storage, appUtil);
+const componentsPage = new ComponentsPage(componentService);
+const moduleService = new ModuleService(storage, appUtil);
 
 export const viewModuleComponents = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/components',
     (request, response) => {
-        const componentService = new ComponentService(new StorageUtil());
         const project = request.params.project;
         const module = request.params.module;
-        new ComponentsPage(componentService).indexPage(project, module).then(value => {
+        componentsPage.indexPage(project, module).then(value => {
             response.send(value);
         }).catch(_ => {
             response.status(400).send(_);
@@ -21,13 +27,12 @@ export const viewModuleComponents = bfastnode.bfast.functions().onGetHttpRequest
 export const createModuleComponents = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/components',
     (request, response) => {
-        const componentService = new ComponentService(new StorageUtil());
         const project = request.params.project;
         const module = request.params.module;
         const body = JSON.parse(JSON.stringify(request.body));
 
         function componentPage(error = null) {
-            new ComponentsPage(componentService).indexPage(project, module, error).then(value => {
+            componentsPage.indexPage(project, module, error).then(value => {
                 response.send(value);
             }).catch(_ => {
                 response.status(400).send(_);
@@ -50,19 +55,18 @@ export const createModuleComponents = bfastnode.bfast.functions().onPostHttpRequ
 export const viewModuleComponent = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/components/:component',
     (request, response) => {
-        const componentComponent = new ComponentService(new StorageUtil());
         const project = request.params.project;
         const module = request.params.module;
         const selectedComponent = request.params.component;
         if (selectedComponent) {
-            new ComponentsPage(componentComponent).viewComponentPage(project, module, selectedComponent, request.query.error).then(value => {
+            componentsPage.viewComponentPage(project, module, selectedComponent, request.query.error).then(value => {
                 response.send(value);
             }).catch(_ => {
                 console.log(_)
                 response.status(400).send(_);
             });
         } else {
-            new ComponentsPage(componentComponent).viewComponentPage(project, module,).then(value => {
+            componentsPage.viewComponentPage(project, module,).then(value => {
                 response.send(value);
             }).catch(_ => {
                 console.log(_)
@@ -76,11 +80,10 @@ export const updateComponentTemplate = bfastnode.bfast.functions().onGetHttpRequ
     '/project/:project/modules/:module/resources/components/:component/template',
     [
         (request, response, next) => {
-            const componentService = new ComponentService(new StorageUtil());
             const project = request.params.project;
             const module = request.params.module;
             const selectedComponent = request.params.component;
-            new ComponentsPage(componentService).updateTemplatePage(project, module, selectedComponent, request.query.error).then(value => {
+            componentsPage.updateTemplatePage(project, module, selectedComponent, request.query.error).then(value => {
                 request.body._results = value;
                 next();
             }).catch(_ => {
@@ -89,12 +92,11 @@ export const updateComponentTemplate = bfastnode.bfast.functions().onGetHttpRequ
         },
         // update module
         (request, response) => {
-            const moduleService = new ModuleService(new StorageUtil());
             const project = request.params.project;
             const module = request.params.module;
             moduleService.moduleFileToJson(project, module).then(value => {
                 return moduleService.moduleJsonToFile(project, module, value);
-            }).then(value => {
+            }).then(_ => {
                 response.send(request.body._results);
             }).catch(reason => {
                 console.log(reason);
@@ -107,7 +109,6 @@ export const updateComponentTemplate = bfastnode.bfast.functions().onGetHttpRequ
 export const updateComponentTemplateSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/components/:component/template',
     (request, response) => {
-        const componentService = new ComponentService(new StorageUtil());
         const project = request.params.project;
         const module = request.params.module;
         const selectedComponent = request.params.component;
@@ -127,11 +128,10 @@ export const updateComponentTemplateSubmit = bfastnode.bfast.functions().onPostH
 export const createMethodInAComponent = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/components/:component/method',
     (request, response) => {
-        const componentComponent = new ComponentService(new StorageUtil());
         const project = request.params.project;
         const module = request.params.module;
         const component = request.params.component;
-        new ComponentsPage(componentComponent).createMethodPage(project, module, component, {
+        componentsPage.createMethodPage(project, module, component, {
             name: request.query.name ? request.query.name : '',
             inputs: request.query.inputs ? request.query.inputs : '',
             body: request.query.codes,
@@ -147,12 +147,11 @@ export const createMethodInAComponent = bfastnode.bfast.functions().onGetHttpReq
 export const createMethodInAComponentSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/components/:component/method',
     (request, response) => {
-        const componentComponent = new ComponentService(new StorageUtil());
         const project = request.params.project;
         const module = request.params.module;
         const component = request.params.component;
         const body = JSON.parse(JSON.stringify(request.body));
-        componentComponent.addMethod(project, module, component, {
+        componentsPage.addMethod(project, module, component, {
             name: body.name,
             inputs: body.inputs,
             return: 'any',
@@ -169,12 +168,11 @@ export const createMethodInAComponentSubmit = bfastnode.bfast.functions().onPost
 export const updateMethodInAComponent = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/components/:component/method/:method',
     (request, response) => {
-        const componentComponent = new ComponentService(new StorageUtil());
         const project = request.params.project;
         const module = request.params.module;
         const component = request.params.component;
         const method = request.params.method;
-        return new ComponentsPage(componentComponent).updateMethodPage(project, module, component, method).then(value => {
+        return componentsPage.updateMethodPage(project, module, component, method).then(value => {
             response.send(value);
         }).catch(reason => {
             response.status(400).redirect(
@@ -187,13 +185,12 @@ export const updateMethodInAComponent = bfastnode.bfast.functions().onGetHttpReq
 export const updateMethodInAComponentSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/components/:component/method/:method',
     (request, response) => {
-        const componentComponent = new ComponentService(new StorageUtil());
         const project = request.params.project;
         const module = request.params.module;
         const component = request.params.component;
         const method = request.params.method;
         const body = JSON.parse(JSON.stringify(request.body));
-        componentComponent.updateMethod(project, module, component, method, {
+        componentsPage.updateMethod(project, module, component, method, {
             name: body.name,
             inputs: body.inputs,
             return: 'any',
@@ -209,13 +206,12 @@ export const updateMethodInAComponentSubmit = bfastnode.bfast.functions().onPost
 export const deleteMethodInAComponentSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/components/:component/method/:method/delete',
     (request, response) => {
-        const componentComponent = new ComponentService(new StorageUtil());
         const project = request.params.project;
         const module = request.params.module;
         const component = request.params.component;
         const method = request.params.method;
         //  const body = JSON.parse(JSON.stringify(request.body));
-        componentComponent.deleteMethod(project, module, component, method).then(_ => {
+        componentsPage.deleteMethod(project, module, component, method).then(_ => {
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`);
         }).catch(reason => {
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())}`);
@@ -226,12 +222,11 @@ export const deleteMethodInAComponentSubmit = bfastnode.bfast.functions().onPost
 export const addInjectionInAComponentSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/components/:component/injections/:injection',
     (request, response) => {
-        const componentComponent = new ComponentService(new StorageUtil());
         const project = request.params.project;
         const module = request.params.module;
         const component = request.params.component;
         const injection = request.params.injection;
-        componentComponent.componentFileToJson(project, module, component).then(async value => {
+        componentsPage.componentFileToJson(project, module, component).then(async value => {
             if (value && value.injections && Array.isArray(value.injections)) {
                 const exist = value.injections.filter(x => x.state.toString().toLowerCase()
                     === injection.toString().split('.')[0].toLowerCase());
@@ -240,7 +235,7 @@ export const addInjectionInAComponentSubmit = bfastnode.bfast.functions().onPost
                         name: injection.toString().split('.')[0].toString().toLowerCase() + 'State'.trim(),
                         state: injection.toString().split('.')[0].toString().toLowerCase().trim()
                     });
-                    await componentComponent.jsonToComponentFile(value, project, module)
+                    await componentsPage.jsonToComponentFile(value, project, module)
                 }
             }
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`);
@@ -254,16 +249,15 @@ export const addInjectionInAComponentSubmit = bfastnode.bfast.functions().onPost
 export const deleteInjectionInAComponentSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/components/:component/injections/:injection/delete',
     (request, response) => {
-        const componentComponent = new ComponentService(new StorageUtil());
         const project = request.params.project;
         const module = request.params.module;
         const component = request.params.component;
         const injection = request.params.injection;
-        componentComponent.componentFileToJson(project, module, component).then(async value => {
+        componentsPage.componentFileToJson(project, module, component).then(async value => {
             if (value && value.injections && Array.isArray(value.injections)) {
                 value.injections = value.injections.filter(x => x.state.toString().toLowerCase()
                     !== injection.toString().split('.')[0].toLowerCase());
-                await componentComponent.jsonToComponentFile(value, project, module)
+                await componentsPage.jsonToComponentFile(value, project, module)
             }
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`)
         }).catch(reason => {
@@ -276,18 +270,17 @@ export const deleteInjectionInAComponentSubmit = bfastnode.bfast.functions().onP
 export const addStyleInAComponentSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/components/:component/styles/:style',
     (request, response) => {
-        const componentComponent = new ComponentService(new StorageUtil());
         const project = request.params.project;
         const module = request.params.module;
         const component = request.params.component;
         const style = request.params.style;
-        componentComponent.componentFileToJson(project, module, component).then(async value => {
+        componentsPage.componentFileToJson(project, module, component).then(async value => {
             if (value && value.styles && Array.isArray(value.styles)) {
                 const exist = value.styles.filter(x => x.toString().toLowerCase()
                     === style.toString().split('.')[0].toLowerCase());
                 if (exist.length === 0) {
                     value.styles.push(style.toString().split('.')[0]);
-                    await componentComponent.jsonToComponentFile(value, project, module);
+                    await componentsPage.jsonToComponentFile(value, project, module);
                 }
             }
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`);
@@ -301,16 +294,15 @@ export const addStyleInAComponentSubmit = bfastnode.bfast.functions().onPostHttp
 export const deleteStyleInAComponentSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/components/:component/styles/:style/delete',
     (request, response) => {
-        const componentComponent = new ComponentService(new StorageUtil());
         const project = request.params.project;
         const module = request.params.module;
         const component = request.params.component;
         const style = request.params.style;
-        componentComponent.componentFileToJson(project, module, component).then(async value => {
+        componentsPage.componentFileToJson(project, module, component).then(async value => {
             if (value && value.styles && Array.isArray(value.styles)) {
                 value.styles = value.styles.filter(x => x.toString().toLowerCase()
                     !== style.toString().split('.')[0].toLowerCase());
-                await componentComponent.jsonToComponentFile(value, project, module)
+                await componentsPage.jsonToComponentFile(value, project, module)
             }
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`)
         }).catch(reason => {
@@ -323,13 +315,12 @@ export const deleteStyleInAComponentSubmit = bfastnode.bfast.functions().onPostH
 export const addFieldInAComponentSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/components/:component/fields',
     (request, response) => {
-        const componentComponent = new ComponentService(new StorageUtil());
         const project = request.params.project;
         const module = request.params.module;
         const component = request.params.component;
         const body = JSON.parse(JSON.stringify(request.body));
         const field = body.name;
-        componentComponent.componentFileToJson(project, module, component).then(async value => {
+        componentsPage.componentFileToJson(project, module, component).then(async value => {
             if (value && value.components && Array.isArray(value.components)) {
                 const exist = value.components.filter(x => x.component.toString().toLowerCase()
                     === field.toString().trim());
@@ -339,7 +330,7 @@ export const addFieldInAComponentSubmit = bfastnode.bfast.functions().onPostHttp
                         component: field.toString().trim(),
                         type: 'BehaviorSubject'
                     });
-                    await componentComponent.jsonToComponentFile(value, project, module)
+                    await componentsPage.jsonToComponentFile(value, project, module)
                 }
             }
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`)
@@ -353,16 +344,15 @@ export const addFieldInAComponentSubmit = bfastnode.bfast.functions().onPostHttp
 export const deleteFieldInAComponentSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/components/:component/fields/:field/delete',
     (request, response) => {
-        const componentComponent = new ComponentService(new StorageUtil());
         const project = request.params.project;
         const module = request.params.module;
         const component = request.params.component;
         const field = request.params.field;
-        componentComponent.componentFileToJson(project, module, component).then(async value => {
+        componentsPage.componentFileToJson(project, module, component).then(async value => {
             if (value && value.components && Array.isArray(value.components)) {
                 value.components = value.components.filter(x => x.component.toString().toLowerCase()
                     !== field.toString().trim());
-                await componentComponent.jsonToComponentFile(value, project, module)
+                await componentsPage.jsonToComponentFile(value, project, module)
             }
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`)
         }).catch(reason => {

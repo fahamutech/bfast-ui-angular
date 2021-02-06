@@ -3,6 +3,7 @@ import {moduleAvailablesComponent} from "../components/module-availables.compone
 import {moduleCreateComponent} from "../components/module-create.component.mjs";
 import {moduleViewResources} from "../components/module-view-resources.component.mjs";
 import {ModuleService} from '../services/module.service.mjs'
+import {moduleConstructorUpdateComponent} from "../components/module-constructor-update.component.mjs";
 
 
 export class ModulePage {
@@ -73,6 +74,19 @@ export class ModulePage {
                 moduleObject.routes,
                 pages,
                 guards
+            ),
+            project
+        )
+    }
+
+    async moduleConstructorUpdateView(project, module, error = null) {
+        const moduleObject = await this.moduleService.moduleFileToJson(project, module);
+        return appLayoutComponent(
+            await moduleConstructorUpdateComponent(
+                project,
+                module,
+                moduleObject.constructor,
+                error
             ),
             project
         )

@@ -32,6 +32,14 @@ export const moduleViewResources = async function (
     return `
             <div class="container col-xl-9 col-lg-9 col-sm-12 col-md-10 col-9" style="margin-top: 24px">
                 ${errorMessageComponent(error)}
+                <div class="d-flex flex-row">
+                     <h2>${moduleName} module</h2>
+                     <span style="flex: 1 1 auto"></span>
+                     <a href="/project/${project}/modules/${moduleName}/resources/constructor">
+                        <button class="btn btn-primary btn-sm">Update Constructor</button>
+                     </a>
+                </div>
+                <hr>
                 <h2>Resources</h2>
                 <div class="d-flex flex-row flex-wrap">
                     <div class="resource-card">
@@ -77,7 +85,7 @@ export const moduleViewResources = async function (
                     </div>
                 </div>
                 <hr>
-                ${await moduleRoutesTableComponent(project, moduleName,routes, pages, guards)}
+                ${await moduleRoutesTableComponent(project, moduleName, routes, pages, guards)}
                 <hr>
                 ${await moduleInjectionsTableComponent(project, moduleName, injections, services)}
                 <hr>  

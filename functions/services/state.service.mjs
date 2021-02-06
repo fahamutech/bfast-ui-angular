@@ -8,9 +8,11 @@ export class StateService {
     /**
      *
      * @param storageService {StorageUtil}
+     * @param appUtil {AppUtil}
      */
-    constructor(storageService) {
+    constructor(storageService, appUtil) {
         this.storageService = storageService;
+        this.appUtil = appUtil;
     }
 
     async getStates(project, module) {
@@ -48,7 +50,7 @@ export class StateService {
         const stateFile = await promisify(readFile)(join(projectPath, 'modules', module, 'states', `${stateName}.state.ts`));
         const stateJsonFile = {};
         stateJsonFile.name = stateName;
-        stateJsonFile.injections = AppUtil.getInjectionsFromFile(stateFile);
+        stateJsonFile.injections = this.appUtil.getInjectionsFromFile(stateFile);
         stateJsonFile.states = this._getStateFieldFromStateFile(stateFile);
         stateJsonFile.methods = this._getMethodsFromStateFile(stateFile);
         return stateJsonFile;

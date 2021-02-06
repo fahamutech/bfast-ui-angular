@@ -4,7 +4,7 @@
  * @returns {string} html to render
  */
 export const errorMessageComponent = function (error) {
-    if (error) {
+    if (error && error !== 'undefined' && error !== 'null') {
         return `
                 <div class="alert alert-danger alert-dismissible fade show" role="alert" style="padding: 16px; width: 100%">
                     ${error}

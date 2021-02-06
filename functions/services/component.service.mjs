@@ -8,9 +8,11 @@ export class ComponentService {
     /**
      *
      * @param storageService {StorageUtil}
+     * @param appUtil {AppUtil}
      */
-    constructor(storageService) {
+    constructor(storageService, appUtil) {
         this.storageService = storageService;
+        this.appUtil = appUtil;
     }
 
     async getComponents(project, module) {
@@ -70,7 +72,7 @@ export class ComponentService {
         componentJsonFile.styles = this._geStylesFromComponentFile(componentFile);
         componentJsonFile.template = this._getTemplateFromComponentFile(componentFile);
         // componentJsonFile.fields = this._getComponentFieldFromComponentFile(componentFile);
-        componentJsonFile.methods = AppUtil.getMethodsFromFile(componentFile);
+        componentJsonFile.methods = this.appUtil.getMethodsFromFile(componentFile);
         return componentJsonFile;
     }
 

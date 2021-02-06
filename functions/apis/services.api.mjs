@@ -2,14 +2,19 @@ import bfastnode from 'bfastnode'
 import {ServicesPage} from "../pages/services.page.mjs";
 import {ServicesService} from "../services/services.service.mjs";
 import {StorageUtil} from "../utils/storage.util.mjs";
+import {AppUtil} from "../utils/app.util.mjs";
+
+const storage = new StorageUtil();
+const appUtil = new AppUtil();
+const servicesService = new ServicesService(storage, appUtil);
+const servicesPage = new ServicesPage(servicesService);
 
 export const viewModuleServices = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/services',
     (request, response) => {
-        const servicesService = new ServicesService(new StorageUtil());
         const project = request.params.project;
         const module = request.params.module;
-        new ServicesPage(servicesService).indexPage(project, module).then(value => {
+        servicesPage.indexPage(project, module).then(value => {
             response.send(value);
         }).catch(_ => {
             response.status(400).send(_);
@@ -20,13 +25,13 @@ export const viewModuleServices = bfastnode.bfast.functions().onGetHttpRequest(
 export const createModuleServices = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/services',
     (request, response) => {
-        const servicesService = new ServicesService(new StorageUtil());
+
         const project = request.params.project;
         const module = request.params.module;
         const body = JSON.parse(JSON.stringify(request.body));
 
         function servicePage(error = null) {
-            new ServicesPage(servicesService).indexPage(project, module, error).then(value => {
+            servicesPage.indexPage(project, module, error).then(value => {
                 response.send(value);
             }).catch(_ => {
                 response.status(400).send(_);
@@ -49,18 +54,18 @@ export const createModuleServices = bfastnode.bfast.functions().onPostHttpReques
 export const viewModuleService = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/services/:service',
     (request, response) => {
-        const servicesService = new ServicesService(new StorageUtil());
+
         const project = request.params.project;
         const module = request.params.module;
         const selectedService = request.params.service;
         if (selectedService) {
-            new ServicesPage(servicesService).viewServicePage(project, module, selectedService, request.query.error).then(value => {
+            servicesPage.viewServicePage(project, module, selectedService, request.query.error).then(value => {
                 response.send(value);
             }).catch(_ => {
                 response.status(400).send(_);
             });
         } else {
-            new ServicesPage(servicesService).viewServicePage(project, module,).then(value => {
+            servicesPage.viewServicePage(project, module,).then(value => {
                 response.send(value);
             }).catch(_ => {
                 response.status(400).send(_);
@@ -72,11 +77,11 @@ export const viewModuleService = bfastnode.bfast.functions().onGetHttpRequest(
 export const createMethodInAService = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/services/:service/method',
     (request, response) => {
-        const servicesService = new ServicesService(new StorageUtil());
+
         const project = request.params.project;
         const module = request.params.module;
         const service = request.params.service;
-        new ServicesPage(servicesService).createMethodPage(project, module, service, {
+        servicesPage.createMethodPage(project, module, service, {
             name: request.query.name ? request.query.name : '',
             inputs: request.query.inputs ? request.query.inputs : '',
             body: request.query.codes,
@@ -92,7 +97,7 @@ export const createMethodInAService = bfastnode.bfast.functions().onGetHttpReque
 export const createMethodInAServiceSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/services/:service/method',
     (request, response) => {
-        const servicesService = new ServicesService(new StorageUtil());
+
         const project = request.params.project;
         const module = request.params.module;
         const service = request.params.service;
@@ -113,12 +118,12 @@ export const createMethodInAServiceSubmit = bfastnode.bfast.functions().onPostHt
 export const updateMethodInAService = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/services/:service/method/:method',
     (request, response) => {
-        const servicesService = new ServicesService(new StorageUtil());
+
         const project = request.params.project;
         const module = request.params.module;
         const service = request.params.service;
         const method = request.params.method;
-        return new ServicesPage(servicesService).updateMethodPage(project, module, service, method).then(value => {
+        return servicesPage.updateMethodPage(project, module, service, method).then(value => {
             response.send(value);
         }).catch(reason => {
             response.status(400).redirect(
@@ -131,7 +136,7 @@ export const updateMethodInAService = bfastnode.bfast.functions().onGetHttpReque
 export const updateMethodInAServiceSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/services/:service/method/:method',
     (request, response) => {
-        const servicesService = new ServicesService(new StorageUtil());
+
         const project = request.params.project;
         const module = request.params.module;
         const service = request.params.service;
@@ -153,7 +158,7 @@ export const updateMethodInAServiceSubmit = bfastnode.bfast.functions().onPostHt
 export const deleteMethodInAServiceSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/services/:service/method/:method/delete',
     (request, response) => {
-        const servicesService = new ServicesService(new StorageUtil());
+
         const project = request.params.project;
         const module = request.params.module;
         const service = request.params.service;
@@ -170,7 +175,7 @@ export const deleteMethodInAServiceSubmit = bfastnode.bfast.functions().onPostHt
 export const addInjectionInAServiceSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/services/:service/injections/:injection',
     (request, response) => {
-        const servicesService = new ServicesService(new StorageUtil());
+
         const project = request.params.project;
         const module = request.params.module;
         const service = request.params.service;
@@ -197,7 +202,7 @@ export const addInjectionInAServiceSubmit = bfastnode.bfast.functions().onPostHt
 export const deleteInjectionInAServiceSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/services/:service/injections/:injection/delete',
     (request, response) => {
-        const servicesService = new ServicesService(new StorageUtil());
+
         const project = request.params.project;
         const module = request.params.module;
         const service = request.params.service;

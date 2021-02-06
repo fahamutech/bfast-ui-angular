@@ -8,9 +8,11 @@ export class PageService {
     /**
      *
      * @param storageService {StorageUtil}
+     * @param appUtil {AppUtil}
      */
-    constructor(storageService) {
+    constructor(storageService, appUtil) {
         this.storageService = storageService;
+        this.appUtil = appUtil;
     }
 
     async getPages(project, module) {
@@ -70,7 +72,7 @@ export class PageService {
         pageJsonFile.styles = this._geStylesFromPageFile(pageFile);
         pageJsonFile.template = this._getTemplateFromPageFile(pageFile);
         // pageJsonFile.fields = this._getPageFieldFromPageFile(pageFile);
-        pageJsonFile.methods = AppUtil.getMethodsFromFile(pageFile);
+        pageJsonFile.methods = this.appUtil.getMethodsFromFile(pageFile);
         return pageJsonFile;
     }
 

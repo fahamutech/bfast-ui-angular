@@ -5,8 +5,8 @@ export class AppUtil {
      * @return {string}
      * @public
      */
-    static firstCaseUpper(name) {
-        return name.split('').map((value, index, array) => {
+    firstCaseUpper(name) {
+        return name.split('').map((value, index) => {
             if (index === 0) {
                 return value.toUpperCase();
             }
@@ -19,11 +19,11 @@ export class AppUtil {
      * @param kebalCase {string}
      * @return {string}
      */
-    static kebalCaseToCamelCase(kebalCase) {
+    kebalCaseToCamelCase(kebalCase) {
         return kebalCase
             .trim()
             .split('-')
-            .map(y => AppUtil.firstCaseUpper(y))
+            .map(y => this.firstCaseUpper(y))
             .join('')
     }
 
@@ -32,7 +32,7 @@ export class AppUtil {
      * @param camelCase {string}
      * @return {string}
      */
-    static camelCaseToKebal(camelCase) {
+    camelCaseToKebal(camelCase) {
         let guardNameParts = camelCase.match(new RegExp('[A-Z][a-z0-9]+', 'g'));
         if (guardNameParts) {
             return guardNameParts.map(x => x.toLowerCase()).join('-');
@@ -41,7 +41,7 @@ export class AppUtil {
         }
     }
 
-    static getInjectionsFromFile(file) {
+    getInjectionsFromFile(file) {
         const reg = new RegExp('(constructor).*\:(.|\\n)+?\\)', 'ig');
         const results = file.toString().match(reg) ? file.toString().match(reg)[0] : [];
         if (results) {
@@ -64,7 +64,7 @@ export class AppUtil {
         }
     }
 
-    static getMethodsFromFile(file) {
+    getMethodsFromFile(file) {
         const reg = new RegExp(`(async)+.*`, 'gim');
         const results = file.toString().match(reg) ? file.toString().match(reg) : [];
         const indexes = results.map(x => {
@@ -96,14 +96,15 @@ export class AppUtil {
         }
     }
 
-    static getConstructorBodyFromModuleFile(moduleFile) {
-        const reg = new RegExp('(constructor).*(.|\\n)*\}.*\\/\\/.*(end)');
-        let result = moduleFile.toString().match(reg) ? moduleFile.toString().match(reg)[0] : [];
+    getConstructorBodyFromModuleFile(moduleFile) {
+        const reg = new RegExp('(constructor).*(.|\\n)*}(.|\\n)+?\\/\\/(.|\\n)+?(end)', 'ig');
+        let result = moduleFile.toString().match(reg) ? moduleFile.toString().match(reg)[0] : null;
+        // console.log(result);
         if (result) {
             result = result.toString()
-                .replace(new RegExp('(constructor).*\\(.*(.|\\n)*.*\\).*{', 'ig'), '')
+                .replace(new RegExp('(constructor)(.|\\n)*\\(.*(.|\\n)*:(.|\\n)+?(\\)(\\s|\\n)*{)', 'ig'), '')
                 // .replace(new RegExp('(constructor).*(.|\\n)+?\\).*', 'ig'), '')
-                .replace(new RegExp('}.*\\/\\/.*(end)', 'ig'), '')
+                .replace(new RegExp('}(\\s|\\n)*\\/\\/(.|\\n)*(end)', 'ig'), '')
                 .trim()
             return result;
         } else {

@@ -8,9 +8,11 @@ export class ServicesService {
     /**
      *
      * @param storageService {StorageUtil}
+     * @param appUtil {AppUtil}
      */
-    constructor(storageService) {
+    constructor(storageService, appUtil) {
         this.storageService = storageService;
+        this.appUtil = appUtil;
     }
 
     async getServices(project, module) {
@@ -38,8 +40,8 @@ export class ServicesService {
         const serviceFile = await promisify(readFile)(join(projectPath, 'modules', module, 'services', `${serviceName}.service.ts`));
         const serviceJsonFile = {};
         serviceJsonFile.name = serviceName;
-        serviceJsonFile.injections = AppUtil.getInjectionsFromFile(serviceFile);
-        serviceJsonFile.methods = AppUtil.getMethodsFromFile(serviceFile);
+        serviceJsonFile.injections = this.appUtil.getInjectionsFromFile(serviceFile);
+        serviceJsonFile.methods = this.appUtil.getMethodsFromFile(serviceFile);
         return serviceJsonFile;
     }
 
@@ -69,7 +71,7 @@ export class ServicesService {
     async jsonToServiceFile(service, project, module) {
         const projectPath = this.storageService.getConfig(`${project}:projectPath`);
         const serviceInjectionsWithType = service.injections
-            .map(x => 'private readonly ' + x.name + ': ' + AppUtil.firstCaseUpper(x.service) + 'Service')
+            .map(x => 'private readonly ' + x.name + ': ' + this.appUtil.firstCaseUpper(x.service) + 'Service')
             .join(',');
         const methods = service.methods.map(x => {
             return `
@@ -86,7 +88,7 @@ ${this._getServiceImports(service.injections)}
 @Injectable({
     providedIn: 'any'
 })
-export class ${AppUtil.firstCaseUpper(service.name)}Service {
+export class ${this.appUtil.firstCaseUpper(service.name)}Service {
     constructor(${serviceInjectionsWithType}){
     }
     
@@ -100,7 +102,7 @@ export class ${AppUtil.firstCaseUpper(service.name)}Service {
     _getServiceImports(injections = []) {
         let im = '';
         for (const injection of injections) {
-            const serviceName = AppUtil.firstCaseUpper(injection.service)
+            const serviceName = this.appUtil.firstCaseUpper(injection.service)
             im += `import {${serviceName}Service} from './${injection.service.toLowerCase()}.service';\n`
         }
 
