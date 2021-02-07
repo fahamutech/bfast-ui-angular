@@ -1,9 +1,10 @@
 import {appLayoutComponent} from "../components/app-layout.component.mjs";
-import {moduleAvailablesComponent} from "../components/module-availables.component.mjs";
+import {mainModuleAvailablesComponent} from "../components/main-module-availables.component.mjs";
 import {moduleCreateComponent} from "../components/module-create.component.mjs";
 import {moduleViewResources} from "../components/module-view-resources.component.mjs";
 import {ModuleService} from '../services/module.service.mjs'
 import {moduleConstructorUpdateComponent} from "../components/module-constructor-update.component.mjs";
+import {mainModuleConstructorUpdateComponent} from "../components/main-module-constructor-update.component.mjs";
 
 
 export class ModulePage {
@@ -35,13 +36,21 @@ export class ModulePage {
     async indexPage(project, error) {
         try {
             const value = await this.moduleService.getModules(project);
-            value.mainModuleContents = await this.moduleService.getMainModuleContents(project)
+            value.mainModuleContents = await this.moduleService.getMainModuleContents(project);
+            const moduleObject = await this.moduleService.mainModuleFileToJson(project);
             return appLayoutComponent(
-                moduleAvailablesComponent(error, value.modules, project, value.name, value.mainModuleContents !== '' ? value.mainModuleContents : null),
+                await mainModuleAvailablesComponent(
+                    error,
+                    value.modules,
+                    project,
+                    value.name,
+                    value.mainModuleContents !== '' ? value.mainModuleContents : null,
+                    moduleObject.routes
+                ),
                 project
             );
         } catch (reason) {
-            return appLayoutComponent(moduleAvailablesComponent(reason.toString(), [], project, '', null), project);
+            return appLayoutComponent(await mainModuleAvailablesComponent(reason.toString(), [], project, '', null), project);
         }
     }
 
@@ -85,6 +94,18 @@ export class ModulePage {
             await moduleConstructorUpdateComponent(
                 project,
                 module,
+                moduleObject.constructor,
+                error
+            ),
+            project
+        )
+    }
+
+    async mainModuleConstructorUpdateView(project, error = null) {
+        const moduleObject = await this.moduleService.mainModuleFileToJson(project);
+        return appLayoutComponent(
+            await mainModuleConstructorUpdateComponent(
+                project,
                 moduleObject.constructor,
                 error
             ),

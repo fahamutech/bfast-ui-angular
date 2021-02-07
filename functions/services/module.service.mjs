@@ -162,6 +162,38 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
 
     /**
      *
+     * @param project {string}
+     * @return {Promise<{
+     *     name: string,
+     *     routes: {
+     *         path: string,
+     *         guards: Array<*>,
+     *         ref: string,
+     *         module: *
+     *     }[],
+     *     imports: Array<{name: string, ref: string}>,
+     *     injections: Array<{name: string, service: string}>,
+     *     constructor: string
+     * }>}
+     */
+    async mainModuleFileToJson(project) {
+        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const module = this.storageService.getConfig(`${project}:module`);
+        let moduleFile = await promisify(readFile)(
+            join(projectPath, `${module}.module.ts`)
+        );
+        moduleFile = moduleFile.toString();
+        const moduleJson = {};
+        moduleJson.name = this.appUtil.camelCaseToKebal(module);
+        moduleJson.routes = this._getRoutesFromMainModuleFile(moduleFile);
+        // moduleJson.imports = this._getUserImportsFromModuleFile(moduleFile);
+        // moduleJson.injections = this.appUtil.getInjectionsFromFile(moduleFile);
+        moduleJson.constructor = this.appUtil.getConstructorBodyFromModuleFile(moduleFile);
+        return moduleJson;
+    }
+
+    /**
+     *
      * @param moduleFile{string}
      * @return {Array<*>}
      * @private
@@ -200,6 +232,96 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
                     .replace(':', '')
                     .replace(',', '')
                     .replace('Page', '')
+                    .replace(new RegExp('\'', 'ig'), '')
+                    .replace(new RegExp('\"', 'ig'), '')
+                    .trim();
+
+                const guards = _x.toString().match(new RegExp('canActivate.*]', 'ig')) ?
+                    _x.toString().match(new RegExp('canActivate.*]', 'ig'))[0] : '';
+                routeObject.guards = guards.toString()
+                    .replace('canActivate', '')
+                    .replace(':', '')
+                    .replace('[', '')
+                    .replace(']', '')
+                    .replace(new RegExp('\'', 'ig'), '')
+                    .replace(new RegExp('\"', 'ig'), '')
+                    .trim()
+                    .split(',')
+                    .map(t => t.toString().replace('Guard', '').trim())
+                    .filter(z => z !== '');
+
+                if (!routeObject.guards) {
+                    routeObject.guards = [];
+                }
+                routeObject.guards = routeObject.guards.filter(x => x.toString() !== '');
+                // }
+                return routeObject;
+            });
+            return routesItems;
+        } else {
+            return [];
+        }
+    }
+
+    /**
+     *
+     * @param moduleFile{string}
+     * @return {Array<*>}
+     * @private
+     */
+    _getRoutesFromMainModuleFile(moduleFile) {
+        const reg = new RegExp('const.*routes.*\:.*\=.*\\[(.|\\n)*\];', 'ig');
+        const results = moduleFile.toString().match(reg) ? moduleFile.toString().match(reg)[0] : [];
+        if (results) {
+            const routesString = results.toString()
+                .replace(new RegExp('const.*routes.*\:.*\=', 'gim'), '')
+                .replace(';', '')
+                .trim();
+            let routesItemsMatch = routesString.toString().match(new RegExp('\{(.|\\n)+?\}', 'igm'));
+            if (!routesItemsMatch) {
+                routesItemsMatch = [];
+            }
+            let routesItems = routesItemsMatch.map(x =>
+                x.replace('{', '').replace('}', '').replace(new RegExp('].+?,', 'ig'), '],')
+            );
+            routesItems = routesItems.map(_x => {
+                const routeObject = {};
+                const path = _x.toString().match(new RegExp('path.+?,', 'ig')) ?
+                    _x.toString().match(new RegExp('path.+?,', 'ig'))[0] : '';
+                routeObject.path = path.toString()
+                    .replace('path', '')
+                    .replace(':', '')
+                    .replace(',', '')
+                    .replace(new RegExp('\'', 'ig'), '')
+                    .replace(new RegExp('\"', 'ig'), '')
+                    .trim();
+
+                routeObject.ref = _x.toString().match(new RegExp('(import).*\\(.*\\)\\.', 'ig')) ?
+                    _x.toString().match(new RegExp('(import).*\\(.*\\)\\.', 'ig'))[0]
+                        .replace('import', '')
+                        .replace('(', '')
+                        .replace(')', '')
+                        .replace(new RegExp('\'', 'ig'), '')
+                        .replace(new RegExp('\"', 'ig'), '')
+                        .trim()
+                        .split('')
+                        .reverse()
+                        .join('')
+                        .substring(1)
+                        .split('')
+                        .reverse()
+                        .join('')
+                        .trim()
+                    : '';
+
+                const page = _x.toString().match(new RegExp('(loadChildren)(.|\\n)+?(\\.then)(.|\\n)+?\\)', 'ig')) ?
+                    _x.toString().match(new RegExp('(loadChildren)(.|\\n)+?(\\.then)(.|\\n)+?\\)', 'ig'))[0] : '';
+                const _y = page.toString().match(new RegExp('(mod\\.).*(Module)', 'ig')) ?
+                    page.toString().match(new RegExp('(mod\\.).*(Module)', 'ig'))[0]
+                    : '';
+                routeObject.module = _y.toString()
+                    .replace('mod.', '')
+                    .replace('Module', '')
                     .replace(new RegExp('\'', 'ig'), '')
                     .replace(new RegExp('\"', 'ig'), '')
                     .trim();
@@ -353,6 +475,64 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
         }
     }
 
+    // _getUserImportsFromMainModuleFile(moduleFile) {
+    //     const reg = new RegExp('(import).*(.|\\n)*(from).*;', 'ig');
+    //     let results = moduleFile.toString().match(reg) ? moduleFile.toString().match(reg)[0] : [];
+    //     if (results) {
+    //         results = results.toString()
+    //             // remove angular core imports
+    //             .replace(new RegExp('(import).*(@angular/core).*', 'ig'), '')
+    //             // remove angular core imports
+    //             .replace(new RegExp('(import).*(@angular/platform-browser).*', 'ig'), '')
+    //             // remove angular route imports
+    //             .replace(new RegExp('(import).*(@angular/router).*', 'ig'), '')
+    //             // remove angular common imports
+    //             .replace(new RegExp('(import).*(@angular/common).*', 'ig'), '')
+    //             // remove component imports
+    //             .replace(new RegExp('(import).*(\\.\/component).*', 'ig'), '')
+    //             // remove page imports
+    //             .replace(new RegExp('(import).*(\\.\/page).*', 'ig'), '')
+    //             // remove pipe imports
+    //             .replace(new RegExp('(import).*(\\.\/pipe).*', 'ig'), '')
+    //             // remove guards imports
+    //             .replace(new RegExp('(import).*(\\.\/guard).*', 'ig'), '')
+    //             // remove bfast imports
+    //             .replace(new RegExp('(import).*(bfastjs).*', 'ig'), '')
+    //             // remove service import
+    //             .replace(new RegExp('(import).*(\\.\/service).*', 'ig'), '')
+    //             // remove space left behind
+    //             .replace(new RegExp('(\\n){2,}', 'ig'), '\n')
+    //             .trim()
+    //             .split('\n')
+    //             .filter(y => (typeof y === "string" && y.length > 1))
+    //             .map(x => {
+    //                 const xParts = x.replace('import', '')
+    //                     .replace('{', '')
+    //                     .replace('}', '')
+    //                     .replace(';', '')
+    //                     .trim()
+    //                     .split('from');
+    //                 return {
+    //                     name: xParts[0] ? xParts[0].trim() : null,
+    //                     ref: xParts[1] ? xParts[1].replace(new RegExp('[\'\"]', 'ig'), '').trim() : null
+    //                 }
+    //             });
+    //         const singleImports = results.filter(x => x.name.split(',').length === 1);
+    //         const multipleImports = results.filter(x => x.name.split(',').length > 1);
+    //         multipleImports.forEach(mImport => {
+    //             singleImports.push(...mImport.name.split(',').map(y => {
+    //                 return {
+    //                     name: y.trim(),
+    //                     ref: mImport.ref
+    //                 }
+    //             }))
+    //         });
+    //         return singleImports;
+    //     } else {
+    //         return [];
+    //     }
+    // }
+
     /**
      *
      * @param project {string}
@@ -432,6 +612,68 @@ export class ${this.appUtil.firstCaseUpper(moduleJson.name)}Module {
 
     /**
      *
+     * @param project {string}
+     * @param moduleJson {{
+     *     name: string,
+     *     routes: {
+     *         path: string,
+     *         guards: Array<*>,
+     *         ref: string,
+     *         module: *
+     *     }[],
+     *     constructor: string
+     * }}
+     * @return {Promise<*>}
+     */
+    async mainModuleJsonToFile(project, moduleJson) {
+        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        let module = this.storageService.getConfig(`${project}:module`);
+        module = module.replace('.module.ts', '').trim();
+        // const moduleInjectionsWithType = moduleJson.injections.map(
+        //     x => 'private readonly ' + x.name + ': ' + this.appUtil.firstCaseUpper(x.service) + 'Service'
+        // ).join(',');
+
+        // ${this._getServiceImports(moduleJson.injections)}
+// ${this._getGuardsImports(moduleJson.routes)}
+// ${await this._getComponentsImports(project, module)}
+// ${await this._getPagesImports(project, module)}
+// ${moduleJson.imports.map(x => `import {${x.name}} from '${x.ref}';`).join('\n')}
+
+        const moduleInString = `import {BFast, bfast} from 'bfastjs';
+import {BrowserModule} from '@angular/platform-browser';
+import {NgModule} from '@angular/core';
+import {AppComponent} from './app.component';
+import {RouterModule} from '@angular/router';
+import {Routes} from '@angular/router';
+
+const routes: Routes = [
+   ${this._getRoutesFromMainModuleJson(moduleJson.routes)}
+];
+
+@NgModule({
+  declarations: [AppComponent],
+  imports: [
+    BrowserModule,
+    RouterModule.forRoot(routes),
+  ],
+  providers: [],
+  bootstrap: [AppComponent],
+})
+export class ${this.appUtil.kebalCaseToCamelCase(module)}Module {
+    constructor(){
+        ${moduleJson.constructor}
+    }// end
+}
+
+`
+        await promisify(writeFile)(
+            join(projectPath, `${this.appUtil.camelCaseToKebal(module)}.module.ts`), moduleInString
+        );
+        return 'done write main module'
+    }
+
+    /**
+     *
      * @param routes {{
      *         path: string,
      *         guards: Array<*>,
@@ -444,6 +686,24 @@ export class ${this.appUtil.firstCaseUpper(moduleJson.name)}Module {
     _getModuleRoutesFromModuleJson(routes) {
         return routes.map(x => {
             return `{ path: '${x.path}', canActivate: [ ${x.guards.filter(x => x !== '').map(y => y.toString().trim().concat('Guard')).join(',')} ], component: ${x.page}Page },`
+        }).join('\n   ')
+    }
+
+    /**
+     *
+     * @param routes {{
+     *         path: string,
+     *         guards: Array<*>,
+     *         ref: string,
+     *         module: *
+     *     }[]
+     *     }
+     * @private
+     * @return {string}
+     */
+    _getRoutesFromMainModuleJson(routes) {
+        return routes.map(x => {
+            return `{ path: '${x.path}', canActivate: [ ${x.guards.filter(x => x !== '').map(y => y.toString().trim().concat('Guard')).join(',')} ], loadChildren: () => import('${x.ref}').then(mod => mod.${x.module}Module) },`
         }).join('\n   ')
     }
 

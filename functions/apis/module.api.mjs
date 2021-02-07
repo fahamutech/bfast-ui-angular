@@ -15,6 +15,7 @@ const servicesService = new ServicesService(storageUtil, appUtil);
 const componentService = new ComponentService(storageUtil, appUtil);
 const pageService = new PageService(storageUtil, appUtil);
 const guardsService = new GuardsService(storageUtil, appUtil);
+const modulePage = new ModulePage(_moduleService, servicesService, componentService, pageService, guardsService);
 
 export const moduleHome = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules',
@@ -40,6 +41,112 @@ export const moduleHomeUpdateMainModule = bfastnode.bfast.functions().onPostHttp
         });
     }
 );
+
+export const mainModuleConstructorUpdate = bfastnode.bfast.functions().onGetHttpRequest(
+    '/project/:project/modules/main/constructor',
+    (request, response) => {
+        const project = request.params.project;
+        const error = decodeURIComponent(request.query.error);
+        modulePage.mainModuleConstructorUpdateView(project).then(value => {
+            response.send(value);
+        }).catch(reason => {
+            console.log(reason);
+            response.status(400).redirect(`/project/${project}/modules/main/constructor?error=${reason.toString()}`);
+        });
+    }
+);
+
+
+export const mainModuleConstructorUpdateSubmit = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/main/constructor',
+    (request, response) => {
+        const project = request.params.project;
+        const module = request.params.module;
+        const body = JSON.parse(JSON.stringify(request.body));
+        if (body && body.body) {
+            _moduleService.mainModuleFileToJson(project).then(async value => {
+                value.constructor = body.body
+                return _moduleService.mainModuleJsonToFile(project, value);
+            }).then(_ => {
+                // response.redirect(`/project/${project}/modules/${module}/resources`);
+                response.json({message: 'Constructor Updated, Successful'});
+            }).catch(reason => {
+                console.log(reason);
+                response.status(400).json({message: reason && reason.message ? reason.message : reason.toString()});
+            });
+        } else {
+            response.status(400).json({message: 'Please provide constructor body to update'});
+        }
+    }
+);
+
+
+export const addRouteToMainModuleSubmit = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/routes',
+    (request, response) => {
+        const project = request.params.project;
+        const body = JSON.parse(JSON.stringify(request.body));
+        if (body && body.module && body.path) {
+            if (!body.guards) {
+                body.guards = [];
+            }
+            if (typeof body.guards === "string") {
+                body.guards = [body.guards];
+            }
+            if (body.path.toString().startsWith('/')) {
+                body.path = body.path.toString().substring(1);
+            }
+            if (!body.ref || body.ref === '') {
+                const _m = appUtil.camelCaseToKebal(body.module);
+                body.ref = `./modules/${_m}/${_m}.module`;
+            }
+            _moduleService.mainModuleFileToJson(project).then(async value => {
+                if (value && value.routes && Array.isArray(value.routes)) {
+                    const exist = value.routes.filter(x => x.path.toString().toLowerCase()
+                        === body.path.toString().toLowerCase());
+                    if (exist.length === 0) {
+                        value.routes.push({
+                            path: body.path,
+                            ref: body.ref,
+                            module: appUtil.kebalCaseToCamelCase(body.module.toString().replace('.module.ts', '')),
+                            guards: body.guards.map(x => appUtil.kebalCaseToCamelCase(x.replace('.guard.ts', '')))
+                        });
+                        await _moduleService.mainModuleJsonToFile(project, value);
+                    }
+                }
+                response.redirect(`/project/${project}/modules`);
+            }).catch(reason => {
+                console.log(reason);
+                response.redirect(`/project/${project}/modules?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`);
+            });
+        } else {
+            response.redirect(`/project/${project}/modules?error=${encodeURIComponent('name and ref attribute in a body is required')})`);
+        }
+    }
+);
+
+export const deleteRouteInMainModuleSubmit = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/routes/:route/delete',
+    (request, response) => {
+        const project = request.params.project;
+        const module = request.params.module;
+        let route = decodeURIComponent(request.params.route);
+        if (route === '-') {
+            route = '';
+        }
+        _moduleService.mainModuleFileToJson(project).then(async value => {
+            if (value && value.routes && Array.isArray(value.routes)) {
+                value.routes = value.routes.filter(x => x.path.toString().toLowerCase()
+                    !== route.toString().trim().toLowerCase());
+                await _moduleService.mainModuleJsonToFile(project, value);
+            }
+            response.redirect(`/project/${project}/modules`);
+        }).catch(reason => {
+            response.status(400).redirect(`/project/${project}/modules?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`);
+        });
+    }
+);
+
 
 export const moduleCreate = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/create',
@@ -220,7 +327,6 @@ export const deleteImportInModuleSubmit = bfastnode.bfast.functions().onPostHttp
     }
 );
 
-
 export const addRouteToModuleSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/routes',
     (request, response) => {
@@ -297,7 +403,6 @@ export const moduleConstructorUpdate = bfastnode.bfast.functions().onGetHttpRequ
         });
     }
 );
-
 
 export const moduleConstructorUpdateSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/constructor',
