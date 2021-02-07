@@ -190,7 +190,7 @@ export const updateMethodInAComponentSubmit = bfastnode.bfast.functions().onPost
         const component = request.params.component;
         const method = request.params.method;
         const body = JSON.parse(JSON.stringify(request.body));
-        componentsPage.updateMethod(project, module, component, method, {
+        componentService.updateMethod(project, module, component, method, {
             name: body.name,
             inputs: body.inputs,
             return: 'any',
@@ -226,7 +226,7 @@ export const addInjectionInAComponentSubmit = bfastnode.bfast.functions().onPost
         const module = request.params.module;
         const component = request.params.component;
         const injection = request.params.injection;
-        componentsPage.componentFileToJson(project, module, component).then(async value => {
+        componentService.componentFileToJson(project, module, component).then(async value => {
             if (value && value.injections && Array.isArray(value.injections)) {
                 const exist = value.injections.filter(x => x.state.toString().toLowerCase()
                     === injection.toString().split('.')[0].toLowerCase());
@@ -235,7 +235,7 @@ export const addInjectionInAComponentSubmit = bfastnode.bfast.functions().onPost
                         name: injection.toString().split('.')[0].toString().toLowerCase() + 'State'.trim(),
                         state: injection.toString().split('.')[0].toString().toLowerCase().trim()
                     });
-                    await componentsPage.jsonToComponentFile(value, project, module)
+                    await componentService.jsonToComponentFile(value, project, module)
                 }
             }
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`);

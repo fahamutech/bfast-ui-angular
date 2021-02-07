@@ -140,7 +140,7 @@ ${this._getComponentImports(component.injections)}
     template: \`${component.template}\`,
     styleUrls: [${this._getComponentStylesFromJson(component.styles)}]
 })
-export class ${this._firstCaseUpper(component.name)}Component implements OnInit, OnDestroy{
+export class ${this.appUtil.kebalCaseToCamelCase(component.name)}Component implements OnInit, OnDestroy{
     constructor(${componentInjectionsWithType}){
     }
     ${methods}

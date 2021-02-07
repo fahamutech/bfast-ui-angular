@@ -198,7 +198,7 @@ export class ${this._firstCaseUpper(state.name)}State {
         if (exists && Array.isArray(states) && exists.length > 0) {
             throw new Error('State already exist');
         } else {
-            return this.jsonToStateFile({name: stateName, injections: [], methods: []}, project, module);
+            return this.jsonToStateFile({name: stateName, states: [], injections: [], methods: []}, project, module);
         }
     }
 

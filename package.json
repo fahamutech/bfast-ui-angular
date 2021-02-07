@@ -11,7 +11,7 @@
     "nconf": "^0.11.0"
   },
   "devDependencies": {
-    "bfast-tools": "^0.7.7",
+    "bfast-tools": "^0.8.0-alpha.3",
     "mocha": "^8.2.1"
   },
   "private": true

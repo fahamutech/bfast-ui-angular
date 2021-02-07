@@ -44,6 +44,7 @@ export const createModuleStates = bfastnode.bfast.functions().onPostHttpRequest(
             stateService.createState(project, module, stateName).then(_ => {
                 statePage();
             }).catch(reason => {
+                console.log(reason);
                 statePage(reason && reason.message ? reason.message : reason.toString());
             });
         } else {

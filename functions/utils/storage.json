@@ -9,9 +9,9 @@
     "module": "udicti",
     "projectPath": "/home/josh/WebstormProjects/UdictiHub/src/app"
   },
-  "isquaare": {
-    "name": "isquaare",
-    "module": "app",
+  "isquare": {
+    "name": "isquare",
+    "module": "isquare",
     "projectPath": "/home/josh/WebstormProjects/ISquare/src/app"
   }
 }
