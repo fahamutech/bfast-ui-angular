@@ -71,7 +71,7 @@ export class ComponentService {
         componentJsonFile.injections = this._getStateInjectionsFromComponentFile(componentFile);
         componentJsonFile.styles = this._geStylesFromComponentFile(componentFile);
         componentJsonFile.template = this._getTemplateFromComponentFile(componentFile);
-        // componentJsonFile.fields = this._getComponentFieldFromComponentFile(componentFile);
+        componentJsonFile.fields = this._getComponentFieldFromComponentFile(componentFile);
         componentJsonFile.methods = this.appUtil.getMethodsFromFile(componentFile);
         return componentJsonFile;
     }
@@ -98,12 +98,11 @@ export class ComponentService {
     async jsonToComponentFile(component, project, module) {
         const projectPath = this.storageService.getConfig(`${project}:projectPath`);
         const componentInjectionsWithType = component.injections
-            .map(x => 'public readonly ' + x.name + ': ' + this._firstCaseUpper(x.state) + 'State')
+            .map(x => 'public readonly ' + x.name + ': ' + this.appUtil.firstCaseUpper(x.state) + 'State')
             .join(',');
-        //     const fields = component.fields.map(x => {
-        //         return `
-        // ${x.name}: any;`
-        //     }).join('');
+        const fields = component.fields.map(x => {
+            return x.value.toString().trim() + ';'
+        }).join('\n    ');
         const onStartExist = component.methods.filter(x => x.name === 'ngOnInit');
         if (onStartExist.length === 0) {
             component.methods.push({
@@ -131,8 +130,12 @@ export class ComponentService {
 
         await promisify(writeFile)(join(projectPath, 'modules', module, 'components', `${component.name}.component.ts`),
             `import {bfast, BFast} from 'bfastjs';
-import {Component, EventEmitter, Input, OnInit, Output, OnDestroy} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {FormGroup, FormArray, FormBuilder, Validators, FormControl} from '@angular/forms';
+import {SelectionModel} from '@angular/cdk/collections';
+import {MatTableDataSource} from '@angular/material/table';
 import {BehaviorSubject, Subject} from 'rxjs';
+import {takeUntil, map} from 'rxjs/operators';
 ${this._getComponentImports(component.injections)}
 
 @Component({
@@ -141,6 +144,9 @@ ${this._getComponentImports(component.injections)}
     styleUrls: [${this._getComponentStylesFromJson(component.styles)}]
 })
 export class ${this.appUtil.kebalCaseToCamelCase(component.name)}Component implements OnInit, OnDestroy{
+
+    ${fields}
+    
     constructor(${componentInjectionsWithType}){
     }
     ${methods}
@@ -153,7 +159,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(component.name)}Component imple
     _getComponentImports(injections = []) {
         let im = '';
         for (const injection of injections) {
-            const componentName = this._firstCaseUpper(injection.state)
+            const componentName = this.appUtil.firstCaseUpper(injection.state)
             im += `import {${componentName}State} from '../states/${injection.state.toLowerCase()}.state';\n`
         }
         return im;
@@ -168,15 +174,6 @@ export class ${this.appUtil.kebalCaseToCamelCase(component.name)}Component imple
         } else {
             return [];
         }
-    }
-
-    _firstCaseUpper(name) {
-        return name.toLowerCase().split('').map((value, index, array) => {
-            if (index === 0) {
-                return value.toUpperCase();
-            }
-            return value;
-        }).join('');
     }
 
     _getStateInjectionsFromComponentFile(componentFile) {
@@ -199,17 +196,29 @@ export class ${this.appUtil.kebalCaseToCamelCase(component.name)}Component imple
     }
 
     _getComponentFieldFromComponentFile(componentFile) {
-        const reg = new RegExp('(\\w)+(:).*(\\;)', 'ig');
-        const results = componentFile.toString().match(reg) ? componentFile.toString().match(reg) : [];
+        const fieldBodyReg = new RegExp('(export)(.|\\n)*(class)(.|\\n)*(constructor)(\\W|\\n)*\\(', 'ig');
+        const headReplacerReg = new RegExp('(export)(.|\\n)*(class)(.|\\n)+?\\{', 'ig');
+        const footReplacerReg = new RegExp('(constructor)(\\W|\\n)*\\(', 'ig');
+        const fieldsReg = new RegExp('.*;', 'ig');
+        let fields = componentFile.toString().match(fieldBodyReg) ?
+            componentFile.toString().match(fieldBodyReg)[0]
+            : '';
+        fields = fields.toString()
+            .replace(headReplacerReg, '')
+            .replace(footReplacerReg, '')
+            .trim();
+        const results = fields
+            .match(fieldsReg)
+            ? fields.match(fieldsReg)
+            : []
         if (results) {
-            return results.map(x => x.toString().split(':')[0])
+            return results.map(x => x.toString().trim())
                 // .replace(new RegExp('(:){1}.*(\\;){1}', 'gim'), '')
                 .filter(x => x !== '')
                 .map(x => {
                     return {
-                        name: x.trim(),
-                        field: x.trim(),
-                        type: 'any'
+                        value: x.toString().replace(new RegExp(';', 'ig'), '').trim(),
+                        name: x.toString().split(':')[0]
                     }
                 });
         } else {

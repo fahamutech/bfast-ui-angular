@@ -1,6 +1,7 @@
 import {errorMessageComponent} from "./error-message.component.mjs";
 import {ComponentService} from "../services/component.service.mjs";
 import {StorageUtil} from "../utils/storage.util.mjs";
+import {AppUtil} from "../utils/app.util.mjs";
 
 /**
  *
@@ -51,7 +52,7 @@ async function getTableContents(project, module, components = []) {
         row += `<tr style="cursor: pointer">
                   <th scope="row">${components.indexOf(component) + 1}</th>
                   <td><a href="/project/${project}/modules/${module}/resources/components/${component}">${component}</a></td>
-                  <td>${await countComponents(project, module, component)}</td>
+                  <td>${await countFields(project, module, component)}</td>
                   <td>${await countInjections(project, module, component)}</td>
                   <td>${await countMethods(project, module, component)}</td>
                 </tr>`
@@ -96,7 +97,8 @@ function newComponentModal(project, module) {
 async function countMethods(project, module, component) {
     try {
         const storage = new StorageUtil();
-        const serInJson = await new ComponentService(storage).componentFileToJson(project, module, component);
+        const appUtil = new AppUtil();
+        const serInJson = await new ComponentService(storage, appUtil).componentFileToJson(project, module, component);
         return serInJson.methods.length;
     } catch (e) {
         return 0;
@@ -106,18 +108,20 @@ async function countMethods(project, module, component) {
 async function countInjections(project, module, component) {
     try {
         const storage = new StorageUtil();
-        const serInJson = await new ComponentService(storage).componentFileToJson(project, module, component);
+        const appUtil = new AppUtil();
+        const serInJson = await new ComponentService(storage,appUtil).componentFileToJson(project, module, component);
         return serInJson.injections.length;
     } catch (e) {
         return 0;
     }
 }
 
-async function countComponents(project, module, component) {
+async function countFields(project, module, component) {
     try {
         const storage = new StorageUtil();
-        const serInJson = await new ComponentService(storage).componentFileToJson(project, module, component);
-        return serInJson.components.length;
+        const appUtil = new AppUtil();
+        const serInJson = await new ComponentService(storage, appUtil).componentFileToJson(project, module, component);
+        return serInJson.fields.length;
     } catch (e) {
         return 0;
     }

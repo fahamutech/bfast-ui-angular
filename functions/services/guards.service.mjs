@@ -73,6 +73,7 @@ export class GuardsService {
 import {ActivatedRouteSnapshot, CanActivate, RouterStateSnapshot, UrlTree} from '@angular/router';
 import {Observable} from 'rxjs';
 ${this._getServiceImports(guard.injections)}
+import {bfast, BFast} from 'bfastjs';
 
 @Injectable({
   providedIn: 'any'

@@ -2,6 +2,7 @@ import {errorMessageComponent} from "./error-message.component.mjs";
 import {componentInjectionTableComponent} from "./component-injection-table.component.mjs";
 import {componentMethodsListComponent} from "./component-methods-list.component.mjs";
 import {componentStyleTableComponent} from "./component-styles-table.component.mjs";
+import {componentFieldsTableComponent} from "./component-fields-table.component.mjs";
 
 /**
  *
@@ -35,6 +36,7 @@ export const componentCreateComponent = async function (project, module, compone
                 </div>
                 <hr>
                 ${await componentInjectionTableComponent(project, module, component.name, component.injections ? component.injections : [], states)}
+                ${await componentFieldsTableComponent(project, module, component.name, component.fields)}
                 ${await componentStyleTableComponent(project, module, component.name, component.styles ? component.styles : [], styles)}
                 ${componentMethodsListComponent(project, module, component.name, component.methods ? component.methods : [])}
             </div>

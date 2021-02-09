@@ -320,24 +320,29 @@ export const addFieldInAComponentSubmit = bfastnode.bfast.functions().onPostHttp
         const component = request.params.component;
         const body = JSON.parse(JSON.stringify(request.body));
         const field = body.name;
-        componentsPage.componentFileToJson(project, module, component).then(async value => {
-            if (value && value.components && Array.isArray(value.components)) {
-                const exist = value.components.filter(x => x.component.toString().toLowerCase()
-                    === field.toString().trim());
-                if (exist.length === 0) {
-                    value.components.push({
-                        name: field.toString().trim(),
-                        component: field.toString().trim(),
-                        type: 'BehaviorSubject'
-                    });
-                    await componentsPage.jsonToComponentFile(value, project, module)
+        if (field && field.toString().includes(':')) {
+            componentService.componentFileToJson(project, module, component).then(async value => {
+                if (value && value.fields && Array.isArray(value.fields)) {
+                    const exist = value.fields.filter(
+                        x =>
+                            x.value.toString().toLowerCase().trim() === field.toString().toLowerCase().trim()
+                    );
+                    if (exist.length === 0) {
+                        value.fields.push({
+                            name: field.toString().split(':')[0].trim(),
+                            value: field.toString().trim(),
+                        });
+                        await componentService.jsonToComponentFile(value, project, module)
+                    }
                 }
-            }
-            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`)
-        }).catch(reason => {
-            console.log(reason);
-            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
-        });
+                response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`)
+            }).catch(reason => {
+                console.log(reason);
+                response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
+            });
+        } else {
+            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent('Component field is bad formatted, must contain : to separate nam and type')}`)
+        }
     }
 );
 
@@ -347,12 +352,12 @@ export const deleteFieldInAComponentSubmit = bfastnode.bfast.functions().onPostH
         const project = request.params.project;
         const module = request.params.module;
         const component = request.params.component;
-        const field = request.params.field;
-        componentsPage.componentFileToJson(project, module, component).then(async value => {
-            if (value && value.components && Array.isArray(value.components)) {
-                value.components = value.components.filter(x => x.component.toString().toLowerCase()
-                    !== field.toString().trim());
-                await componentsPage.jsonToComponentFile(value, project, module)
+        const field = decodeURIComponent(request.params.field);
+        componentService.componentFileToJson(project, module, component).then(async value => {
+            if (value && value.fields && Array.isArray(value.fields)) {
+                value.fields = value.fields.filter(x => x.name.toString().toLowerCase().trim()
+                    !== field.toString().toLowerCase().trim());
+                await componentService.jsonToComponentFile(value, project, module);
             }
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`)
         }).catch(reason => {

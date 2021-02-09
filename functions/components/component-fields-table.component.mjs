@@ -1,17 +1,17 @@
 export const componentFieldsTableComponent = async function (project, module, component, fields = []) {
     return `
         <div class="d-flex flex-row" style="margin: 8px 0">
-             <h3 style="margin: 0">Components</h3>
+             <h3 style="margin: 0">Fields</h3>
              <span style="flex: 1 1 auto"></span>
-             <button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#addComponentModal">Add Component</button>
+             <button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#addComponentModal">Add Field</button>
         </div>
         <div class="shadow">
             <table class="table table-hover">
               <thead>
                 <tr>
                   <th scope="col">#</th>
-                  <th scope="col">Name</th>
-                  <th scope="col">Type</th>
+                  <th scope="col">Item</th>
+<!--                  <th scope="col">Value</th>-->
                   <th scope="col">Actions</th>
                 </tr>
               </thead>
@@ -19,7 +19,7 @@ export const componentFieldsTableComponent = async function (project, module, co
                ${getTableContents(project, module, component, fields)}
               </tbody>
             </table>
-            ${await addComponentModal(project, module, component)}
+            ${await addFieldModal(project, module, component)}
         </div>
     `
 }
@@ -29,11 +29,11 @@ function getTableContents(project, module, component, fields = []) {
     for (const field of fields) {
         row += `<tr style="cursor: pointer">
                   <th scope="row">${fields.indexOf(field) + 1}</th>
-                  <td>${field.name}</td>
-                  <td style="flex-grow: 1">${field.type}</td>
+                  <td style="flex-grow: 1">${field.value}</td>
+<!--                  <td style="flex-grow: 1">${field.value}</td>-->
                   <td>
                     <div class="d-flex flex-row">
-                        <form method="post" action="/project/${project}/modules/${module}/resources/components/${component}/fields/${field.component}/delete">
+                        <form method="post" action="/project/${project}/modules/${module}/resources/components/${component}/fields/${encodeURIComponent(field.name)}/delete">
                             <button type="submit" class="btn-sm btn btn-danger">Delete</button>
                         </form>
                     </div>
@@ -44,14 +44,14 @@ function getTableContents(project, module, component, fields = []) {
 }
 
 
-async function addComponentModal(project, module, component) {
-    function allOtherServices() {
+async function addFieldModal(project, module, component) {
+    function fieldForm() {
         return `
          <div style="margin-bottom: 5px">
             <form method="post" action="/project/${project}/modules/${module}/resources/components/${component}/fields">
             <div style="margin-bottom: 8px">
-               <label class="form-label">Name</label>
-               <input class="form-control" placeholder="field name" name="name" type="text">
+               <label class="form-label">Value</label>
+               <input class="form-control" placeholder="Full field definition" name="name" type="text">
             </div>
             <button class="btn btn-primary btn-block" type="submit">
                Add
@@ -74,7 +74,7 @@ async function addComponentModal(project, module, component) {
             </button>
           </div>
           <div class="modal-body">
-            ${allOtherServices()}
+            ${fieldForm()}
           </div>
 <!--          <div class="modal-footer">-->
 <!--            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>-->

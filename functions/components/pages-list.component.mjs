@@ -1,6 +1,7 @@
 import {errorMessageComponent} from "./error-message.component.mjs";
 import {PageService} from "../services/page.service.mjs";
 import {StorageUtil} from "../utils/storage.util.mjs";
+import {AppUtil} from "../utils/app.util.mjs";
 
 /**
  *
@@ -28,7 +29,7 @@ export const pageListComponent = async function (project, module, pages, error =
                         <tr>
                           <th scope="col">#</th>
                           <th scope="col">Name</th>
-                          <th scope="col">Fields</th>
+<!--                          <th scope="col">Fields</th>-->
                           <th scope="col">Injections</th>
                           <th scope="col">Methods</th>
                         </tr>
@@ -51,7 +52,7 @@ async function getTableContents(project, module, pages = []) {
         row += `<tr style="cursor: pointer">
                   <th scope="row">${pages.indexOf(page) + 1}</th>
                   <td><a href="/project/${project}/modules/${module}/resources/pages/${page}">${page}</a></td>
-                  <td>${await countPages(project, module, page)}</td>
+<!--                  <td></td>-->
                   <td>${await countInjections(project, module, page)}</td>
                   <td>${await countMethods(project, module, page)}</td>
                 </tr>`
@@ -106,7 +107,8 @@ async function countMethods(project, module, page) {
 async function countInjections(project, module, page) {
     try {
         const storage = new StorageUtil();
-        const serInJson = await new PageService(storage).pageFileToJson(project, module, page);
+        const appUtil = new AppUtil();
+        const serInJson = await new PageService(storage, appUtil).pageFileToJson(project, module, page);
         return serInJson.injections.length;
     } catch (e) {
         return 0;
@@ -116,8 +118,9 @@ async function countInjections(project, module, page) {
 async function countPages(project, module, page) {
     try {
         const storage = new StorageUtil();
-        const serInJson = await new PageService(storage).pageFileToJson(project, module, page);
-        return serInJson.pages.length;
+        const appUtil = new AppUtil();
+        const serInJson = await new PageService(storage, appUtil).pageFileToJson(project, module, page);
+        return serInJson.methods.length;
     } catch (e) {
         return 0;
     }
