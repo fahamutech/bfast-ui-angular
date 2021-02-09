@@ -115,13 +115,3 @@ async function countInjections(project, module, page) {
     }
 }
 
-async function countPages(project, module, page) {
-    try {
-        const storage = new StorageUtil();
-        const appUtil = new AppUtil();
-        const serInJson = await new PageService(storage, appUtil).pageFileToJson(project, module, page);
-        return serInJson.methods.length;
-    } catch (e) {
-        return 0;
-    }
-}

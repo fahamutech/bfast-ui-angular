@@ -1,4 +1,5 @@
 import {appToolBarComponent} from "./toolbar.component.mjs";
+import {sideNavComponent} from "./side-nav.component.mjs";
 
 export const appLayoutComponent = function (body, project) {
     return `
@@ -21,10 +22,15 @@ export const appLayoutComponent = function (body, project) {
               <!--  <meta name="theme-color" content="#1976d2">-->
             </head>
                 <body style="font-family: Roboto,serif">
-                    <div>
-                        ${appToolBarComponent(project)}
-                        <div class="container">
-                            ${body}
+                    <div class="d-flex flex-row" style="min-height: 100vh">
+                       <aside class="${project ? 'side-nav' : 'side-nav-hide'}">
+                            ${sideNavComponent(project)}
+                       </aside>
+                       <div style="flex: 1 1 auto">
+                            ${appToolBarComponent(project)}
+                            <div class="container">
+                                ${body}
+                            </div>
                         </div>
                     </div>
                  <noscript>Please enable JavaScript to continue using this application.</noscript>

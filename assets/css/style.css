@@ -27,3 +27,23 @@ html body {
 table {
     background: white;
 }
+
+.side-nav{
+    width: 250px;
+    background: white;
+    position: sticky;
+    top: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.side-nav-content{
+    position: sticky;
+    top: 0;
+    border-bottom: 0;
+    left: 0;
+}
+
+.side-nav-hide{
+    display: none;
+}
