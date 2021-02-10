@@ -1,6 +1,7 @@
 import {errorMessageComponent} from "./error-message.component.mjs";
 import {serviceInjectionTableComponent} from "./service-injection-table.component.mjs";
 import {serviceMethodsListComponent} from "./service-methods-list.component.mjs";
+import {serviceImportsTableComponent} from "./service-imports-table.component.mjs";
 
 /**
  *
@@ -13,11 +14,12 @@ import {serviceMethodsListComponent} from "./service-methods-list.component.mjs"
  */
 export const serviceCreateComponent = async function (project, module, service = {
     name: '',
+    imports: [],
     injections: [],
     methods: []
 }, services = [], error = null) {
     return `
-        <div style="margin-top: 24px" class="container col-xl-12 col-lg-12 col-sm-12 col-md-12 col-12">
+        <div style="margin-top: 24px" class="container col-xl-9 col-lg-9 col-sm-12 col-md-12 col-12">
             ${errorMessageComponent(error)}
             <div>
                 <div>
@@ -30,6 +32,7 @@ export const serviceCreateComponent = async function (project, module, service =
                 </div>
                 <hr>
                 ${await serviceInjectionTableComponent(project, module, service.name, service.injections ? service.injections : [], services)}
+                ${serviceImportsTableComponent(project, module, service.name, service.imports ? service.imports : [])}
                 ${serviceMethodsListComponent(project, module, service.name, service.methods ? service.methods : [])}
             </div>
         </div>

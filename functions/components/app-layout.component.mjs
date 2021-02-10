@@ -48,7 +48,7 @@ export const appLayoutComponent = async function (body, project, module) {
                        </aside>
                        <div class="${project ? 'main-side-nav' : 'main-full'}">
                             ${appToolBarComponent(project)}
-                            <div class="container">
+                            <div class="container" style="padding-bottom: 50px">
                                 ${body}
                             </div>
                         </div>

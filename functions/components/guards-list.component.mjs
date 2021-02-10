@@ -1,6 +1,10 @@
 import {errorMessageComponent} from "./error-message.component.mjs";
 import {StorageUtil} from "../utils/storage.util.mjs";
 import {GuardsService} from "../services/guards.service.mjs";
+import {AppUtil} from "../utils/app.util.mjs";
+
+const storage = new StorageUtil();
+const appUtil = new AppUtil();
 
 /**
  *
@@ -94,8 +98,7 @@ function newStyleModal(project, module) {
 
 async function countLines(project, module, guard) {
     try {
-        const storage = new StorageUtil();
-        const guardInJson = await new GuardsService(storage).getGuard(project, module, guard);
+        const guardInJson = await new GuardsService(storage, appUtil).getGuard(project, module, guard);
         return guardInJson.body.split(/\r\n|\r|\n/).length;
     } catch (e) {
         return 0;
@@ -104,8 +107,7 @@ async function countLines(project, module, guard) {
 
 async function countInjections(project, module, guard) {
     try {
-        const storage = new StorageUtil();
-        const guardInJson = await new GuardsService(storage).getGuard(project, module, guard);
+        const guardInJson = await new GuardsService(storage, appUtil).getGuard(project, module, guard);
         return guardInJson.injections.length;
     } catch (e) {
         return 0;

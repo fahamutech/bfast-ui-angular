@@ -180,7 +180,7 @@ export const addInjectionInAServiceSubmit = bfastnode.bfast.functions().onPostHt
         const module = request.params.module;
         const service = request.params.service;
         const injection = request.params.injection;
-        servicesService.getService(project, module, service).then(async value => {
+        servicesService.serviceFileToJson(project, module, service).then(async value => {
             if (value && value.injections && Array.isArray(value.injections)) {
                 const exist = value.injections.filter(x => x.service.toString().toLowerCase()
                     === injection.toString().split('.')[0].toLowerCase());
@@ -189,7 +189,7 @@ export const addInjectionInAServiceSubmit = bfastnode.bfast.functions().onPostHt
                         name: injection.toString().split('.')[0].toString().toLowerCase() + 'Service'.trim(),
                         service: injection.toString().split('.')[0].toString().toLowerCase().trim()
                     });
-                    await servicesService.jsonToServiceFile(value, project, module)
+                    await servicesService.jsonToServiceFile(project, module, value)
                 }
             }
             response.redirect(`/project/${project}/modules/${module}/resources/services/${service}`)
@@ -207,16 +207,71 @@ export const deleteInjectionInAServiceSubmit = bfastnode.bfast.functions().onPos
         const module = request.params.module;
         const service = request.params.service;
         const injection = request.params.injection;
-        servicesService.getService(project, module, service).then(async value => {
+        servicesService.serviceFileToJson(project, module, service).then(async value => {
             if (value && value.injections && Array.isArray(value.injections)) {
                 value.injections = value.injections.filter(x => x.service.toString().toLowerCase()
                     !== injection.toString().split('.')[0].toLowerCase());
-                await servicesService.jsonToServiceFile(value, project, module)
+                await servicesService.jsonToServiceFile(project, module, value)
             }
             response.redirect(`/project/${project}/modules/${module}/resources/services/${service}`)
         }).catch(reason => {
             console.log(reason);
             response.redirect(`/project/${project}/modules/${module}/resources/services/${service}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
+        });
+    }
+);
+
+
+export const addImportToServiceSubmit = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/:module/resources/services/:service/imports',
+    (request, response) => {
+        const project = request.params.project;
+        const module = request.params.module;
+        const service = request.params.service;
+        const body = JSON.parse(JSON.stringify(request.body));
+        if (body && body.name && body.ref && body.type) {
+            servicesService.serviceFileToJson(project, module, service).then(async value => {
+                if (value && value.imports && Array.isArray(value.imports)) {
+                    const exist = value.imports.filter(
+                        x => x.name.toString().toLowerCase() === body.name.toString().toLowerCase()
+                    );
+                    if (exist.length === 0) {
+                        value.imports.push({
+                            name: body.name.toString(),
+                            type: body.type,
+                            ref: body.ref.toString(),
+                        });
+                        await servicesService.jsonToServiceFile(project, module, value);
+                    }
+                }
+                response.redirect(`/project/${project}/modules/${module}/resources/services/${service}`);
+            }).catch(reason => {
+                console.log(reason);
+                response.redirect(`/project/${project}/modules/${module}/resources/services/${service}s?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`);
+            });
+        } else {
+            response.redirect(`/project/${project}/modules/${module}/resources/services/${service}?error=${encodeURIComponent('name and ref attribute in a body is required')})`);
+        }
+    }
+);
+
+export const deleteImportInServiceSubmit = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/:module/resources/services/:service/imports/:name/delete',
+    (request, response) => {
+        const project = request.params.project;
+        const module = request.params.module;
+        const service = request.params.service;
+        const name = decodeURIComponent(request.params.name);
+        servicesService.serviceFileToJson(project, module, service).then(async value => {
+            if (value && value.imports && Array.isArray(value.imports)) {
+                value.imports = value.imports.filter(x => x.name.toString().toLowerCase()
+                    !== name.toString().trim().toLowerCase());
+                await servicesService.jsonToServiceFile(project, module, value);
+            }
+            response.redirect(`/project/${project}/modules/${module}/resources/services/${service}`);
+        }).catch(reason => {
+            console.log(reason);
+            response.redirect(`/project/${project}/modules/${module}/resources/services/${service}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`);
         });
     }
 );

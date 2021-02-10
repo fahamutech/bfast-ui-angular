@@ -21,7 +21,7 @@ export const componentCreateComponent = async function (project, module, compone
     methods: []
 }, states = [], styles = [], error = null) {
     return `
-        <div style="margin-top: 24px" class="container col-xl-12 col-lg-12 col-sm-12 col-md-12 col-12">
+        <div style="margin-top: 24px" class="container col-xl-9 col-lg-9 col-sm-12 col-md-11 col-11">
             ${errorMessageComponent(error)}
             <div>
                 <div>

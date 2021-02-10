@@ -1,7 +1,9 @@
 import {errorMessageComponent} from "./error-message.component.mjs";
 import {ServicesService} from "../services/services.service.mjs";
 import {StorageUtil} from "../utils/storage.util.mjs";
-
+import {AppUtil} from "../utils/app.util.mjs";
+const storage = new StorageUtil();
+const appUtil = new AppUtil();
 /**
  *
  * @param project - {string} current project
@@ -93,8 +95,7 @@ function newServiceModal(project, module) {
 
 async function countMethods(project, module, service) {
     try {
-        const storage = new StorageUtil();
-        const serInJson = await new ServicesService(storage).serviceFileToJson(service, project, module);
+        const serInJson = await new ServicesService(storage, appUtil).serviceFileToJson(project, module, service);
         return serInJson.methods.length;
     } catch (e) {
         return 0;
@@ -103,8 +104,7 @@ async function countMethods(project, module, service) {
 
 async function countInjections(project, module, service) {
     try {
-        const storage = new StorageUtil();
-        const serInJson = await new ServicesService(storage).serviceFileToJson(service, project, module);
+        const serInJson = await new ServicesService(storage, appUtil).serviceFileToJson(project, module, service);
         return serInJson.injections.length;
     } catch (e) {
         return 0;

@@ -39,7 +39,7 @@ export class ServicesPage {
                 if (!serviceName.toString().includes('.service.ts')) {
                     serviceName += '.service.ts';
                 }
-                serviceInJson = await this.servicesService.serviceFileToJson(serviceName, project, module);
+                serviceInJson = await this.servicesService.serviceFileToJson(project, module, serviceName);
                 services = await this.servicesService.getServices(project, module);
                 services = services.filter(x => x.toString() !== serviceName);
             }

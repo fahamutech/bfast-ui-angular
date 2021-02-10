@@ -35,7 +35,7 @@ function getTableContents(project, module, state, methods = []) {
                   <td>${method.name}</td>
                   <td>${method.inputs}</td>
                   <td>${method.return}</td>
-                  <td>${method.body}</td>
+                  <td>${method.body.toString().split('\n').length} Lines</td>
                   <td>
                     <div class="d-flex flex-row">
                         <a href="/project/${project}/modules/${module}/resources/states/${state}/method/${method.name}">
