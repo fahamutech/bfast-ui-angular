@@ -20,8 +20,8 @@ export class ModuleService {
      * @returns {Promise<{modules: Array<string>, name: string}>}
      */
     async getModules(project) {
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
-        const mainModuleName = this.storageService.getConfig(`${project}:module`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
+        const mainModuleName = await this.storageService.getConfig(`${project}:module`);
         if (projectPath) {
             const modules = await promisify(readdir)(join(projectPath, 'modules'));
             return {
@@ -39,8 +39,8 @@ export class ModuleService {
      */
     async getMainModuleContents(project) {
         try {
-            const projectPath = this.storageService.getConfig(`${project}:projectPath`);
-            const mainModule = this.storageService.getConfig(`${project}:module`);
+            const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
+            const mainModule = await this.storageService.getConfig(`${project}:module`);
             if (projectPath && project) {
                 const fileBuffer = await promisify(readFile)(join(projectPath, `${mainModule}.module.ts`));
                 return fileBuffer.toString();
@@ -53,7 +53,7 @@ export class ModuleService {
     }
 
     async getOtherModuleContents(project, module) {
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         if (projectPath && project) {
             const fileBuffer = await promisify(readFile)(join(projectPath, 'modules', module, `${module}.module.ts`));
             return fileBuffer.toString();
@@ -69,8 +69,8 @@ export class ModuleService {
      * @returns {Promise<unknown>}
      */
     async updateMainModuleContents(project, contents) {
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
-        const mainModule = this.storageService.getConfig(`${project}:module`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
+        const mainModule = await this.storageService.getConfig(`${project}:module`);
         if (contents) {
             return await promisify(writeFile)(join(projectPath, `${mainModule}.module.ts`), contents);
         } else {
@@ -86,7 +86,7 @@ export class ModuleService {
      * @returns {Promise<void>}
      */
     async createModule(project, name, detail) {
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         if (projectPath) {
             if (name && name !== '') {
                 const resources = ["services", "models", "components", "pages", "states", "guards", "styles"]
@@ -144,7 +144,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
         if (module.toString().includes('.module.ts')) {
             module = module.toString().split('.')[0];
         }
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         let moduleFile = await promisify(readFile)(join(
             projectPath, 'modules', module, `${module}.module.ts`)
         );
@@ -177,8 +177,8 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
      * }>}
      */
     async mainModuleFileToJson(project) {
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
-        const module = this.storageService.getConfig(`${project}:module`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
+        const module = await this.storageService.getConfig(`${project}:module`);
         let moduleFile = await promisify(readFile)(
             join(projectPath, `${module}.module.ts`)
         );
@@ -369,7 +369,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
         if (module.toString().includes('.module.ts')) {
             module = module.toString().split('.')[0];
         }
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         /**
          *
          * @type {string[]}
@@ -475,64 +475,6 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
         }
     }
 
-    // _getUserImportsFromMainModuleFile(moduleFile) {
-    //     const reg = new RegExp('(import).*(.|\\n)*(from).*;', 'ig');
-    //     let results = moduleFile.toString().match(reg) ? moduleFile.toString().match(reg)[0] : [];
-    //     if (results) {
-    //         results = results.toString()
-    //             // remove angular core imports
-    //             .replace(new RegExp('(import).*(@angular/core).*', 'ig'), '')
-    //             // remove angular core imports
-    //             .replace(new RegExp('(import).*(@angular/platform-browser).*', 'ig'), '')
-    //             // remove angular route imports
-    //             .replace(new RegExp('(import).*(@angular/router).*', 'ig'), '')
-    //             // remove angular common imports
-    //             .replace(new RegExp('(import).*(@angular/common).*', 'ig'), '')
-    //             // remove component imports
-    //             .replace(new RegExp('(import).*(\\.\/component).*', 'ig'), '')
-    //             // remove page imports
-    //             .replace(new RegExp('(import).*(\\.\/page).*', 'ig'), '')
-    //             // remove pipe imports
-    //             .replace(new RegExp('(import).*(\\.\/pipe).*', 'ig'), '')
-    //             // remove guards imports
-    //             .replace(new RegExp('(import).*(\\.\/guard).*', 'ig'), '')
-    //             // remove bfast imports
-    //             .replace(new RegExp('(import).*(bfastjs).*', 'ig'), '')
-    //             // remove service import
-    //             .replace(new RegExp('(import).*(\\.\/service).*', 'ig'), '')
-    //             // remove space left behind
-    //             .replace(new RegExp('(\\n){2,}', 'ig'), '\n')
-    //             .trim()
-    //             .split('\n')
-    //             .filter(y => (typeof y === "string" && y.length > 1))
-    //             .map(x => {
-    //                 const xParts = x.replace('import', '')
-    //                     .replace('{', '')
-    //                     .replace('}', '')
-    //                     .replace(';', '')
-    //                     .trim()
-    //                     .split('from');
-    //                 return {
-    //                     name: xParts[0] ? xParts[0].trim() : null,
-    //                     ref: xParts[1] ? xParts[1].replace(new RegExp('[\'\"]', 'ig'), '').trim() : null
-    //                 }
-    //             });
-    //         const singleImports = results.filter(x => x.name.split(',').length === 1);
-    //         const multipleImports = results.filter(x => x.name.split(',').length > 1);
-    //         multipleImports.forEach(mImport => {
-    //             singleImports.push(...mImport.name.split(',').map(y => {
-    //                 return {
-    //                     name: y.trim(),
-    //                     ref: mImport.ref
-    //                 }
-    //             }))
-    //         });
-    //         return singleImports;
-    //     } else {
-    //         return [];
-    //     }
-    // }
-
     /**
      *
      * @param project {string}
@@ -554,7 +496,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
      */
     async moduleJsonToFile(project, module, moduleJson) {
         module = module.replace('.module.ts', '').trim();
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         const moduleInjectionsWithType = moduleJson.injections.map(
             x => 'private readonly ' + x.name + ': ' + this.appUtil.firstCaseUpper(x.service) + 'Service'
         ).join(',');
@@ -626,8 +568,8 @@ export class ${this.appUtil.firstCaseUpper(moduleJson.name)}Module {
      * @return {Promise<*>}
      */
     async mainModuleJsonToFile(project, moduleJson) {
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
-        let module = this.storageService.getConfig(`${project}:module`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
+        let module = await this.storageService.getConfig(`${project}:module`);
         module = module.replace('.module.ts', '').trim();
         // const moduleInjectionsWithType = moduleJson.injections.map(
         //     x => 'private readonly ' + x.name + ': ' + this.appUtil.firstCaseUpper(x.service) + 'Service'
@@ -638,6 +580,16 @@ export class ${this.appUtil.firstCaseUpper(moduleJson.name)}Module {
 // ${await this._getComponentsImports(project, module)}
 // ${await this._getPagesImports(project, module)}
 // ${moduleJson.imports.map(x => `import {${x.name}} from '${x.ref}';`).join('\n')}
+
+        const appComponentString = `import {Component} from '@angular/core';
+
+@Component({
+  selector: 'app-root',
+  template: '<router-outlet></router-outlet>'
+})
+export class AppComponent {
+}
+`
 
         const moduleInString = `import {BFast, bfast} from 'bfastjs';
 import {BrowserModule} from '@angular/platform-browser';
@@ -666,6 +618,9 @@ export class ${this.appUtil.kebalCaseToCamelCase(module)}Module {
 }
 
 `
+        await promisify(writeFile)(
+            join(projectPath, `app.component.ts`), appComponentString
+        );
         await promisify(writeFile)(
             join(projectPath, `${this.appUtil.camelCaseToKebal(module)}.module.ts`), moduleInString
         );
@@ -754,7 +709,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(module)}Module {
         if (module.toString().includes('.module.ts')) {
             module = module.toString().split('.')[0];
         }
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         /**
          *
          * @type {string[]}
@@ -780,7 +735,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(module)}Module {
         if (module.toString().includes('.module.ts')) {
             module = module.toString().split('.')[0];
         }
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath =await this.storageService.getConfig(`${project}:projectPath`);
         /**
          *
          * @type {string[]}

@@ -17,7 +17,7 @@ export class PageService {
 
     async getPages(project, module) {
         try {
-            const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+            const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
             const pagesDir = join(projectPath, 'modules', module, 'pages');
             return promisify(readdir)(pagesDir);
         } catch (e) {
@@ -27,7 +27,7 @@ export class PageService {
 
     async getStates(project, module) {
         try {
-            const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+            const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
             const pagesDir = join(projectPath, 'modules', module, 'states');
             return promisify(readdir)(pagesDir);
         } catch (e) {
@@ -37,7 +37,7 @@ export class PageService {
 
     async getStyles(project, module) {
         try {
-            const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+            const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
             const pagesDir = join(projectPath, 'modules', module, 'styles');
             return promisify(readdir)(pagesDir);
         } catch (e) {
@@ -62,7 +62,7 @@ export class PageService {
         if (pageName.toString().includes('.page.ts')) {
             pageName = pageName.toString().split('.')[0];
         }
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath =await this.storageService.getConfig(`${project}:projectPath`);
         const pageFile = await promisify(readFile)(join(
             projectPath, 'modules', module, 'pages', `${pageName}.page.ts`)
         );
@@ -96,7 +96,7 @@ export class PageService {
      * @return {Promise<any>}
      */
     async jsonToPageFile(page, project, module) {
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         const pageInjectionsWithType = page.injections
             .map(x => 'public readonly ' + x.name + ': ' + this._firstCaseUpper(x.state) + 'State')
             .join(',');

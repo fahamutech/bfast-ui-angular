@@ -17,7 +17,7 @@ export class StateService {
 
     async getStates(project, module) {
         try {
-            const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+            const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
             const statesDir = join(projectPath, 'modules', module, 'states');
             return promisify(readdir)(statesDir);
         } catch (e) {
@@ -27,7 +27,7 @@ export class StateService {
 
     async getServices(project, module) {
         try {
-            const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+            const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
             const statesDir = join(projectPath, 'modules', module, 'services');
             return promisify(readdir)(statesDir);
         } catch (e) {
@@ -46,7 +46,7 @@ export class StateService {
         if (stateName.toString().includes('.state.ts')) {
             stateName = stateName.toString().split('.')[0];
         }
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         const stateFile = await promisify(readFile)(join(projectPath, 'modules', module, 'states', `${stateName}.state.ts`));
         const stateJsonFile = {};
         stateJsonFile.name = stateName;
@@ -80,7 +80,7 @@ export class StateService {
      * @return {Promise<any>}
      */
     async jsonToStateFile(state, project, module) {
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         const stateInjectionsWithType = state.injections
             .map(x => 'private readonly ' + x.name + ': ' + this._firstCaseUpper(x.service) + 'Service')
             .join(',');

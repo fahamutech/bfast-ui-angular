@@ -17,7 +17,7 @@ export class GuardsService {
 
     async getGuards(project, module) {
         try {
-            const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+            const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
             const guardsDir = join(projectPath, 'modules', module, 'guards');
             return promisify(readdir)(guardsDir);
         } catch (e) {
@@ -36,12 +36,13 @@ export class GuardsService {
         if (guard.toString().includes('.guard.ts')) {
             guard = guard.toString().split('.')[0];
         }
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         const guardFile = await promisify(readFile)(join(projectPath, 'modules', module, 'guards', `${guard}.guard.ts`));
         const guardJsonFile = {};
         guardJsonFile.name = this._getGuardName(guardFile.toString());
         guardJsonFile.body = this._getGuardBody(guardFile.toString());
         guardJsonFile.injections = this.appUtil.getInjectionsFromFile(guardFile.toString());
+        console.log(guardJsonFile)
         return guardJsonFile;
     }
 
@@ -64,13 +65,14 @@ export class GuardsService {
      * @return {Promise<any>}
      */
     async jsonToGuardFile(project, module, guard) {
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
-        const serviceInjectionsWithType = guard.injections
-            .map(x => 'private readonly ' + x.name + ': ' + this._firstCaseUpper(x.service) + 'Service')
-            .join(',');
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
+        let serviceInjectionsWithType = guard.injections
+            .map(x => 'private readonly ' + x.name + ': ' + this._firstCaseUpper(x.service) + 'Service');
+        serviceInjectionsWithType.push('private readonly router: Router');
+        serviceInjectionsWithType = serviceInjectionsWithType.join(',');
         await promisify(writeFile)(join(projectPath, 'modules', module, 'guards', `${guard.name}.guard.ts`),
             `import {Injectable} from '@angular/core';
-import {ActivatedRouteSnapshot, CanActivate, RouterStateSnapshot, UrlTree} from '@angular/router';
+import {ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot, UrlTree} from '@angular/router';
 import {Observable} from 'rxjs';
 ${this._getServiceImports(guard.injections)}
 import {bfast, BFast} from 'bfastjs';
@@ -83,7 +85,7 @@ export class ${this._firstCaseUpper(guard.name)}Guard implements CanActivate {
     }
     
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-        ${guard.body}
+        ${guard.body.toString().includes('return')?guard.body: 'return true;'}
     }
 }
 `

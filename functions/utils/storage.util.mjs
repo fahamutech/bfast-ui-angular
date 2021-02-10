@@ -1,5 +1,8 @@
 import nconf from 'nconf'
-import * as path from "path";
+import {join} from "path";
+import {homedir} from 'os';
+import {mkdir, stat, writeFile} from 'fs';
+import {promisify} from 'util';
 
 export class StorageUtil {
     /**
@@ -7,10 +10,12 @@ export class StorageUtil {
      * @param identifier - {string}
      */
 
-    __dirname = path.resolve('functions', 'utils');
+    __dirname = join(homedir(), 'bfast-ui');
+    storageFile = `${this.__dirname}/storage.json`
 
-    getConfig(identifier) {
-        nconf.use('file', {file: `${this.__dirname}/storage.json`});
+    async getConfig(identifier) {
+        await this.checkStorageExist();
+        nconf.use('file', {file: this.storageFile});
         nconf.load();
         return nconf.get(identifier);
     }
@@ -20,8 +25,9 @@ export class StorageUtil {
      * @param identifier - {string}
      * @param data - {string | number | {[key: string]: any}}
      */
-    setConfig(identifier, data) {
-        nconf.use('file', {file: `${this.__dirname}/storage.json`});
+    async setConfig(identifier, data) {
+        await this.checkStorageExist();
+        nconf.use('file', {file: this.storageFile});
         nconf.load();
         nconf.set(identifier, data);
         nconf.save();
@@ -32,10 +38,23 @@ export class StorageUtil {
      *
      * @param identifier - {string}
      */
-    removeConfig(identifier) {
-        nconf.use('file', {file: `${this.__dirname}/storage.json`});
+    async removeConfig(identifier) {
+        await this.checkStorageExist();
+        nconf.use('file', {file: this.storageFile});
         nconf.load();
         nconf.set(identifier, undefined);
         nconf.save();
+    }
+
+    async checkStorageExist() {
+        try {
+            await promisify(stat)(this.storageFile);
+            return 'done';
+        } catch (e) {
+            console.log('no storage file create now');
+            await promisify(mkdir)(this.__dirname);
+            await promisify(writeFile)(this.storageFile, JSON.stringify({}));
+            return 'done';
+        }
     }
 }

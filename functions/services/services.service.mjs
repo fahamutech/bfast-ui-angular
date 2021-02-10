@@ -23,7 +23,7 @@ export class ServicesService {
      */
     async getServices(project, module) {
         try {
-            const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+            const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
             const servicesDir = join(projectPath, 'modules', module, 'services');
             return promisify(readdir)(servicesDir);
         } catch (e) {
@@ -47,7 +47,7 @@ export class ServicesService {
         if (serviceName.toString().includes('.service.ts')) {
             serviceName = serviceName.toString().split('.')[0];
         }
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath =await this.storageService.getConfig(`${project}:projectPath`);
         const serviceFile = await promisify(readFile)(join(projectPath, 'modules', module, 'services', `${serviceName}.service.ts`));
         const serviceJsonFile = {};
         serviceJsonFile.name = serviceName;
@@ -77,7 +77,7 @@ export class ServicesService {
      * @return {Promise<any>}
      */
     async jsonToServiceFile(project, module, service) {
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         const serviceInjectionsWithType = service.injections
             .map(x => 'private readonly ' + x.name + ': ' + this.appUtil.firstCaseUpper(x.service) + 'Service')
             .join(',');

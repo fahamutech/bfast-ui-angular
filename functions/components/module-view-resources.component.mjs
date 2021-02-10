@@ -92,7 +92,6 @@ export const moduleViewResources = async function (
                 ${await moduleExportsTableComponent(project, moduleName, exports, components)}
                 <hr>
                 ${await moduleImportsTableComponent(project, moduleName, imports, modules)}
-      </div>
-<!-- -->        
+      </div>     
 `
 }

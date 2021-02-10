@@ -14,7 +14,7 @@ export class ModelsService {
 
     async getModels(project, module) {
         try {
-            const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+            const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
             const modelsDir = join(projectPath, 'modules', module, 'models');
             return promisify(readdir)(modelsDir);
         } catch (e) {
@@ -33,7 +33,7 @@ export class ModelsService {
         if (model.toString().includes('.model.ts')) {
             model = model.toString().split('.')[0];
         }
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         const modelFile = await promisify(readFile)(join(projectPath, 'modules', module, 'models', `${model}.model.ts`));
         const modelJsonFile = {};
         modelJsonFile.name = this._getModelName(modelFile);
@@ -56,7 +56,7 @@ export class ModelsService {
      * @return {Promise<any>}
      */
     async jsonToModelFile(project, module, model) {
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         await promisify(writeFile)(join(projectPath, 'modules', module, 'models', `${model.name}.model.ts`),
             `
 export interface ${model.name}Model {

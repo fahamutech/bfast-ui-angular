@@ -152,8 +152,13 @@ export const moduleCreate = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/create',
     (request, response) => {
         const project = request.params.project;
-        const modulePage = new ModulePage(_moduleService, servicesService, componentService, pageService, guardsService);
-        response.send(modulePage.create(request.query.error, request.params.project));
+        // const modulePage = new ModulePage(_moduleService, servicesService, componentService, pageService, guardsService);
+        modulePage.create(null, project).then(value => {
+            response.send(value);
+        }).catch(reason => {
+            console.log(reason);
+            response.redirect(`/project/${project}/modules`);
+        })
     }
 );
 

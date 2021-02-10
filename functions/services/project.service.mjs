@@ -1,3 +1,7 @@
+import {readdir, stat} from 'fs';
+import {join} from 'path';
+import {promisify} from 'util';
+
 export class ProjectService {
 
     /**
@@ -13,7 +17,7 @@ export class ProjectService {
      * @returns {Promise<Array<{projectPath: string, name: string}>>}
      */
     async getProjects(project) {
-        const config = this.storageUtil.getConfig(project);
+        const config = await this.storageUtil.getConfig(project);
         const projects = [];
         Object.keys(config).forEach(key => {
             projects.push({
@@ -26,19 +30,25 @@ export class ProjectService {
     }
 
     async deleteProject(project) {
-        this.storageUtil.removeConfig(project);
+        return this.storageUtil.removeConfig(project);
     }
 
     /**
      *
-     * @param project - {{
+     * @param project  {{
      *     name: string,
      *     module: string,
      *     projectPath: string
      * }}
-     * @return {Promise<void>}
+     * @return {Promise<*>}
      */
     async addProject(project) {
-        return this.storageUtil.setConfig(project.name, project);
+        await promisify(stat)(join(project.projectPath, project.module.trim() + '.module.ts'));
+        const modules = await promisify(readdir)(join(project.projectPath, 'modules'));
+        if (modules && Array.isArray(modules)) {
+            return this.storageUtil.setConfig(project.name, project);
+        } else {
+            throw 'Folder structure is unknown';
+        }
     }
 }
