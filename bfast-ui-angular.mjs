@@ -16,7 +16,8 @@ export class BfastUiAngular {
                     port: port,
                     functionsConfig: {
                         bfastJsonPath: join(__dirname, 'bfast.json'),
-                        functionsDirPath: join(__dirname, 'functions')
+                        functionsDirPath: join(__dirname, 'functions'),
+                        assets: join(__dirname, 'assets')
                     }
                 }),
                 port: port
