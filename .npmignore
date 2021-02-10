@@ -1,1 +1,8 @@
 specs
+node_modules
+logs
+.idea
+.vscode
+**/specs/**.ts
+**.ts
+
