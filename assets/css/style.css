@@ -28,22 +28,39 @@ table {
     background: white;
 }
 
-.side-nav{
+.side-nav {
     width: 250px;
     background: white;
-    position: sticky;
+    position: fixed;
     top: 0;
     bottom: 0;
     left: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    height: 100vh;
 }
 
-.side-nav-content{
-    position: sticky;
-    top: 0;
-    border-bottom: 0;
-    left: 0;
+.side-nav-content {
+    /*position: sticky;*/
+    /*top: 0;*/
+    /*border-bottom: 0;*/
+    /*left: 0;*/
+    /*max-height: 100vh;*/
 }
 
-.side-nav-hide{
+.side-nav-hide {
     display: none;
+}
+
+.main-side-nav {
+    margin-left: 250px;
+}
+
+.main-full {
+    margin-left: 0;
+}
+
+.main {
+    height: 100vh;
+    max-height: 100vh;
 }

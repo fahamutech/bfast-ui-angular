@@ -40,7 +40,7 @@ export const moduleViewResources = async function (
                      </a>
                 </div>
                 <hr>
-                <h2>Resources</h2>
+<!--                <h2>Resources</h2>-->
                 <div class="d-flex flex-row flex-wrap">
                     <div class="resource-card">
                         <a href="/project/${project}/modules/${moduleName}/resources/components">

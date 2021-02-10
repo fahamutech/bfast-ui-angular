@@ -1,7 +1,27 @@
 import {appToolBarComponent} from "./toolbar.component.mjs";
 import {sideNavComponent} from "./side-nav.component.mjs";
+import {StorageUtil} from "../utils/storage.util.mjs";
+import {AppUtil} from "../utils/app.util.mjs";
+import {ModuleService} from "../services/module.service.mjs";
 
-export const appLayoutComponent = function (body, project) {
+export const appLayoutComponent = async function (body, project, module) {
+    async function getModules() {
+        if (project) {
+            const storage = new StorageUtil();
+            const appUtil = new AppUtil();
+            const moduleService = new ModuleService(storage, appUtil);
+            const module = await moduleService.getModules(project);
+            return module.modules.map(x => {
+                return {
+                    name: x,
+                    resources: []
+                }
+            })
+        } else {
+            return [];
+        }
+    }
+
     return `
             <!doctype html>
             <html lang="en">
@@ -22,11 +42,11 @@ export const appLayoutComponent = function (body, project) {
               <!--  <meta name="theme-color" content="#1976d2">-->
             </head>
                 <body style="font-family: Roboto,serif">
-                    <div class="d-flex flex-row" style="min-height: 100vh">
+                    <div class="main">
                        <aside class="${project ? 'side-nav' : 'side-nav-hide'}">
-                            ${sideNavComponent(project)}
+                            ${await sideNavComponent(project, module, await getModules())}
                        </aside>
-                       <div style="flex: 1 1 auto">
+                       <div class="${project ? 'main-side-nav' : 'main-full'}">
                             ${appToolBarComponent(project)}
                             <div class="container">
                                 ${body}

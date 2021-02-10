@@ -61,7 +61,7 @@ export class ModulePage {
      * @returns {*}
      */
     create(error, project) {
-        return appLayoutComponent(moduleCreateComponent(error, project), project);
+        return appLayoutComponent(moduleCreateComponent(error, project), project, null);
     }
 
     async viewModuleResources(moduleName, project) {
@@ -84,7 +84,8 @@ export class ModulePage {
                 pages,
                 guards
             ),
-            project
+            project,
+            moduleName
         )
     }
 
@@ -97,7 +98,8 @@ export class ModulePage {
                 moduleObject.constructor,
                 error
             ),
-            project
+            project,
+            module
         )
     }
 
@@ -109,7 +111,8 @@ export class ModulePage {
                 moduleObject.constructor,
                 error
             ),
-            project
+            project,
+            null
         )
     }
 }

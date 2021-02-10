@@ -22,10 +22,10 @@ export class StylesPage {
     async indexPage(project, module, error = null) {
         try {
             const services = await this.stylesService.getStyles(project, module)
-            return appLayoutComponent(await styleListComponent(project, module, services, error), project);
+            return appLayoutComponent(await styleListComponent(project, module, services, error), project, module);
         } catch (e) {
             return appLayoutComponent(await styleListComponent(project, module, [],
-                e && e.message ? e.message : e.toString()), project);
+                e && e.message ? e.message : e.toString()), project, module);
         }
     }
 
@@ -41,10 +41,10 @@ export class StylesPage {
                 styles = await this.stylesService.getStyles(project, module);
                 styles = styles.filter(x => x.toString() !== style);
             }
-            return appLayoutComponent(await styleCreateComponent(project, module, styleFileInJson, styles, error), project);
+            return appLayoutComponent(await styleCreateComponent(project, module, styleFileInJson, styles, error), project, module);
         } catch (e) {
             return appLayoutComponent(await styleCreateComponent(project, module, styleFileInJson, styles,
-                e && e.message ? e.message : e.toString()), project);
+                e && e.message ? e.message : e.toString()), project, module);
         }
     }
 }

@@ -1,7 +1,6 @@
 import {appLayoutComponent} from "../components/app-layout.component.mjs";
 import {projectListComponent} from "../components/project-list.component.mjs";
 import {moduleCreateComponent} from "../components/module-create.component.mjs";
-import {moduleViewResources} from "../components/module-view-resources.component.mjs";
 
 export class ProjectPage {
 
@@ -26,7 +25,7 @@ export class ProjectPage {
                 null
             );
         } catch (reason) {
-            return appLayoutComponent(projectListComponent([], error), null);
+            return appLayoutComponent(projectListComponent([], error), null, null);
         }
     }
 
@@ -37,11 +36,11 @@ export class ProjectPage {
      * @returns {*}
      */
     create(error, project) {
-        return appLayoutComponent(moduleCreateComponent(error, project), project);
+        return appLayoutComponent(moduleCreateComponent(error, project), project, null);
     }
 
-    async viewModuleResources(moduleName, project) {
-        const contents = await this.moduleService.getOtherModuleContents(project, moduleName);
-        return appLayoutComponent(await moduleViewResources(null, moduleName, project, contents), project)
-    }
+    // async viewModuleResources(moduleName, project) {
+    //     const contents = await this.moduleService.getOtherModuleContents(project, moduleName);
+    //     return appLayoutComponent(await moduleViewResources(null, moduleName, project, contents), project, moduleName)
+    // }
 }

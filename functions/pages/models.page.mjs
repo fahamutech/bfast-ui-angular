@@ -22,10 +22,10 @@ export class ModelsPage {
     async indexPage(project, module, error = null) {
         try {
             const models = await this.modelsService.getModels(project, module)
-            return appLayoutComponent(await modelListComponent(project, module, models, error), project);
+            return appLayoutComponent(await modelListComponent(project, module, models, error), project, module);
         } catch (e) {
             return appLayoutComponent(await modelListComponent(project, module, [],
-                e && e.message ? e.message : e.toString()), project);
+                e && e.message ? e.message : e.toString()), project, module);
         }
     }
 
@@ -41,10 +41,10 @@ export class ModelsPage {
                 models = await this.modelsService.getModels(project, module);
                 models = models.filter(x => x.toString() !== model);
             }
-            return appLayoutComponent(await modelCreateComponent(project, module, modelFileInJson, models, error), project);
+            return appLayoutComponent(await modelCreateComponent(project, module, modelFileInJson, models, error), project, module);
         } catch (e) {
             return appLayoutComponent(await modelCreateComponent(project, module, modelFileInJson, models,
-                e && e.message ? e.message : e.toString()), project);
+                e && e.message ? e.message : e.toString()), project, module);
         }
     }
 }

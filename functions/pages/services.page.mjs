@@ -24,10 +24,10 @@ export class ServicesPage {
     async indexPage(project, module, error = null) {
         try {
             const services = await this.servicesService.getServices(project, module)
-            return appLayoutComponent(await serviceListComponent(project, module, services, error), project);
+            return appLayoutComponent(await serviceListComponent(project, module, services, error), project, module);
         } catch (e) {
             return appLayoutComponent(await serviceListComponent(project, module, [],
-                e && e.message ? e.message : e.toString()), project);
+                e && e.message ? e.message : e.toString()), project, module);
         }
     }
 
@@ -43,15 +43,15 @@ export class ServicesPage {
                 services = await this.servicesService.getServices(project, module);
                 services = services.filter(x => x.toString() !== serviceName);
             }
-            return appLayoutComponent(await serviceCreateComponent(project, module, serviceInJson, services, error), project);
+            return appLayoutComponent(await serviceCreateComponent(project, module, serviceInJson, services, error), project, module);
         } catch (e) {
             return appLayoutComponent(await serviceCreateComponent(project, module, serviceInJson, services,
-                e && e.message ? e.message : e.toString()), project);
+                e && e.message ? e.message : e.toString()), project, module);
         }
     }
 
     async createMethodPage(project, module, service, method = {name: '', inputs: '', body: null}, error = null) {
-        return appLayoutComponent(serviceMethodCreateComponent(project, module, service, method, error));
+        return appLayoutComponent(serviceMethodCreateComponent(project, module, service, method, error), project, module);
     }
 
     /**
@@ -65,6 +65,6 @@ export class ServicesPage {
      */
     async updateMethodPage(project, module, service, method, error = null) {
         const methodMap = await this.servicesService.getMethod(project, module, service, method);
-        return appLayoutComponent(serviceMethodUpdateComponent(project, module, service, methodMap, error));
+        return appLayoutComponent(serviceMethodUpdateComponent(project, module, service, methodMap, error), project, module);
     }
 }

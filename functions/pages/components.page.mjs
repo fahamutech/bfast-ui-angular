@@ -25,10 +25,10 @@ export class ComponentsPage {
     async indexPage(project, module, error = null) {
         try {
             const components = await this.componentsService.getComponents(project, module)
-            return appLayoutComponent(await componentListComponent(project, module, components, error), project);
+            return appLayoutComponent(await componentListComponent(project, module, components, error), project, module);
         } catch (e) {
             return appLayoutComponent(await componentListComponent(project, module, [],
-                e && e.message ? e.message : e.toString()), project);
+                e && e.message ? e.message : e.toString()), project, module);
         }
     }
 
@@ -45,15 +45,23 @@ export class ComponentsPage {
                 states = await this.componentsService.getStates(project, module);
                 styles = await this.componentsService.getStyles(project, module);
             }
-            return appLayoutComponent(await componentCreateComponent(project, module, componentInJson, states, styles, error), project);
+            return appLayoutComponent(await componentCreateComponent(project, module, componentInJson, states, styles, error), project, module);
         } catch (e) {
-            return appLayoutComponent(await componentCreateComponent(project, module, componentInJson, states, styles,
-                e && e.message ? e.message : e.toString()), project);
+            return appLayoutComponent(
+                await componentCreateComponent(project, module, componentInJson, states, styles,
+                    e && e.message ? e.message : e.toString()),
+                project,
+                module
+            );
         }
     }
 
     async createMethodPage(project, module, component, method = {name: '', inputs: '', body: null}, error = null) {
-        return appLayoutComponent(componentMethodCreateComponent(project, module, component, method, error));
+        return appLayoutComponent(
+            componentMethodCreateComponent(project, module, component, method, error),
+            project,
+            module
+        );
     }
 
     /**
@@ -67,11 +75,19 @@ export class ComponentsPage {
      */
     async updateMethodPage(project, module, component, method, error = null) {
         const methodMap = await this.componentsService.getMethod(project, module, component, method);
-        return appLayoutComponent(componentMethodUpdateComponent(project, module, component, methodMap, error));
+        return appLayoutComponent(
+            componentMethodUpdateComponent(project, module, component, methodMap, error),
+            project,
+            module
+        );
     }
 
     async updateTemplatePage(project, module, selectedComponent, error) {
         const template = await this.componentsService.getTemplate(project, module, selectedComponent);
-        return appLayoutComponent(componentTemplateUpdateComponent(project, module, selectedComponent, template, error));
+        return appLayoutComponent(
+            componentTemplateUpdateComponent(project, module, selectedComponent, template, error),
+            project,
+            module
+        );
     }
 }

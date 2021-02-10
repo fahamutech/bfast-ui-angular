@@ -25,10 +25,10 @@ export class GuardsPage {
     async indexPage(project, module, error = null) {
         try {
             const guards = await this.guardsService.getGuards(project, module)
-            return appLayoutComponent(await guardListComponent(project, module, guards, error), project);
+            return appLayoutComponent(await guardListComponent(project, module, guards, error), project, module);
         } catch (e) {
             return appLayoutComponent(await guardListComponent(project, module, [],
-                e && e.message ? e.message : e.toString()), project);
+                e && e.message ? e.message : e.toString()), project, module);
         }
     }
 
@@ -47,11 +47,11 @@ export class GuardsPage {
                 // guards = guards.filter(x => x.toString() !== guard);
                 // console.log(guardFileInJson);
             }
-            return appLayoutComponent(await guardCreateComponent(project, module, guardFileInJson, services, error), project);
+            return appLayoutComponent(await guardCreateComponent(project, module, guardFileInJson, services, error), project, module);
         } catch (e) {
             console.log(e);
             return appLayoutComponent(await guardCreateComponent(project, module, guardFileInJson, services,
-                e && e.message ? e.message : e.toString()), project);
+                e && e.message ? e.message : e.toString()), project, module);
         }
     }
 
@@ -66,10 +66,10 @@ export class GuardsPage {
     async updateGuardPage(project, module, guard, error = null) {
         try {
             const guardInJson = await this.guardsService.guardFileToJson(project, module, guard)
-            return appLayoutComponent(guardMethodUpdateComponent(project, module, guardInJson, error), project);
+            return appLayoutComponent(guardMethodUpdateComponent(project, module, guardInJson, error), project, module);
         } catch (e) {
             return appLayoutComponent(guardMethodUpdateComponent(project, module, null,
-                e && e.message ? e.message : e.toString()), project);
+                e && e.message ? e.message : e.toString()), project, module);
         }
     }
 }

@@ -25,10 +25,10 @@ export class PagesPage {
     async indexPage(project, module, error = null) {
         try {
             const pages = await this.pagesService.getPages(project, module)
-            return appLayoutComponent(await pageListComponent(project, module, pages, error), project);
+            return appLayoutComponent(await pageListComponent(project, module, pages, error), project, module);
         } catch (e) {
             return appLayoutComponent(await pageListComponent(project, module, [],
-                e && e.message ? e.message : e.toString()), project);
+                e && e.message ? e.message : e.toString()), project, module);
         }
     }
 
@@ -45,15 +45,15 @@ export class PagesPage {
                 states = await this.pagesService.getStates(project, module);
                 styles = await this.pagesService.getStyles(project, module);
             }
-            return appLayoutComponent(await pageCreateComponent(project, module, pageInJson, states, styles, error), project);
+            return appLayoutComponent(await pageCreateComponent(project, module, pageInJson, states, styles, error), project, module);
         } catch (e) {
             return appLayoutComponent(await pageCreateComponent(project, module, pageInJson, states, styles,
-                e && e.message ? e.message : e.toString()), project);
+                e && e.message ? e.message : e.toString()), project, module);
         }
     }
 
     async createMethodPage(project, module, page, method = {name: '', inputs: '', body: null}, error = null) {
-        return appLayoutComponent(pageMethodCreateComponent(project, module, page, method, error));
+        return appLayoutComponent(pageMethodCreateComponent(project, module, page, method, error), project, module);
     }
 
     /**
@@ -67,11 +67,11 @@ export class PagesPage {
      */
     async updateMethodPage(project, module, page, method, error = null) {
         const methodMap = await this.pagesService.getMethod(project, module, page, method);
-        return appLayoutComponent(pageMethodUpdateComponent(project, module, page, methodMap, error));
+        return appLayoutComponent(pageMethodUpdateComponent(project, module, page, methodMap, error), project, module);
     }
 
     async updateTemplatePage(project, module, selectedComponent, error) {
         const template = await this.pagesService.getTemplate(project, module, selectedComponent);
-        return appLayoutComponent(pageTemplateUpdateComponent(project, module, selectedComponent, template, error));
+        return appLayoutComponent(pageTemplateUpdateComponent(project, module, selectedComponent, template, error), project, module);
     }
 }
