@@ -58,7 +58,7 @@ export class AppUtil {
                             ? x.split(':')[1].replace('Service', '').toLowerCase().trim()
                             : ''
                     }
-                });
+                }).filter(x => x.name !== 'router');
         } else {
             return [];
         }

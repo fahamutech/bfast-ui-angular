@@ -98,8 +98,7 @@ function newStateModal(project, module) {
 
 async function countMethods(project, module, state) {
     try {
-        const storage = new StorageUtil();
-        const serInJson = await new StateService(storage).stateFileToJson(state, project, module);
+        const serInJson = await new StateService(storage, appUtil).stateFileToJson(state, project, module);
         return serInJson.methods.length;
     } catch (e) {
         return 0;

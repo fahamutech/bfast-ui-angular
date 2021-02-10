@@ -14,7 +14,7 @@ export class StylesService {
 
     async getStyles(project, module) {
         try {
-            const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+            const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
             const servicesDir = join(projectPath, 'modules', module, 'styles');
             return promisify(readdir)(servicesDir);
         } catch (e) {
@@ -33,7 +33,7 @@ export class StylesService {
         if (style.toString().includes('.style.scss')) {
             style = style.toString().split('.')[0];
         }
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         const styleFile = await promisify(readFile)(join(projectPath, 'modules', module, 'styles', `${style}.style.scss`));
         const styleJsonFile = {};
         styleJsonFile.name = style;
@@ -56,7 +56,7 @@ export class StylesService {
      * @return {Promise<any>}
      */
     async jsonToStyleFile(project, module, style) {
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         await promisify(writeFile)(join(projectPath, 'modules', module, 'styles', `${style.name}.style.scss`), style.body);
         return 'done write style'
     }

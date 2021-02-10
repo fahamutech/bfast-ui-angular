@@ -151,7 +151,7 @@ export const createMethodInAComponentSubmit = bfastnode.bfast.functions().onPost
         const module = request.params.module;
         const component = request.params.component;
         const body = JSON.parse(JSON.stringify(request.body));
-        componentsPage.addMethod(project, module, component, {
+        componentService.addMethod(project, module, component, {
             name: body.name,
             inputs: body.inputs,
             return: 'any',
@@ -211,7 +211,7 @@ export const deleteMethodInAComponentSubmit = bfastnode.bfast.functions().onPost
         const component = request.params.component;
         const method = request.params.method;
         //  const body = JSON.parse(JSON.stringify(request.body));
-        componentsPage.deleteMethod(project, module, component, method).then(_ => {
+        componentService.deleteMethod(project, module, component, method).then(_ => {
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`);
         }).catch(reason => {
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())}`);
@@ -253,11 +253,11 @@ export const deleteInjectionInAComponentSubmit = bfastnode.bfast.functions().onP
         const module = request.params.module;
         const component = request.params.component;
         const injection = request.params.injection;
-        componentsPage.componentFileToJson(project, module, component).then(async value => {
+        componentService.componentFileToJson(project, module, component).then(async value => {
             if (value && value.injections && Array.isArray(value.injections)) {
                 value.injections = value.injections.filter(x => x.state.toString().toLowerCase()
                     !== injection.toString().split('.')[0].toLowerCase());
-                await componentsPage.jsonToComponentFile(value, project, module)
+                await componentService.jsonToComponentFile(value, project, module)
             }
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`)
         }).catch(reason => {
@@ -274,13 +274,13 @@ export const addStyleInAComponentSubmit = bfastnode.bfast.functions().onPostHttp
         const module = request.params.module;
         const component = request.params.component;
         const style = request.params.style;
-        componentsPage.componentFileToJson(project, module, component).then(async value => {
+        componentService.componentFileToJson(project, module, component).then(async value => {
             if (value && value.styles && Array.isArray(value.styles)) {
                 const exist = value.styles.filter(x => x.toString().toLowerCase()
                     === style.toString().split('.')[0].toLowerCase());
                 if (exist.length === 0) {
                     value.styles.push(style.toString().split('.')[0]);
-                    await componentsPage.jsonToComponentFile(value, project, module);
+                    await componentService.jsonToComponentFile(value, project, module);
                 }
             }
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`);
@@ -298,11 +298,11 @@ export const deleteStyleInAComponentSubmit = bfastnode.bfast.functions().onPostH
         const module = request.params.module;
         const component = request.params.component;
         const style = request.params.style;
-        componentsPage.componentFileToJson(project, module, component).then(async value => {
+        componentService.componentFileToJson(project, module, component).then(async value => {
             if (value && value.styles && Array.isArray(value.styles)) {
                 value.styles = value.styles.filter(x => x.toString().toLowerCase()
                     !== style.toString().split('.')[0].toLowerCase());
-                await componentsPage.jsonToComponentFile(value, project, module)
+                await componentService.jsonToComponentFile(value, project, module)
             }
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`)
         }).catch(reason => {

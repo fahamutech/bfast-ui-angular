@@ -60,7 +60,7 @@ export class ModulePage {
      * @param project - {string}
      * @returns {*}
      */
-    create(error, project) {
+    async create(error, project) {
         return appLayoutComponent(moduleCreateComponent(error, project), project, null);
     }
 

@@ -17,7 +17,7 @@ export class ComponentService {
 
     async getComponents(project, module) {
         try {
-            const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+            const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
             const componentsDir = join(projectPath, 'modules', module, 'components');
             return promisify(readdir)(componentsDir);
         } catch (e) {
@@ -27,7 +27,7 @@ export class ComponentService {
 
     async getStates(project, module) {
         try {
-            const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+            const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
             const componentsDir = join(projectPath, 'modules', module, 'states');
             return promisify(readdir)(componentsDir);
         } catch (e) {
@@ -37,7 +37,7 @@ export class ComponentService {
 
     async getStyles(project, module) {
         try {
-            const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+            const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
             const componentsDir = join(projectPath, 'modules', module, 'styles');
             return promisify(readdir)(componentsDir);
         } catch (e) {
@@ -62,7 +62,7 @@ export class ComponentService {
         if (componentName.toString().includes('.component.ts')) {
             componentName = componentName.toString().split('.')[0];
         }
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         const componentFile = await promisify(readFile)(join(
             projectPath, 'modules', module, 'components', `${componentName}.component.ts`)
         );
@@ -96,7 +96,7 @@ export class ComponentService {
      * @return {Promise<any>}
      */
     async jsonToComponentFile(component, project, module) {
-        const projectPath = this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         const componentInjectionsWithType = component.injections
             .map(x => 'public readonly ' + x.name + ': ' + this.appUtil.firstCaseUpper(x.state) + 'State')
             .join(',');

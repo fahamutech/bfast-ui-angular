@@ -7,7 +7,9 @@
     "start": "npx bfast fs serve --port 4000"
   },
   "dependencies": {
-    "bfastnode": "^4.0.5",
+    "bfast-function": "^1.11.3",
+    "bfastnode": "^4.0.8",
+    "get-port": "^5.1.1",
     "nconf": "^0.11.0"
   },
   "devDependencies": {
