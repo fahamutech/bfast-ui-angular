@@ -1,8 +1,8 @@
 {
   "name": "bfast-ui-ng",
-  "version": "0.0.1-alpha.1",
-  "type": "module",
-  "main": "bfast-ui-angular.mjs",
+  "version": "0.0.1-alpha.2",
+  "main": "bfast-ui-angular.common.js",
+  "module": "bfast-ui-angular.mjs",
   "scripts": {
     "test": "echo \"no test\"",
     "start": "bfast fs serve --port 4000"

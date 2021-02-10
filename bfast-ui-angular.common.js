@@ -1,8 +1,8 @@
-import {BfastFunctions} from 'bfast-function';
-import {join, resolve} from 'path';
-import getPort from 'get-port';
+const {BfastFunctions} = require('bfast-function');
+const {join, resolve} = require('path');
+const getPort = require('get-port');
 
-export class BfastUiAngular {
+class BfastUiAngularCommon {
 
     /**
      *
@@ -25,4 +25,6 @@ export class BfastUiAngular {
     }
 }
 
-export default BfastUiAngular;
+module.exports = {
+    BfastUiAngular: BfastUiAngularCommon
+};
