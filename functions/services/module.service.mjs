@@ -26,7 +26,7 @@ export class ModuleService {
             const modules = await promisify(readdir)(join(projectPath, 'modules'));
             return {
                 name: mainModuleName,
-                modules: modules
+                modules: modules.filter(x => !x.toString().includes('.md'))
             }
         } else {
             throw Error("Path to project required");
@@ -735,7 +735,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(module)}Module {
         if (module.toString().includes('.module.ts')) {
             module = module.toString().split('.')[0];
         }
-        const projectPath =await this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         /**
          *
          * @type {string[]}
