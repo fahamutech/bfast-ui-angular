@@ -28,12 +28,17 @@ function initiateTerm(project, path, response,) {
                 if (ending === true) {
                     ending = false;
                 } else {
-                    response.broadcast(data);
+                    const value = data.toString().match(new RegExp('.*@.*:.*~.*\\$'));
+                    if (value) {
+                        response.broadcast(END_OF_LINE);
+                    } else {
+                        response.broadcast(data);
+                    }
                 }
             }
         });
         terminals[project].on('exit', _ => {
-            response.broadcast(END_OF_LINE);
+            // response.broadcast(END_OF_LINE);
         });
     } else {
         // console.log(`terminal of ${project} already initialized pid --> ` + terminals[project].pid);
@@ -43,8 +48,12 @@ function initiateTerm(project, path, response,) {
 async function execCommand(cmd, project, response) {
     const projectPath = await storage.getConfig(`${project}:projectPath`);
     initiateTerm(project, projectPath, response);
-    if (cmd === 'start') {
-        terminals[project].write('npm start \r');
+    if (cmd.toString().trim().startsWith('start')) {
+        let port = cmd.toString().replace('start', '').trim();
+        if (port === '') {
+            port = '4200';
+        }
+        terminals[project].write(`npx ng serve --port ${port} \r`);
     } else if (cmd === 'build') {
         terminals[project].write('npx ng build --prod \r');
     } else if (cmd.toString().startsWith('install')) {
@@ -53,7 +62,7 @@ async function execCommand(cmd, project, response) {
         terminals[project].write('\x03');
         terminals[project] = undefined;
     } else {
-        response.emit('bad command --> ' + cmd);
+        response.emit('unknown command --> ' + cmd);
         response.emit(END_OF_LINE);
     }
 }
