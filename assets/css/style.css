@@ -64,3 +64,14 @@ table {
     height: 100vh;
     max-height: 100vh;
 }
+
+.terminal {
+    position: fixed;
+    bottom: 0;
+    z-index: 300000;
+    height: 200px;
+}
+
+.terminal-hide {
+    display: none !important;
+}

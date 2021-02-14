@@ -13587,7 +13587,7 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
                 "name": "dt",
                 "description": {
                     "kind": "markdown",
-                    "value": "The dt element represents the term, or name, part of a term-description group in a description list (dl element)."
+                    "value": "The dt element represents the bfastTerminal, or name, part of a bfastTerminal-description group in a description list (dl element)."
                 },
                 "attributes": [],
                 "references": [
@@ -13601,7 +13601,7 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
                 "name": "dd",
                 "description": {
                     "kind": "markdown",
-                    "value": "The dd element represents the description, definition, or value, part of a term-description group in a description list (dl element)."
+                    "value": "The dd element represents the description, definition, or value, part of a bfastTerminal-description group in a description list (dl element)."
                 },
                 "attributes": [
                     {
@@ -13836,7 +13836,7 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
                 "name": "dfn",
                 "description": {
                     "kind": "markdown",
-                    "value": "The dfn element represents the defining instance of a term. The paragraph, description list group, or section that is the nearest ancestor of the dfn element must also contain the definition(s) for the term given by the dfn element."
+                    "value": "The dfn element represents the defining instance of a bfastTerminal. The paragraph, description list group, or section that is the nearest ancestor of the dfn element must also contain the definition(s) for the bfastTerminal given by the dfn element."
                 },
                 "attributes": [],
                 "references": [
@@ -13956,7 +13956,7 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
                 "name": "var",
                 "description": {
                     "kind": "markdown",
-                    "value": "The var element represents a variable. This could be an actual variable in a mathematical expression or programming context, an identifier representing a constant, a symbol identifying a physical quantity, a function parameter, or just be a term used as a placeholder in prose."
+                    "value": "The var element represents a variable. This could be an actual variable in a mathematical expression or programming context, an identifier representing a constant, a symbol identifying a physical quantity, a function parameter, or just be a bfastTerminal used as a placeholder in prose."
                 },
                 "attributes": [],
                 "references": [
@@ -14026,7 +14026,7 @@ define('vscode-uri', ['vscode-uri/index'], function (main) { return main; });
                 "name": "i",
                 "description": {
                     "kind": "markdown",
-                    "value": "The i element represents a span of text in an alternate voice or mood, or otherwise offset from the normal prose in a manner indicating a different quality of text, such as a taxonomic designation, a technical term, an idiomatic phrase from another language, transliteration, a thought, or a ship name in Western texts."
+                    "value": "The i element represents a span of text in an alternate voice or mood, or otherwise offset from the normal prose in a manner indicating a different quality of text, such as a taxonomic designation, a technical bfastTerminal, an idiomatic phrase from another language, transliteration, a thought, or a ship name in Western texts."
                 },
                 "attributes": [],
                 "references": [

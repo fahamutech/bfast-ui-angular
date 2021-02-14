@@ -126,7 +126,7 @@ export var language = {
             ['\\)', { token: 'delimiter.parenthesis', next: '@pop' }]
         ],
         declarationbody: [
-            { include: '@term' },
+            { include: '@bfastTerminal' },
             [';', 'delimiter', '@pop'],
             ['(?=})', { token: '', next: '@pop' }] // missing semicolon
         ],
@@ -181,7 +181,7 @@ export var language = {
             ['\\$@identifier@ws:', 'variable.decl'],
             ['\\.\\.\\.', 'operator'],
             [',', 'delimiter'],
-            { include: '@term' },
+            { include: '@bfastTerminal' },
             ['\\)', { token: 'meta', next: '@pop' }]
         ],
         includedeclaration: [
@@ -196,7 +196,7 @@ export var language = {
             ['{', { token: 'delimiter.curly', switchTo: '@keyframebody' }]
         ],
         keyframebody: [
-            { include: '@term' },
+            { include: '@bfastTerminal' },
             ['{', { token: 'delimiter.curly', next: '@selectorbody' }],
             ['}', { token: 'delimiter.curly', next: '@pop' }]
         ],
@@ -208,13 +208,13 @@ export var language = {
         ],
         controlstatementdeclaration: [
             ['(in|from|through|if|to)\\b', { token: 'keyword.flow' }],
-            { include: '@term' },
+            { include: '@bfastTerminal' },
             ['{', { token: 'delimiter.curly', switchTo: '@selectorbody' }]
         ],
         functionbody: [
             ['[@](return)', { token: 'keyword' }],
             { include: '@variabledeclaration' },
-            { include: '@term' },
+            { include: '@bfastTerminal' },
             { include: '@controlstatement' },
             [';', 'delimiter'],
             ['}', { token: 'delimiter.curly', next: '@pop' }]
@@ -223,7 +223,7 @@ export var language = {
         functionarguments: [
             ['\\$@identifier@ws:', 'attribute.name'],
             ['[,]', 'delimiter'],
-            { include: '@term' },
+            { include: '@bfastTerminal' },
             ['\\)', { token: 'meta', next: '@pop' }]
         ],
         strings: [
