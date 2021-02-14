@@ -2461,7 +2461,7 @@ var __extends = (this && this.__extends) || (function () {
     exports.Marker = Marker;
     /*
     export class DefaultVisitor implements IVisitor {
-    
+
         public visitNode(node:Node):boolean {
             switch (node.type) {
                 case NodeType.Stylesheet:
@@ -2517,103 +2517,103 @@ var __extends = (this && this.__extends) || (function () {
             }
             return this.visitUnknownNode(node);
         }
-    
+
         public visitFontFace(node:FontFace):boolean {
             return true;
         }
-    
+
         public visitKeyframe(node:Keyframe):boolean {
             return true;
         }
-    
+
         public visitKeyframeSelector(node:KeyframeSelector):boolean {
             return true;
         }
-    
+
         public visitStylesheet(node:Stylesheet):boolean {
             return true;
         }
-    
+
         public visitProperty(Node:Property):boolean {
             return true;
         }
-    
+
         public visitRuleSet(node:RuleSet):boolean {
             return true;
         }
-    
+
         public visitSelector(node:Selector):boolean {
             return true;
         }
-    
+
         public visitSimpleSelector(node:SimpleSelector):boolean {
             return true;
         }
-    
+
         public visitDeclaration(node:Declaration):boolean {
             return true;
         }
-    
+
         public visitFunction(node:Function):boolean {
             return true;
         }
-    
+
         public visitFunctionDeclaration(node:FunctionDeclaration):boolean {
             return true;
         }
-    
+
         public visitInvocation(node:Invocation):boolean {
             return true;
         }
-    
+
         public visitTerm(node:Term):boolean {
             return true;
         }
-    
+
         public visitImport(node:Import):boolean {
             return true;
         }
-    
+
         public visitNamespace(node:Namespace):boolean {
             return true;
         }
-    
+
         public visitExpression(node:Expression):boolean {
             return true;
         }
-    
+
         public visitNumericValue(node:NumericValue):boolean {
             return true;
         }
-    
+
         public visitPage(node:Page):boolean {
             return true;
         }
-    
+
         public visitPageBoxMarginBox(node:PageBoxMarginBox):boolean {
             return true;
         }
-    
+
         public visitNodelist(node:Nodelist):boolean {
             return true;
         }
-    
+
         public visitVariableDeclaration(node:VariableDeclaration):boolean {
             return true;
         }
-    
+
         public visitVariable(node:Variable):boolean {
             return true;
         }
-    
+
         public visitMixinDeclaration(node:MixinDeclaration):boolean {
             return true;
         }
-    
+
         public visitMixinReference(node:MixinReference):boolean {
             return true;
         }
-    
+
         public visitUnknownNode(node:Node):boolean {
             return true;
         }
@@ -12466,7 +12466,7 @@ var __extends = (this && this.__extends) || (function () {
             while (node.addChild(this._parseVariable() || this._parseIdent())) {
                 // Consume all variables and idents ahead.
             }
-            // More than just identifier 
+            // More than just identifier
             return node.getChildren().length > 1 ? node : null;
         };
         SCSSParser.prototype._parseSupportsCondition = function () {
