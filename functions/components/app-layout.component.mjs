@@ -34,6 +34,7 @@ export const appLayoutComponent = async function (body, project, module) {
               <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
               <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
               <link href="/assets/css/style.css" rel="stylesheet">
+              <link href="/assets/css/xterm.css" rel="stylesheet">
               <!-- Latest compiled and minified CSS -->
              <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
              integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
@@ -48,13 +49,19 @@ export const appLayoutComponent = async function (body, project, module) {
                        </aside>
                        <div class="${project ? 'main-side-nav' : 'main-full'}">
                             ${appToolBarComponent(project)}
-                            <div class="container" style="padding-bottom: 50px">
+                            <div class="container" style="padding-bottom: 400px">
                                 ${body}
                             </div>
+                            <div class="${project ? 'terminal' : 'terminal-hide'}" id="terminal" style="width: 100%"></div>
                         </div>
                     </div>
                  <noscript>Please enable JavaScript to continue using this application.</noscript>
-                 <script src="/assets/main.js"></script>
+                 <script src="/assets/js/xterm.js"></script>
+                 <script src="/assets/js/bfastjs.js"></script>
+                 <script src="/assets/js/terminal.js"></script>
+                 <script>
+                    autoStartTerminal('${project}');
+                 </script>
                  <!-- JavaScript Bundle with Popper -->
                  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" 
                  integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" 

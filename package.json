@@ -8,10 +8,11 @@
     "start": "bfast fs serve --port 4000"
   },
   "dependencies": {
-    "bfast-function": "^1.11.4",
-    "bfastnode": "^4.0.8",
+    "bfast-function": "^1.11.5",
+    "bfastnode": "^4.0.9",
     "get-port": "^5.1.1",
-    "nconf": "^0.11.0"
+    "nconf": "^0.11.0",
+    "node-pty": "^0.10.0"
   },
   "private": false
 }
