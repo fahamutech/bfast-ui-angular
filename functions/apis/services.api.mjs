@@ -54,7 +54,6 @@ export const createModuleServices = bfastnode.bfast.functions().onPostHttpReques
 export const viewModuleService = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/services/:service',
     (request, response) => {
-
         const project = request.params.project;
         const module = request.params.module;
         const selectedService = request.params.service;
@@ -175,7 +174,6 @@ export const deleteMethodInAServiceSubmit = bfastnode.bfast.functions().onPostHt
 export const addInjectionInAServiceSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/services/:service/injections/:injection',
     (request, response) => {
-
         const project = request.params.project;
         const module = request.params.module;
         const service = request.params.service;
@@ -187,9 +185,37 @@ export const addInjectionInAServiceSubmit = bfastnode.bfast.functions().onPostHt
                 if (exist.length === 0) {
                     value.injections.push({
                         name: injection.toString().split('.')[0].toString().toLowerCase() + 'Service'.trim(),
-                        service: injection.toString().split('.')[0].toString().toLowerCase().trim()
+                        service: appUtil.camelCaseToKebal(injection.toString().split('.')[0].toString().toLowerCase().trim()),
+                        auto: true
                     });
                     await servicesService.jsonToServiceFile(project, module, value)
+                }
+            }
+            response.redirect(`/project/${project}/modules/${module}/resources/services/${service}`)
+        }).catch(reason => {
+            response.redirect(`/project/${project}/modules/${module}/resources/services/${service}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
+        });
+    }
+);
+
+export const addInjectionManualInAServiceSubmit = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/:module/resources/services/:service/injections',
+    (request, response) => {
+        const project = request.params.project;
+        const module = request.params.module;
+        const service = request.params.service;
+        const body = JSON.parse(JSON.stringify(request.body));
+        servicesService.serviceFileToJson(project, module, service).then(async value => {
+            if (value && value.injections && Array.isArray(value.injections)) {
+                const exist = value.injections.filter(x => x.service.toString().toLowerCase()
+                    === body.name.toString().toLowerCase());
+                if (exist.length === 0) {
+                    value.injections.push({
+                        name: appUtil.firstCaseLower(appUtil.kebalCaseToCamelCase(body.name)).trim(),
+                        service: body.name.trim(),
+                        auto: false
+                    });
+                    await servicesService.jsonToServiceFile(project, module, value);
                 }
             }
             response.redirect(`/project/${project}/modules/${module}/resources/services/${service}`)

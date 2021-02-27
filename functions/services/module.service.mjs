@@ -592,11 +592,14 @@ export class AppComponent {
 `
 
         const moduleInString = `import {BFast, bfast} from 'bfastjs';
-import {BrowserModule} from '@angular/platform-browser';
+import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
 import {NgModule} from '@angular/core';
 import {AppComponent} from './app.component';
 import {RouterModule} from '@angular/router';
 import {Routes} from '@angular/router';
+import {HttpClientModule} from '@angular/common/http';
+import {MatDialogModule} from '@angular/material/dialog';
+import {MatSnackBarModule} from '@angular/material/snack-bar';
 
 const routes: Routes = [
    ${this._getRoutesFromMainModuleJson(moduleJson.routes)}
@@ -605,8 +608,11 @@ const routes: Routes = [
 @NgModule({
   declarations: [AppComponent],
   imports: [
-    BrowserModule,
+    BrowserAnimationsModule,
     RouterModule.forRoot(routes),
+    HttpClientModule,
+    MatDialogModule,
+    MatSnackBarModule
   ],
   providers: [],
   bootstrap: [AppComponent],

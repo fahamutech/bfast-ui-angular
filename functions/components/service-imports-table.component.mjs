@@ -6,7 +6,7 @@ export const serviceImportsTableComponent = function (
 ) {
     return `
         <div class="d-flex flex-row" style="margin: 8px 0">
-             <h3 style="margin: 0">Imports</h3>
+             <h3 style="margin: 0">Libs</h3>
              <span style="flex: 1 1 auto"></span>
              <button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#addImportToServiceModal">Add Lib</button>
         </div>

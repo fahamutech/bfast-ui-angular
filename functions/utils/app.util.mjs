@@ -16,6 +16,21 @@ export class AppUtil {
 
     /**
      *
+     * @param name
+     * @return {string}
+     * @public
+     */
+    firstCaseLower(name) {
+        return name.split('').map((value, index) => {
+            if (index === 0) {
+                return value.toLowerCase();
+            }
+            return value;
+        }).join('');
+    }
+
+    /**
+     *
      * @param kebalCase {string}
      * @return {string}
      */
@@ -41,7 +56,7 @@ export class AppUtil {
         }
     }
 
-    getInjectionsFromFile(file) {
+    getInjectionsFromFile(file, thirdPartLib = []) {
         const reg = new RegExp('(constructor).*\:(.|\\n)+?\\)', 'ig');
         const results = file.toString().match(reg) ? file.toString().match(reg)[0] : [];
         if (results) {
@@ -50,15 +65,26 @@ export class AppUtil {
                 .split(',')
                 .filter(x => x !== '')
                 .map(x => {
+                    let auto = true;
+                    const sImp = x.split(':')[1] ? x.split(':')[1].trim() : null;
+                    const matches = thirdPartLib.filter(r => r.toString().trim() === sImp);
+                    if (matches && Array.isArray(matches) && matches.length > 0) {
+                        auto = false;
+                    }
                     return {
                         name: x.split(':')[0]
                             ? x.split(':')[0].trim()
                             : '',
-                        service: x.split(':')[1]
-                            ? x.split(':')[1].replace('Service', '').toLowerCase().trim()
-                            : ''
+                        service: auto === true
+                            ? (
+                                typeof sImp == "string"
+                                    ? this.camelCaseToKebal(sImp.replace('Service', '').trim())
+                                    : ''
+                            )
+                            : sImp,
+                        auto: auto
                     }
-                }).filter(x => x.name !== 'router');
+                }).filter(x => x.name !== '');
         } else {
             return [];
         }

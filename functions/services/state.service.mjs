@@ -90,7 +90,7 @@ export class StateService {
         }).join('');
         const methods = state.methods.map(x => {
             return `
-    async ${x.name}(${x.inputs}): Promise<void> {
+    async ${x.name}(${x.inputs}): Promise<any> {
         ${x.body.toString().trim()}
     }`
         }).join('\n');

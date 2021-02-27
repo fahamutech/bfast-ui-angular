@@ -1,4 +1,4 @@
-export const serviceInjectionTableComponent = async function (project, module, service, injections = [], services = []) {
+export const serviceInjectionTableComponent = async function (project, module, service, injections = [], services = [], imports =[]) {
     return `
         <div class="d-flex flex-row" style="margin: 8px 0">
              <h3 style="margin: 0">Injections</h3>
@@ -19,7 +19,7 @@ export const serviceInjectionTableComponent = async function (project, module, s
                ${getTableContents(project, module, service, injections)}
               </tbody>
             </table>
-            ${await addInjectionModal(project, module, service, services)}
+            ${await addInjectionModal(project, module, service, services, imports)}
         </div>
     `
 }
@@ -30,7 +30,7 @@ function getTableContents(project, module, service, injections = []) {
         row += `<tr style="cursor: pointer">
                   <th scope="row">${injections.indexOf(injection) + 1}</th>
                   <td>${injection.name}</td>
-                  <td style="flex-grow: 1">${injection.service}.service.ts</td>
+                  <td style="flex-grow: 1">${injection.service}${injection.auto===true?'.service.ts':''}</td>
                   <td>
                     <div class="d-flex flex-row">
                         <form method="post" action="/project/${project}/modules/${module}/resources/services/${service}/injections/${injection.service}.service.ts/delete">
@@ -44,9 +44,38 @@ function getTableContents(project, module, service, injections = []) {
 }
 
 
-async function addInjectionModal(project, module, service, services) {
+async function addInjectionModal(project, module, service, services, imports = []) {
     function allOtherServices() {
-        let otherServices = ''
+        let manualService = ''
+        for (const imp of imports) {
+            manualService += `
+            <option value="${imp}">${imp}</option>
+            `
+        }
+        let otherServices = `
+            <div>
+                <form method="post" action="/project/${project}/modules/${module}/resources/services/${service}/injections">
+                    <div>
+                        <label class="form-label btn-block">
+                            Name
+                            <select class="form-control"  name="name" id="name">
+                                ${manualService}
+                            </select>
+                        </label>
+                    </div>
+<!--                    <div>-->
+<!--                        <label class="form-label btn-block">-->
+<!--                            Reference-->
+<!--                            <input class="form-control btn-block" placeholder="Enter import reference" name="ref" id="ref">-->
+<!--                        </label>-->
+<!--                    </div>-->
+                    <button class="btn btn-primary btn-block" type="submit">
+                       Import Manual
+                    </button>
+                </form>
+            </div>
+            <hr>
+        `;
         for (const injection of services) {
             otherServices += `
             <div style="margin-bottom: 5px">

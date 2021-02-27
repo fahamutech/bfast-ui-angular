@@ -67,7 +67,14 @@ export class GuardsService {
     async jsonToGuardFile(project, module, guard) {
         const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         let serviceInjectionsWithType = guard.injections
-            .map(x => 'private readonly ' + x.name + ': ' + this._firstCaseUpper(x.service) + 'Service');
+            .filter(f => f.name !== 'router')
+            .map(x => {
+                return 'private readonly '
+                    .concat(this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(x.name)))
+                    .concat(': ')
+                    .concat(this.appUtil.kebalCaseToCamelCase(x.service))
+                    .concat('Service')
+            });
         serviceInjectionsWithType.push('private readonly router: Router');
         serviceInjectionsWithType = serviceInjectionsWithType.join(',');
         await promisify(writeFile)(join(projectPath, 'modules', module, 'guards', `${guard.name}.guard.ts`),
@@ -85,7 +92,7 @@ export class ${this._firstCaseUpper(guard.name)}Guard implements CanActivate {
     }
     
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean | UrlTree> | Promise<boolean | UrlTree> | boolean | UrlTree {
-        ${guard.body.toString().includes('return')?guard.body: 'return true;'}
+        ${guard.body.toString().includes('return') ? guard.body : 'return true;'}
     }
 }
 `
