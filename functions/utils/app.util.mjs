@@ -82,7 +82,7 @@ export class AppUtil {
                 const inputsMatch = x.toString().trim().match(reg);
                 let inputs = inputsMatch ? inputsMatch.toString() : '';
                 inputs = inputs
-                    .replace(new RegExp('(async)(.|\\n)+?\\(', 'ig'), '')
+                    .replace(new RegExp('(async)(\\s|\\w)+?\\(', 'ig'), '')
                     .replace(new RegExp('\\)(\\W|\\n)*\\:(\\W|\\n)*Promise(\\W|\\n)*<', 'ig'), '')
                     .trim();
                 let methodBody = x.toString()

@@ -52,7 +52,7 @@ export class StateService {
         stateJsonFile.name = stateName;
         stateJsonFile.injections = this.appUtil.getInjectionsFromFile(stateFile);
         stateJsonFile.states = this._getStateFieldFromStateFile(stateFile);
-        stateJsonFile.methods = this._getMethodsFromStateFile(stateFile);
+        stateJsonFile.methods = this.appUtil.getMethodsFromFile(stateFile);
         return stateJsonFile;
     }
 
@@ -134,37 +134,37 @@ export class ${this._firstCaseUpper(state.name)}State {
         }).join('');
     }
 
-    _getMethodsFromStateFile(stateFile) {
-        const reg = new RegExp(`(async)+.*`, 'gim');
-        const results = stateFile.toString().match(reg) ? stateFile.toString().match(reg) : [];
-        const indexes = results.map(x => {
-            return stateFile.toString().indexOf(x);
-        }).filter(x => x > 0);
-        const methods = indexes.map((value, index, array) => {
-            if (index === indexes.length - 1) {
-                let closingTag = stateFile.toString().lastIndexOf("}");
-                return stateFile.toString().substring(value, closingTag);
-            }
-            return stateFile.toString().substring(value, indexes[index + 1]);
-        });
-        if (methods) {
-            return methods.map(x => {
-                const inputsMatch = x.toString().trim().match(new RegExp("\\(.*\\)"));
-                let inputs = inputsMatch ? inputsMatch.toString() : '';
-                inputs = inputs.substring(1, inputs.length - 1)
-                let methodBody = x.toString().replace(new RegExp('(async)+.*', 'gim'), '').trim();
-                methodBody = methodBody.substring(0, methodBody.lastIndexOf('}'));
-                return {
-                    name: x.toString().trim().match(new RegExp('^[\\w\\d\\s]*')).toString().replace("async", "").trim(),
-                    inputs: inputs.trim(),
-                    return: "void",
-                    body: methodBody
-                }
-            });
-        } else {
-            return [];
-        }
-    }
+    // _getMethodsFromStateFile(stateFile) {
+    //     const reg = new RegExp(`(async)+.*`, 'gim');
+    //     const results = stateFile.toString().match(reg) ? stateFile.toString().match(reg) : [];
+    //     const indexes = results.map(x => {
+    //         return stateFile.toString().indexOf(x);
+    //     }).filter(x => x > 0);
+    //     const methods = indexes.map((value, index, array) => {
+    //         if (index === indexes.length - 1) {
+    //             let closingTag = stateFile.toString().lastIndexOf("}");
+    //             return stateFile.toString().substring(value, closingTag);
+    //         }
+    //         return stateFile.toString().substring(value, indexes[index + 1]);
+    //     });
+    //     if (methods) {
+    //         return methods.map(x => {
+    //             const inputsMatch = x.toString().trim().match(new RegExp("\\(.*\\)"));
+    //             let inputs = inputsMatch ? inputsMatch.toString() : '';
+    //             inputs = inputs.substring(1, inputs.length - 1)
+    //             let methodBody = x.toString().replace(new RegExp('(async)+.*', 'gim'), '').trim();
+    //             methodBody = methodBody.substring(0, methodBody.lastIndexOf('}'));
+    //             return {
+    //                 name: x.toString().trim().match(new RegExp('^[\\w\\d\\s]*')).toString().replace("async", "").trim(),
+    //                 inputs: inputs.trim(),
+    //                 return: "void",
+    //                 body: methodBody
+    //             }
+    //         });
+    //     } else {
+    //         return [];
+    //     }
+    // }
 
     _getStateFieldFromStateFile(stateFile) {
         const reg = new RegExp('(\\w)+(:).*(\\;)', 'ig');
