@@ -42,9 +42,11 @@ export const appToolBarComponent = function (project) {
                     }
                     if (terminalIsOpen && terminalIsOpen()){
                         document.getElementById('openTerminal').style.display = 'none';
+                        document.getElementById('terminal').style.height = '200px';
                         document.getElementById('closeTerminal').removeAttribute('style');
                     }else {
                         document.getElementById('closeTerminal').style.display = 'none';
+                        document.getElementById('terminal').style.height = '0';
                         document.getElementById('openTerminal').removeAttribute('style');
                     }
                 }

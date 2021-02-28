@@ -42,6 +42,52 @@ export const moduleHomeUpdateMainModule = bfastnode.bfast.functions().onPostHttp
     }
 );
 
+export const addImportToMainModuleSubmit = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/imports',
+    (request, response) => {
+        const project = request.params.project;;
+        const body = JSON.parse(JSON.stringify(request.body));
+        if (body && body.name && body.ref) {
+            _moduleService.mainModuleFileToJson(project).then(async value => {
+                if (value && value.imports && Array.isArray(value.imports)) {
+                    const exist = value.imports.filter(x => x.name.toString().toLowerCase()
+                        === appUtil.kebalCaseToCamelCase(body.name.toString().split('.')[0]).concat('Module').toLowerCase());
+                    if (exist.length === 0) {
+                        value.imports.push({
+                            name: appUtil.kebalCaseToCamelCase(body.name.toString().split('.')[0]).concat('Module'),
+                            ref: body.ref.toString().replace('.ts', '')
+                        });
+                        await _moduleService.mainModuleJsonToFile(project, value);
+                    }
+                }
+                response.redirect(`/project/${project}/modules`);
+            }).catch(reason => {
+                response.redirect(`/project/${project}/modules?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`);
+            });
+        } else {
+            response.redirect(`/project/${project}/modules?error=${encodeURIComponent('name and ref attribute in a body is required')})`);
+        }
+    }
+);
+
+export const deleteImportInMainModuleSubmit = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/imports/:name/delete',
+    (request, response) => {
+        const project = request.params.project;
+        const name = request.params.name;
+        _moduleService.mainModuleFileToJson(project).then(async value => {
+            if (value && value.imports && Array.isArray(value.imports)) {
+                value.imports = value.imports.filter(x => x.name.toString().toLowerCase()
+                    !== name.toString().trim().toLowerCase());
+                await _moduleService.mainModuleJsonToFile(project, value);
+            }
+            response.redirect(`/project/${project}/modules`);
+        }).catch(reason => {
+            response.redirect(`/project/${project}/modules?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`);
+        });
+    }
+);
+
 export const mainModuleConstructorUpdate = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/main/constructor',
     (request, response) => {
@@ -79,7 +125,6 @@ export const mainModuleConstructorUpdateSubmit = bfastnode.bfast.functions().onP
         }
     }
 );
-
 
 export const addRouteToMainModuleSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/routes',
@@ -146,7 +191,6 @@ export const deleteRouteInMainModuleSubmit = bfastnode.bfast.functions().onPostH
         });
     }
 );
-
 
 export const moduleCreate = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/create',

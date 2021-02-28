@@ -28,7 +28,6 @@ export const mainModuleRoutesTableComponent = async function (
             </table>
             ${await addInjectionModal(project, modules)}
         </div>
-        <div style="margin-bottom: 300px"></div>
     `
 }
 

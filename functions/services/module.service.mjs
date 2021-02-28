@@ -186,9 +186,11 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
         const moduleJson = {};
         moduleJson.name = this.appUtil.camelCaseToKebal(module);
         moduleJson.routes = this._getRoutesFromMainModuleFile(moduleFile);
-        // moduleJson.imports = this._getUserImportsFromModuleFile(moduleFile);
-        // moduleJson.injections = this.appUtil.getInjectionsFromFile(moduleFile);
+        moduleJson.exports = this._getExportsFromModuleFile(moduleFile);
+        moduleJson.imports = this._getUserImportsFromModuleFile(moduleFile).filter(x=>x.name.toLowerCase()!=='appcomponent');
+        moduleJson.injections = this.appUtil.getInjectionsFromFile(moduleFile);
         moduleJson.constructor = this.appUtil.getConstructorBodyFromModuleFile(moduleFile);
+        // console.log(moduleJson);
         return moduleJson;
     }
 
@@ -425,11 +427,11 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
         if (results) {
             results = results.toString()
                 // remove angular core imports
-                .replace(new RegExp('(import).*(@angular/core).*', 'ig'), '')
+                .replace(new RegExp('(import).*(NgModule).*(@angular/core).*', 'ig'), '')
                 // remove angular route imports
                 .replace(new RegExp('(import).*(@angular/router).*', 'ig'), '')
                 // remove angular common imports
-                .replace(new RegExp('(import).*(@angular/common).*', 'ig'), '')
+                .replace(new RegExp('(import).*(CommonModule).*(@angular/common).*', 'ig'), '')
                 // remove component imports
                 .replace(new RegExp('(import).*(\\.\/component).*', 'ig'), '')
                 // remove page imports
@@ -557,6 +559,7 @@ export class ${this.appUtil.firstCaseUpper(moduleJson.name)}Module {
      * @param project {string}
      * @param moduleJson {{
      *     name: string,
+     *     imports: Array<{name: string, ref: string}>,
      *     routes: {
      *         path: string,
      *         guards: Array<*>,
@@ -592,14 +595,12 @@ export class AppComponent {
 `
 
         const moduleInString = `import {BFast, bfast} from 'bfastjs';
-import {BrowserAnimationsModule} from '@angular/platform-browser/animations';
+import {CommonModule} from '@angular/common';
 import {NgModule} from '@angular/core';
 import {AppComponent} from './app.component';
 import {RouterModule} from '@angular/router';
 import {Routes} from '@angular/router';
-import {HttpClientModule} from '@angular/common/http';
-import {MatDialogModule} from '@angular/material/dialog';
-import {MatSnackBarModule} from '@angular/material/snack-bar';
+${moduleJson.imports.map(x => `import {${x.name}} from '${x.ref}';`).join('\n')}
 
 const routes: Routes = [
    ${this._getRoutesFromMainModuleJson(moduleJson.routes)}
@@ -608,11 +609,9 @@ const routes: Routes = [
 @NgModule({
   declarations: [AppComponent],
   imports: [
-    BrowserAnimationsModule,
+    CommonModule,
     RouterModule.forRoot(routes),
-    HttpClientModule,
-    MatDialogModule,
-    MatSnackBarModule
+    ${moduleJson.imports.map(x => x.name.concat(',')).join('\n    ')}
   ],
   providers: [],
   bootstrap: [AppComponent],
