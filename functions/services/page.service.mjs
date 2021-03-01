@@ -62,7 +62,7 @@ export class PageService {
         if (pageName.toString().includes('.page.ts')) {
             pageName = pageName.toString().split('.')[0];
         }
-        const projectPath =await this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         const pageFile = await promisify(readFile)(join(
             projectPath, 'modules', module, 'pages', `${pageName}.page.ts`)
         );
@@ -224,7 +224,11 @@ export class ${this._firstCaseUpper(page.name)}Page implements OnInit, OnDestroy
      * @param pageName - {string}
      */
     async createPage(project, module, pageName) {
-        pageName = pageName.toString().replace('.page.ts', '');
+        pageName = this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(pageName.toString().replace('.page.ts', '')));
+        pageName = pageName.replace(new RegExp('[^A-Za-z0-9]*', 'ig'), '');
+        if (pageName && pageName === '') {
+            throw new Error('Page must be alphanumeric');
+        }
         const pages = await this.getPages(project, module);
         const exists = pages.filter(x => x === pageName.toString().concat('.page.ts'));
         if (exists && Array.isArray(pages) && exists.length > 0) {

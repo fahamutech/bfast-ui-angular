@@ -7,9 +7,11 @@ export class StylesService {
     /**
      *
      * @param storageService {StorageUtil}
+     * @param appUtil {AppUtil}
      */
-    constructor(storageService) {
+    constructor(storageService, appUtil) {
         this.storageService = storageService;
+        this.appUtil = appUtil;
     }
 
     async getStyles(project, module) {
@@ -68,7 +70,12 @@ export class StylesService {
      * @param style - {string}
      */
     async createStyle(project, module, style) {
-        style = style.toString().replace('.style.scss', '');
+        // style = style.toString().replace('.style.scss', '');
+        style = this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(style.toString().replace('.style.scss', '')));
+        style = style.replace(new RegExp('[^A-Za-z0-9]*', 'ig'), '');
+        if (style && style === '') {
+            throw new Error('Style must be alphanumeric');
+        }
         const styles = await this.getStyles(project, module);
         const exists = styles.filter(x => x === style.toString().trim().concat('.style.scss'));
         if (exists && Array.isArray(styles) && exists.length > 0) {

@@ -107,7 +107,11 @@ export class ${this._firstCaseUpper(guard.name)}Guard implements CanActivate {
      * @param guard - {string}
      */
     async createGuard(project, module, guard) {
-        guard = guard.toString().replace('.guard.ts', '');
+        guard = this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(guard.toString().replace('.guard.ts', '')));
+        guard = guard.replace(new RegExp('[^A-Za-z0-9]*', 'ig'), '');
+        if (guard && guard === '') {
+            throw new Error('Guard must be alphanumeric');
+        }
         const guards = await this.getGuards(project, module);
         const exists = guards.filter(x => x === guard.toString().trim().concat('.guard.ts'));
         if (exists && Array.isArray(guards) && exists.length > 0) {

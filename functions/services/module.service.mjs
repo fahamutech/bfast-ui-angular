@@ -87,6 +87,11 @@ export class ModuleService {
      */
     async createModule(project, name, detail) {
         const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
+        name = this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(name.toString().replace('.module.ts', '')));
+        name = name.replace(new RegExp('[^A-Za-z0-9]*', 'ig'), '');
+        if (name && name === '') {
+            throw new Error('Module must be alphanumeric');
+        }
         if (projectPath) {
             if (name && name !== '') {
                 const resources = ["services", "models", "components", "pages", "states", "guards", "styles"]
@@ -187,7 +192,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
         moduleJson.name = this.appUtil.camelCaseToKebal(module);
         moduleJson.routes = this._getRoutesFromMainModuleFile(moduleFile);
         moduleJson.exports = this._getExportsFromModuleFile(moduleFile);
-        moduleJson.imports = this._getUserImportsFromModuleFile(moduleFile).filter(x=>x.name.toLowerCase()!=='appcomponent');
+        moduleJson.imports = this._getUserImportsFromModuleFile(moduleFile).filter(x => x.name.toLowerCase() !== 'appcomponent');
         moduleJson.injections = this.appUtil.getInjectionsFromFile(moduleFile);
         moduleJson.constructor = this.appUtil.getConstructorBodyFromModuleFile(moduleFile);
         // console.log(moduleJson);

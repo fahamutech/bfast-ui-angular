@@ -135,7 +135,11 @@ export class ${this.appUtil.kebalCaseToCamelCase(service.name)}Service {
      * @param serviceName - {string}
      */
     async createService(project, module, serviceName) {
-        serviceName = serviceName.toString().replace('.service.ts', '');
+        serviceName = this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(serviceName.toString().replace('.service.ts', '')));
+        serviceName = serviceName.replace(new RegExp('[^A-Za-z0-9]*', 'ig'), '');
+        if (serviceName && serviceName === '') {
+            throw new Error('Service must be alphanumeric');
+        }
         const services = await this.getServices(project, module);
         const exists = services.filter(x => x === serviceName.toString().concat('.service.ts'));
         if (exists && Array.isArray(services) && exists.length > 0) {

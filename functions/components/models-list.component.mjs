@@ -1,6 +1,7 @@
 import {errorMessageComponent} from "./error-message.component.mjs";
 import {StorageUtil} from "../utils/storage.util.mjs";
 import {ModelsService} from "../services/models.service.mjs";
+import {AppUtil} from "../utils/app.util.mjs";
 
 /**
  *
@@ -93,7 +94,8 @@ function newModelModal(project, module) {
 async function countLines(project, module, model) {
     try {
         const storage = new StorageUtil();
-        const modelInJson = await new ModelsService(storage).getModel(project, module, model);
+        const appUtil = new AppUtil();
+        const modelInJson = await new ModelsService(storage, appUtil).getModel(project, module, model);
         return modelInJson.body.split(/\r\n|\r|\n/).length;
     } catch (e) {
         return 0;

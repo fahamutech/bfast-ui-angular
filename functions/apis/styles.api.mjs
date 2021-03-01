@@ -2,8 +2,10 @@ import bfastnode from 'bfastnode'
 import {StorageUtil} from "../utils/storage.util.mjs";
 import {StylesPage} from "../pages/styles.page.mjs";
 import {StylesService} from "../services/styles.service.mjs";
+import {AppUtil} from "../utils/app.util.mjs";
 
-const stylesService = new StylesService(new StorageUtil());
+const appUtil = new AppUtil();
+const stylesService = new StylesService(new StorageUtil(), appUtil);
 const stylesPage = new StylesPage(stylesService);
 
 export const viewModuleStyles = bfastnode.bfast.functions().onGetHttpRequest(

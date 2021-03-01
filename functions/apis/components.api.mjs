@@ -16,10 +16,6 @@ const appUtil = new AppUtil();
 const componentService = new ComponentService(storage, appUtil);
 const componentsPage = new ComponentsPage(componentService);
 
-// syncEvent.listener(response => {
-//     console.log(response);
-// });
-
 export const viewModuleComponents = bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/components',
     (request, response) => {

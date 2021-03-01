@@ -1,15 +1,18 @@
 import {readdir, readFile, writeFile} from 'fs';
 import {join} from 'path';
 import {promisify} from 'util';
+import {AppUtil} from "../utils/app.util.mjs";
 
 export class ModelsService {
 
     /**
      *
      * @param storageService {StorageUtil}
+     * @param appUtil {AppUtil}
      */
-    constructor(storageService) {
+    constructor(storageService, appUtil) {
         this.storageService = storageService;
+        this.appUtil = appUtil;
     }
 
     async getModels(project, module) {
@@ -74,7 +77,11 @@ export interface ${model.name}Model {
      * @param model - {string}
      */
     async createModel(project, module, model) {
-        model = model.toString().replace('.model.ts', '');
+        model = this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(model.toString().replace('.model.ts', '')));
+        model = model.replace(new RegExp('[^A-Za-z0-9]*', 'ig'), '');
+        if (model && model === '') {
+            throw new Error('Model must be alphanumeric');
+        }
         const models = await this.getModels(project, module);
         const exists = models.filter(x => x === model.toString().trim().concat('.model.ts'));
         if (exists && Array.isArray(models) && exists.length > 0) {
