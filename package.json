@@ -9,10 +9,10 @@
   },
   "dependencies": {
     "bfast-function": "^1.11.5",
-    "bfastnode": "^4.1.0",
+    "bfastnode": "^4.1.1",
     "get-port": "^5.1.1",
     "nconf": "^0.11.2",
-    "node-pty": "^0.10.0"
+    "node-pty-prebuilt-multiarch": "^0.10.1-pre.3"
   },
   "private": false
 }

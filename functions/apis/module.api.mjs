@@ -8,6 +8,13 @@ import {AppUtil} from "../utils/app.util.mjs";
 import {PageService} from "../services/page.service.mjs";
 import {GuardsService} from "../services/guards.service.mjs";
 
+const {bfast} = bfastnode;
+bfast.init({
+    functionsURL: `http://localhost:${process.env.DEV_PORT ? process.env.DEV_PORT : process.env.PORT}`,
+    databaseURL: `http://localhost:${process.env.DEV_PORT ? process.env.DEV_PORT : process.env.PORT}`,
+});
+const syncEvent = bfast.functions().event(`/sync`);
+
 const storageUtil = new StorageUtil();
 const appUtil = new AppUtil();
 const _moduleService = new ModuleService(storageUtil, appUtil);
@@ -26,6 +33,8 @@ export const moduleHome = bfastnode.bfast.functions().onGetHttpRequest(
             response.send(value);
         }).catch(reason => {
             response.status(400).send(reason);
+        }).finally(() => {
+            syncEvent.emit({body: {project: project, type: 'main'}});
         });
     }
 );
@@ -34,18 +43,19 @@ export const moduleHomeUpdateMainModule = bfastnode.bfast.functions().onPostHttp
     '/project/:project/modules',
     (request, response) => {
         const project = request.params.project;
-        _moduleService.updateMainModuleContents(project, request.body.code).then(_ => {
-            response.json({message: 'done update'});
-        }).catch(reason => {
-            response.status(400).json({message: reason.toString()});
-        });
+        // _moduleService.updateMainModuleContents(project, request.body.code).then(_ => {
+        response.json({message: 'done update'});
+        //  syncEvent.emit({body: {project: project, type: 'main'}});
+        // }).catch(reason => {
+        //     response.status(400).json({message: reason.toString()});
+        // });
     }
 );
 
 export const addImportToMainModuleSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/imports',
     (request, response) => {
-        const project = request.params.project;;
+        const project = request.params.project;
         const body = JSON.parse(JSON.stringify(request.body));
         if (body && body.name && body.ref) {
             _moduleService.mainModuleFileToJson(project).then(async value => {
@@ -202,7 +212,7 @@ export const moduleCreate = bfastnode.bfast.functions().onGetHttpRequest(
         }).catch(reason => {
             console.log(reason);
             response.redirect(`/project/${project}/modules`);
-        })
+        });
     }
 );
 
@@ -223,6 +233,8 @@ export const moduleCreatePost = bfastnode.bfast.functions().onPostHttpRequest(
             }).catch(reason => {
                 response.status(400)
                     .redirect(`/project/${request.params.project}/modules/create?error=` + reason.toString());
+            }).finally(() => {
+                syncEvent.emit({body: {project: project, type: 'main'}});
             });
         }
     ]
@@ -232,12 +244,15 @@ export const moduleResourcesView = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources',
     (request, response) => {
         const project = request.params.project;
+        const module = request.params.module;
         const modulePage = new ModulePage(_moduleService, servicesService, componentService, pageService, guardsService);
         modulePage.viewModuleResources(request.params.module, project).then(value => {
             response.send(value);
         }).catch(reason => {
             console.log(reason);
             response.redirect(`/project/${project}/modules?error=${reason.toString()}`);
+        }).finally(() => {
+            syncEvent.emit({body: {project: project, module: module, type: 'child'}});
         });
     }
 );

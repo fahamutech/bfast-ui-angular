@@ -5,11 +5,17 @@ import {StorageUtil} from "../utils/storage.util.mjs";
 import {ModuleService} from "../services/module.service.mjs";
 import {AppUtil} from "../utils/app.util.mjs";
 
+const {bfast} = bfastnode;
+bfast.init({
+    functionsURL: `http://localhost:${process.env.DEV_PORT ? process.env.DEV_PORT : process.env.PORT}`,
+    databaseURL: `http://localhost:${process.env.DEV_PORT ? process.env.DEV_PORT : process.env.PORT}`,
+});
+const syncEvent = bfast.functions().event(`/sync`);
+
 const storage = new StorageUtil();
 const appUtil = new AppUtil();
 const pageService = new PageService(storage, appUtil);
 const pagesPage = new PagesPage(pageService);
-const moduleService = new ModuleService(storage, appUtil);
 
 export const viewModulePages = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/pages',
@@ -20,6 +26,8 @@ export const viewModulePages = bfastnode.bfast.functions().onGetHttpRequest(
             response.send(value);
         }).catch(_ => {
             response.status(400).send(_);
+        }).finally(() => {
+            syncEvent.emit({body: {project: project, module: module, type: 'child'}});
         });
     }
 );
@@ -36,6 +44,8 @@ export const createModulePages = bfastnode.bfast.functions().onPostHttpRequest(
                 response.send(value);
             }).catch(_ => {
                 response.status(400).send(_);
+            }).finally(() => {
+                syncEvent.emit({body: {project: project, module: module, type: 'child'}});
             });
         }
 
@@ -45,6 +55,8 @@ export const createModulePages = bfastnode.bfast.functions().onPostHttpRequest(
                 pagePage();
             }).catch(reason => {
                 pagePage(reason && reason.message ? reason.message : reason.toString());
+            }).finally(() => {
+                syncEvent.emit({body: {project: project, module: module, type: 'child'}});
             });
         } else {
             pagePage("Please enter valid page name");
@@ -78,39 +90,23 @@ export const viewModulePage = bfastnode.bfast.functions().onGetHttpRequest(
 
 export const updatePageTemplate = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/pages/:page/template',
-    [
-        (request, response, next) => {
+    (request, response, next) => {
 
-            const project = request.params.project;
-            const module = request.params.module;
-            const selectedPage = request.params.page;
-            pagesPage.updateTemplatePage(project, module, selectedPage, request.query.error).then(value => {
-                request.body._results = value;
-                next();
-            }).catch(_ => {
-                response.status(400).send(_);
-            });
-        },
-        // update module
-        (request, response) => {
-            const project = request.params.project;
-            const module = request.params.module;
-            moduleService.moduleFileToJson(project, module).then(value => {
-                return moduleService.moduleJsonToFile(project, module, value);
-            }).then(value => {
-                response.send(request.body._results);
-            }).catch(reason => {
-                console.log(reason);
-                response.status(400).send(reason);
-            });
-        }
-    ]
+        const project = request.params.project;
+        const module = request.params.module;
+        const selectedPage = request.params.page;
+        pagesPage.updateTemplatePage(project, module, selectedPage, request.query.error).then(value => {
+            request.body._results = value;
+            next();
+        }).catch(_ => {
+            response.status(400).send(_);
+        });
+    }
 );
 
 export const updatePageTemplateSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/pages/:page/template',
     (request, response) => {
-
         const project = request.params.project;
         const module = request.params.module;
         const selectedPage = request.params.page;
@@ -120,6 +116,8 @@ export const updatePageTemplateSubmit = bfastnode.bfast.functions().onPostHttpRe
                 response.send({message: 'done update template'})
             }).catch(reason => {
                 response.status(400).send(reason.toString());
+            }).finally(() => {
+                syncEvent.emit({body: {project: project, module: module, type: 'child'}});
             });
         } else {
             response.status(400).send("Please enter valid template html code");

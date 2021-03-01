@@ -1,17 +1,26 @@
-import bfastnode from 'bfastnode'
+import bfastnode from 'bfastnode';
 import {ComponentsPage} from "../pages/components.page.mjs";
 import {ComponentService} from "../services/component.service.mjs";
 import {StorageUtil} from "../utils/storage.util.mjs";
-import {ModuleService} from "../services/module.service.mjs";
 import {AppUtil} from "../utils/app.util.mjs";
+
+const {bfast} = bfastnode;
+bfast.init({
+    functionsURL: `http://localhost:${process.env.DEV_PORT ? process.env.DEV_PORT : process.env.PORT}`,
+    databaseURL: `http://localhost:${process.env.DEV_PORT ? process.env.DEV_PORT : process.env.PORT}`,
+});
+const syncEvent = bfast.functions().event(`/sync`);
 
 const storage = new StorageUtil();
 const appUtil = new AppUtil();
 const componentService = new ComponentService(storage, appUtil);
 const componentsPage = new ComponentsPage(componentService);
-const moduleService = new ModuleService(storage, appUtil);
 
-export const viewModuleComponents = bfastnode.bfast.functions().onGetHttpRequest(
+// syncEvent.listener(response => {
+//     console.log(response);
+// });
+
+export const viewModuleComponents = bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/components',
     (request, response) => {
         const project = request.params.project;
@@ -20,6 +29,8 @@ export const viewModuleComponents = bfastnode.bfast.functions().onGetHttpRequest
             response.send(value);
         }).catch(_ => {
             response.status(400).send(_);
+        }).finally(() => {
+            syncEvent.emit({body: {project: project, module: module, type: 'child'}});
         });
     }
 );
@@ -30,7 +41,6 @@ export const createModuleComponents = bfastnode.bfast.functions().onPostHttpRequ
         const project = request.params.project;
         const module = request.params.module;
         const body = JSON.parse(JSON.stringify(request.body));
-
         function componentPage(error = null) {
             componentsPage.indexPage(project, module, error).then(value => {
                 response.send(value);
@@ -38,13 +48,14 @@ export const createModuleComponents = bfastnode.bfast.functions().onPostHttpRequ
                 response.status(400).send(_);
             });
         }
-
         if (body && body.name && body.name !== '') {
             const componentName = body.name.toString().toLowerCase();
             componentService.createComponent(project, module, componentName).then(_ => {
                 componentPage();
             }).catch(reason => {
                 componentPage(reason && reason.message ? reason.message : reason.toString());
+            }).finally(() => {
+                syncEvent.emit({body: {project: project, module: module, type: 'child'}});
             });
         } else {
             componentPage("Please enter valid component name");
@@ -59,11 +70,14 @@ export const viewModuleComponent = bfastnode.bfast.functions().onGetHttpRequest(
         const module = request.params.module;
         const selectedComponent = request.params.component;
         if (selectedComponent) {
-            componentsPage.viewComponentPage(project, module, selectedComponent, request.query.error).then(value => {
-                response.send(value);
-            }).catch(_ => {
+            componentsPage.viewComponentPage(project, module, selectedComponent, request.query.error)
+                .then(value => {
+                    response.send(value);
+                }).catch(_ => {
                 console.log(_)
                 response.status(400).send(_);
+            }).finally(() => {
+                syncEvent.emit({body: {project: project, module: module, type: 'child'}});
             });
         } else {
             componentsPage.viewComponentPage(project, module,).then(value => {
@@ -71,39 +85,28 @@ export const viewModuleComponent = bfastnode.bfast.functions().onGetHttpRequest(
             }).catch(_ => {
                 console.log(_)
                 response.status(400).send(_);
+            }).finally(() => {
+                syncEvent.emit({body: {project: project, module: module, type: 'child'}});
             });
         }
     }
 );
 
-export const updateComponentTemplate = bfastnode.bfast.functions().onGetHttpRequest(
+export const updateComponentTemplate1 = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/components/:component/template',
-    [
-        (request, response, next) => {
-            const project = request.params.project;
-            const module = request.params.module;
-            const selectedComponent = request.params.component;
-            componentsPage.updateTemplatePage(project, module, selectedComponent, request.query.error).then(value => {
-                request.body._results = value;
-                next();
-            }).catch(_ => {
-                response.status(400).send(_);
-            });
-        },
-        // update module
-        (request, response) => {
-            const project = request.params.project;
-            const module = request.params.module;
-            moduleService.moduleFileToJson(project, module).then(value => {
-                return moduleService.moduleJsonToFile(project, module, value);
-            }).then(_ => {
-                response.send(request.body._results);
-            }).catch(reason => {
-                console.log(reason);
-                response.status(400).send(reason);
-            });
-        }
-    ]
+    (request, response, next) => {
+        const project = request.params.project;
+        const module = request.params.module;
+        const selectedComponent = request.params.component;
+        componentsPage.updateTemplatePage(project, module, selectedComponent, request.query.error).then(value => {
+            request.body._results = value;
+            next();
+        }).catch(_ => {
+            response.status(400).send(_);
+        }).finally(() => {
+            //  syncEvent.emit({body: {project: project, module: module, type: 'child'}});
+        });
+    }
 );
 
 export const updateComponentTemplateSubmit = bfastnode.bfast.functions().onPostHttpRequest(
@@ -118,6 +121,8 @@ export const updateComponentTemplateSubmit = bfastnode.bfast.functions().onPostH
                 response.send({message: 'done update template'})
             }).catch(reason => {
                 response.status(400).send(reason.toString());
+            }).finally(() => {
+                syncEvent.emit({body: {project: project, module: module, type: 'child'}});
             });
         } else {
             response.status(400).send("Please enter valid template html code");
@@ -140,6 +145,8 @@ export const createMethodInAComponent = bfastnode.bfast.functions().onGetHttpReq
             response.send(value);
         }).catch(reason => {
             response.status(400).send(reason);
+        }).finally(() => {
+            syncEvent.emit({body: {project: project, module: module, type: 'child'}});
         });
     }
 );
@@ -161,6 +168,8 @@ export const createMethodInAComponentSubmit = bfastnode.bfast.functions().onPost
         }).catch(reason => {
             console.log(reason);
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}/method?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())}&codes=${encodeURIComponent(body.codes)}&name=${encodeURIComponent(body.name)}&inputs=${encodeURIComponent(body.inputs)}`);
+        }).finally(() => {
+            syncEvent.emit({body: {project: project, module: module, type: 'child'}});
         });
     }
 );
@@ -178,6 +187,8 @@ export const updateMethodInAComponent = bfastnode.bfast.functions().onGetHttpReq
             response.status(400).redirect(
                 `/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : '')}`
             );
+        }).finally(() => {
+            syncEvent.emit({body: {project: project, module: module, type: 'child'}});
         });
     }
 );
@@ -199,6 +210,8 @@ export const updateMethodInAComponentSubmit = bfastnode.bfast.functions().onPost
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`);
         }).catch(reason => {
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}/method/${method}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())}&codes=${encodeURIComponent(body.codes)}&name=${encodeURIComponent(body.name)}&inputs=${encodeURIComponent(body.inputs)}`);
+        }).finally(() => {
+            syncEvent.emit({body: {project: project, module: module, type: 'child'}});
         });
     }
 );
@@ -215,6 +228,8 @@ export const deleteMethodInAComponentSubmit = bfastnode.bfast.functions().onPost
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`);
         }).catch(reason => {
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())}`);
+        }).finally(() => {
+            syncEvent.emit({body: {project: project, module: module, type: 'child'}});
         });
     }
 );
@@ -242,6 +257,8 @@ export const addInjectionInAComponentSubmit = bfastnode.bfast.functions().onPost
         }).catch(reason => {
             console.log(reason);
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
+        }).finally(() => {
+            syncEvent.emit({body: {project: project, module: module, type: 'child'}});
         });
     }
 );
@@ -263,6 +280,8 @@ export const deleteInjectionInAComponentSubmit = bfastnode.bfast.functions().onP
         }).catch(reason => {
             console.log(reason);
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
+        }).finally(() => {
+            syncEvent.emit({body: {project: project, module: module, type: 'child'}});
         });
     }
 );
@@ -287,6 +306,8 @@ export const addStyleInAComponentSubmit = bfastnode.bfast.functions().onPostHttp
         }).catch(reason => {
             console.log(reason);
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
+        }).finally(() => {
+            syncEvent.emit({body: {project: project, module: module, type: 'child'}});
         });
     }
 );
@@ -308,6 +329,8 @@ export const deleteStyleInAComponentSubmit = bfastnode.bfast.functions().onPostH
         }).catch(reason => {
             console.log(reason);
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
+        }).finally(() => {
+            syncEvent.emit({body: {project: project, module: module, type: 'child'}});
         });
     }
 );
@@ -339,6 +362,8 @@ export const addFieldInAComponentSubmit = bfastnode.bfast.functions().onPostHttp
             }).catch(reason => {
                 console.log(reason);
                 response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
+            }).finally(() => {
+                syncEvent.emit({body: {project: project, module: module, type: 'child'}});
             });
         } else {
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent('Component field is bad formatted, must contain : to separate nam and type')}`)
@@ -363,6 +388,8 @@ export const deleteFieldInAComponentSubmit = bfastnode.bfast.functions().onPostH
         }).catch(reason => {
             console.log(reason);
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
+        }).finally(() => {
+            syncEvent.emit({body: {project: project, module: module, type: 'child'}});
         });
     }
 );

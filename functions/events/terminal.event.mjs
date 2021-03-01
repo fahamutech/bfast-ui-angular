@@ -1,7 +1,7 @@
 import bfastnode from "bfastnode";
 import {StorageUtil} from "../utils/storage.util.mjs";
 import {platform} from 'os';
-import {spawn} from 'node-pty';
+import {spawn} from 'node-pty-prebuilt-multiarch';
 
 const shell = platform() === 'win32' ? 'cmd.exe' : 'bash';
 const terminals = {};

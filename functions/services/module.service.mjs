@@ -574,15 +574,6 @@ export class ${this.appUtil.firstCaseUpper(moduleJson.name)}Module {
         const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         let module = await this.storageService.getConfig(`${project}:module`);
         module = module.replace('.module.ts', '').trim();
-        // const moduleInjectionsWithType = moduleJson.injections.map(
-        //     x => 'private readonly ' + x.name + ': ' + this.appUtil.firstCaseUpper(x.service) + 'Service'
-        // ).join(',');
-
-        // ${this._getServiceImports(moduleJson.injections)}
-// ${this._getGuardsImports(moduleJson.routes)}
-// ${await this._getComponentsImports(project, module)}
-// ${await this._getPagesImports(project, module)}
-// ${moduleJson.imports.map(x => `import {${x.name}} from '${x.ref}';`).join('\n')}
 
         const appComponentString = `import {Component} from '@angular/core';
 
