@@ -87,6 +87,11 @@ export class ModuleService {
      */
     async createModule(project, name, detail) {
         const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
+        name = this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(name.toString().replace('.module.ts', '')));
+        name = name.replace(new RegExp('[^A-Za-z0-9]*', 'ig'), '');
+        if (name && name === '') {
+            throw new Error('Module must be alphanumeric');
+        }
         if (projectPath) {
             if (name && name !== '') {
                 const resources = ["services", "models", "components", "pages", "states", "guards", "styles"]
@@ -186,9 +191,11 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
         const moduleJson = {};
         moduleJson.name = this.appUtil.camelCaseToKebal(module);
         moduleJson.routes = this._getRoutesFromMainModuleFile(moduleFile);
-        // moduleJson.imports = this._getUserImportsFromModuleFile(moduleFile);
-        // moduleJson.injections = this.appUtil.getInjectionsFromFile(moduleFile);
+        moduleJson.exports = this._getExportsFromModuleFile(moduleFile);
+        moduleJson.imports = this._getUserImportsFromModuleFile(moduleFile).filter(x => x.name.toLowerCase() !== 'appcomponent');
+        moduleJson.injections = this.appUtil.getInjectionsFromFile(moduleFile);
         moduleJson.constructor = this.appUtil.getConstructorBodyFromModuleFile(moduleFile);
+        // console.log(moduleJson);
         return moduleJson;
     }
 
@@ -425,11 +432,11 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
         if (results) {
             results = results.toString()
                 // remove angular core imports
-                .replace(new RegExp('(import).*(@angular/core).*', 'ig'), '')
+                .replace(new RegExp('(import).*(NgModule).*(@angular/core).*', 'ig'), '')
                 // remove angular route imports
                 .replace(new RegExp('(import).*(@angular/router).*', 'ig'), '')
                 // remove angular common imports
-                .replace(new RegExp('(import).*(@angular/common).*', 'ig'), '')
+                .replace(new RegExp('(import).*(CommonModule).*(@angular/common).*', 'ig'), '')
                 // remove component imports
                 .replace(new RegExp('(import).*(\\.\/component).*', 'ig'), '')
                 // remove page imports
@@ -557,6 +564,7 @@ export class ${this.appUtil.firstCaseUpper(moduleJson.name)}Module {
      * @param project {string}
      * @param moduleJson {{
      *     name: string,
+     *     imports: Array<{name: string, ref: string}>,
      *     routes: {
      *         path: string,
      *         guards: Array<*>,
@@ -571,15 +579,6 @@ export class ${this.appUtil.firstCaseUpper(moduleJson.name)}Module {
         const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         let module = await this.storageService.getConfig(`${project}:module`);
         module = module.replace('.module.ts', '').trim();
-        // const moduleInjectionsWithType = moduleJson.injections.map(
-        //     x => 'private readonly ' + x.name + ': ' + this.appUtil.firstCaseUpper(x.service) + 'Service'
-        // ).join(',');
-
-        // ${this._getServiceImports(moduleJson.injections)}
-// ${this._getGuardsImports(moduleJson.routes)}
-// ${await this._getComponentsImports(project, module)}
-// ${await this._getPagesImports(project, module)}
-// ${moduleJson.imports.map(x => `import {${x.name}} from '${x.ref}';`).join('\n')}
 
         const appComponentString = `import {Component} from '@angular/core';
 
@@ -592,11 +591,12 @@ export class AppComponent {
 `
 
         const moduleInString = `import {BFast, bfast} from 'bfastjs';
-import {BrowserModule} from '@angular/platform-browser';
+import {CommonModule} from '@angular/common';
 import {NgModule} from '@angular/core';
 import {AppComponent} from './app.component';
 import {RouterModule} from '@angular/router';
 import {Routes} from '@angular/router';
+${moduleJson.imports.map(x => `import {${x.name}} from '${x.ref}';`).join('\n')}
 
 const routes: Routes = [
    ${this._getRoutesFromMainModuleJson(moduleJson.routes)}
@@ -605,8 +605,9 @@ const routes: Routes = [
 @NgModule({
   declarations: [AppComponent],
   imports: [
-    BrowserModule,
+    CommonModule,
     RouterModule.forRoot(routes),
+    ${moduleJson.imports.map(x => x.name.concat(',')).join('\n    ')}
   ],
   providers: [],
   bootstrap: [AppComponent],

@@ -233,18 +233,23 @@ export class ${this.appUtil.kebalCaseToCamelCase(component.name)}Component imple
      * @param componentName - {string}
      */
     async createComponent(project, module, componentName) {
-        componentName = componentName.toString().replace('.component.ts', '');
-        const components = await this.getComponents(project, module);
-        const exists = components.filter(x => x === componentName.toString().concat('.component.ts'));
-        if (exists && Array.isArray(components) && exists.length > 0) {
-            throw new Error('Component already exist');
+        componentName = this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(componentName.toString().replace('.component.ts', '')));
+        componentName = componentName.replace(new RegExp('[^A-Za-z0-9]*', 'ig'), '');
+        if (componentName && componentName !== '') {
+            const components = await this.getComponents(project, module);
+            const exists = components.filter(x => x === componentName.toString().concat('.component.ts'));
+            if (exists && Array.isArray(components) && exists.length > 0) {
+                throw new Error('Component already exist');
+            } else {
+                return this.jsonToComponentFile({
+                    name: componentName,
+                    injections: [],
+                    fields: [],
+                    methods: []
+                }, project, module);
+            }
         } else {
-            return this.jsonToComponentFile({
-                name: componentName,
-                injections: [],
-                fields: [],
-                methods: []
-            }, project, module);
+            throw new Error('Component must be alphanumeric only');
         }
     }
 

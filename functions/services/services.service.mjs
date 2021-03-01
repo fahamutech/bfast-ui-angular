@@ -47,12 +47,12 @@ export class ServicesService {
         if (serviceName.toString().includes('.service.ts')) {
             serviceName = serviceName.toString().split('.')[0];
         }
-        const projectPath =await this.storageService.getConfig(`${project}:projectPath`);
+        const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         const serviceFile = await promisify(readFile)(join(projectPath, 'modules', module, 'services', `${serviceName}.service.ts`));
         const serviceJsonFile = {};
         serviceJsonFile.name = serviceName;
-        serviceJsonFile.injections = this.appUtil.getInjectionsFromFile(serviceFile);
         serviceJsonFile.imports = this._getUserImportsServiceFile(serviceFile);
+        serviceJsonFile.injections = this.appUtil.getInjectionsFromFile(serviceFile, serviceJsonFile.imports.map(x => x.name));
         serviceJsonFile.methods = this.appUtil.getMethodsFromFile(serviceFile);
         return serviceJsonFile;
     }
@@ -79,8 +79,17 @@ export class ServicesService {
     async jsonToServiceFile(project, module, service) {
         const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         const serviceInjectionsWithType = service.injections
-            .map(x => 'private readonly ' + x.name + ': ' + this.appUtil.firstCaseUpper(x.service) + 'Service')
+            .map(x => {
+                console.log(x);
+                return 'private readonly '
+                    .concat(this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(x.name)))
+                    .concat(': ')
+                    .concat(
+                        x.auto === false ? x.service : (this.appUtil.kebalCaseToCamelCase(x.service) + 'Service')
+                    )
+            })
             .join(',');
+        console.log(serviceInjectionsWithType);
         const methods = service.methods.map(x => {
             return `
     async ${x.name}(${x.inputs}): Promise<any> {
@@ -88,7 +97,7 @@ export class ServicesService {
     }`
         }).join('\n');
 
-        await promisify(writeFile)(join(projectPath, 'modules', module, 'services', `${service.name}.service.ts`),
+        await promisify(writeFile)(join(projectPath, 'modules', module, 'services', `${this.appUtil.camelCaseToKebal(service.name)}.service.ts`),
             `import {bfast, BFast} from 'bfastjs';
 import {Injectable} from '@angular/core';
 ${this._getServiceImports(service.injections)}
@@ -97,7 +106,7 @@ ${this._getExternalLibImports(service.imports)}
 @Injectable({
     providedIn: 'any'
 })
-export class ${this.appUtil.firstCaseUpper(service.name)}Service {
+export class ${this.appUtil.kebalCaseToCamelCase(service.name)}Service {
     constructor(${serviceInjectionsWithType}){
     }
     
@@ -112,9 +121,10 @@ export class ${this.appUtil.firstCaseUpper(service.name)}Service {
         let im = '';
         for (const injection of injections) {
             const serviceName = this.appUtil.firstCaseUpper(injection.service)
-            im += `import {${serviceName}Service} from './${injection.service.toLowerCase()}.service';\n`
+            if (injection.auto === true) {
+                im += `import {${this.appUtil.kebalCaseToCamelCase(serviceName)}Service} from './${injection.service.toLowerCase()}.service';\n`
+            }
         }
-
         return im;
     }
 
@@ -125,7 +135,11 @@ export class ${this.appUtil.firstCaseUpper(service.name)}Service {
      * @param serviceName - {string}
      */
     async createService(project, module, serviceName) {
-        serviceName = serviceName.toString().replace('.service.ts', '');
+        serviceName = this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(serviceName.toString().replace('.service.ts', '')));
+        serviceName = serviceName.replace(new RegExp('[^A-Za-z0-9]*', 'ig'), '');
+        if (serviceName && serviceName === '') {
+            throw new Error('Service must be alphanumeric');
+        }
         const services = await this.getServices(project, module);
         const exists = services.filter(x => x === serviceName.toString().concat('.service.ts'));
         if (exists && Array.isArray(services) && exists.length > 0) {
@@ -235,14 +249,20 @@ export class ${this.appUtil.firstCaseUpper(service.name)}Service {
         return allServices.filter(x => x !== service);
     }
 
+    /**
+     *
+     * @param serviceFile
+     * @return {*[]|{ref: string|null, name: string|null, type: string}[]}
+     * @private
+     */
     _getUserImportsServiceFile(serviceFile) {
         const reg = new RegExp('(import).*(.|\\n)*(from).*;', 'ig');
         let results = serviceFile.toString().match(reg) ? serviceFile.toString().match(reg)[0] : [];
         if (results) {
             results = results.toString()
                 // remove angular core imports
-                .replace(new RegExp('(import).*(@angular).*;', 'ig'), '')
-                // remove component imports
+                .replace(new RegExp('(import).*(Injectable).*;', 'ig'), '')
+                // remove service imports
                 .replace(new RegExp('(import).*(\\.service).*;', 'ig'), '')
                 // remove bfast imports
                 .replace(new RegExp('(import).*(bfastjs).*;', 'ig'), '')

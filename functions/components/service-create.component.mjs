@@ -9,6 +9,7 @@ import {serviceImportsTableComponent} from "./service-imports-table.component.mj
  * @param module
  * @param service
  * @param services
+ * @param imports
  * @param error - {string} - error to show
  * @return {string} - template of service list
  */
@@ -17,7 +18,7 @@ export const serviceCreateComponent = async function (project, module, service =
     imports: [],
     injections: [],
     methods: []
-}, services = [], error = null) {
+}, services = [], imports =[], error = null) {
     return `
         <div style="margin-top: 24px" class="container col-xl-9 col-lg-9 col-sm-12 col-md-12 col-12">
             ${errorMessageComponent(error)}
@@ -31,7 +32,7 @@ export const serviceCreateComponent = async function (project, module, service =
                     <input class="form-control" disabled value="${service.name}" name="name" placeholder="enter service name" type="text">
                 </div>
                 <hr>
-                ${await serviceInjectionTableComponent(project, module, service.name, service.injections ? service.injections : [], services)}
+                ${await serviceInjectionTableComponent(project, module, service.name, service.injections ? service.injections : [], services, imports)}
                 ${serviceImportsTableComponent(project, module, service.name, service.imports ? service.imports : [])}
                 ${serviceMethodsListComponent(project, module, service.name, service.methods ? service.methods : [])}
             </div>

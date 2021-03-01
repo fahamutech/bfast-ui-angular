@@ -1,6 +1,8 @@
 import bfastnode from 'bfastnode';
 
-export const bfastUiHome = bfastnode.bfast.functions().onHttpRequest(
+const {bfast} = bfastnode;
+
+export const bfastUiHome = bfast.functions().onHttpRequest(
     '/',
     (request, response) => {
         response.redirect('/project');

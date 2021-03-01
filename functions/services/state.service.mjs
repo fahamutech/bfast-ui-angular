@@ -90,7 +90,7 @@ export class StateService {
         }).join('');
         const methods = state.methods.map(x => {
             return `
-    async ${x.name}(${x.inputs}): Promise<void> {
+    async ${x.name}(${x.inputs}): Promise<any> {
         ${x.body.toString().trim()}
     }`
         }).join('\n');
@@ -192,7 +192,11 @@ export class ${this._firstCaseUpper(state.name)}State {
      * @param stateName - {string}
      */
     async createState(project, module, stateName) {
-        stateName = stateName.toString().replace('.state.ts', '');
+        stateName = this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(stateName.toString().replace('.state.ts', '')));
+        stateName = stateName.replace(new RegExp('[^A-Za-z0-9]*', 'ig'), '');
+        if (stateName && stateName === '') {
+            throw new Error('State must be alphanumeric');
+        }
         const states = await this.getStates(project, module);
         const exists = states.filter(x => x === stateName.toString().concat('.state.ts'));
         if (exists && Array.isArray(states) && exists.length > 0) {

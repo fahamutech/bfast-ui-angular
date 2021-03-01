@@ -2,8 +2,10 @@ import bfastnode from 'bfastnode'
 import {StorageUtil} from "../utils/storage.util.mjs";
 import {ModelsService} from "../services/models.service.mjs";
 import {ModelsPage} from "../pages/models.page.mjs";
+import {AppUtil} from "../utils/app.util.mjs";
 
-const modelsService = new ModelsService(new StorageUtil());
+const appUtil = new AppUtil();
+const modelsService = new ModelsService(new StorageUtil(), appUtil);
 const modelsPage = new ModelsPage(modelsService);
 
 export const viewModuleModels = bfastnode.bfast.functions().onGetHttpRequest(

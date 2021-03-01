@@ -1,6 +1,7 @@
 import {errorMessageComponent} from "./error-message.component.mjs";
 import {moduleListComponent} from "./module-list.component.mjs";
 import {mainModuleRoutesTableComponent} from "./main-module-routes-table.component.mjs";
+import {mainModuleImportsTableComponent} from "./main-module-imports-table.component.mjs";
 
 /**
  *
@@ -10,6 +11,7 @@ import {mainModuleRoutesTableComponent} from "./main-module-routes-table.compone
  * @param mainModuleName
  * @param mainModuleContents - {string} project main module contents
  * @param routes {Array<*>}
+ * @param imports {Array<*>}
  * @returns {string}
  */
 export const mainModuleAvailablesComponent = async function (
@@ -18,7 +20,8 @@ export const mainModuleAvailablesComponent = async function (
     project,
     mainModuleName,
     mainModuleContents = null,
-    routes = []) {
+    routes = [],
+    imports = []) {
     return `
             <div class="container col-xl-9 col-lg-9 col-sm-12 col-md-10 col-9" style="margin-top: 24px">
             
@@ -44,6 +47,7 @@ export const mainModuleAvailablesComponent = async function (
                 </div>
                 <hr>
                 ${await mainModuleRoutesTableComponent(project, routes, modules)}
+                ${mainModuleImportsTableComponent(project, imports, modules)}
             </div>
         `
 }

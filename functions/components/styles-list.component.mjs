@@ -1,6 +1,7 @@
 import {errorMessageComponent} from "./error-message.component.mjs";
 import {StorageUtil} from "../utils/storage.util.mjs";
 import {StylesService} from "../services/styles.service.mjs";
+import {AppUtil} from "../utils/app.util.mjs";
 
 /**
  *
@@ -93,7 +94,8 @@ function newStyleModal(project, module) {
 async function countLines(project, module, style) {
     try {
         const storage = new StorageUtil();
-        const styleInJson = await new StylesService(storage).getStyle(project, module, style);
+        const appUtil = new AppUtil();
+        const styleInJson = await new StylesService(storage, appUtil).getStyle(project, module, style);
         return styleInJson.body.split(/\r\n|\r|\n/).length;
     } catch (e) {
         return 0;

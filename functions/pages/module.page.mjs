@@ -45,7 +45,8 @@ export class ModulePage {
                     project,
                     value.name,
                     value.mainModuleContents !== '' ? value.mainModuleContents : null,
-                    moduleObject.routes
+                    moduleObject.routes,
+                    moduleObject.imports,
                 ),
                 project
             );

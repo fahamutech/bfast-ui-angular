@@ -43,10 +43,10 @@ export class ServicesPage {
                 services = await this.servicesService.getServices(project, module);
                 services = services.filter(x => x.toString() !== serviceName);
             }
-            return appLayoutComponent(await serviceCreateComponent(project, module, serviceInJson, services, error), project, module);
+            return appLayoutComponent(await serviceCreateComponent(project, module, serviceInJson, services, serviceInJson.imports.map(s => s.name), error), project, module);
         } catch (e) {
             return appLayoutComponent(await serviceCreateComponent(project, module, serviceInJson, services,
-                e && e.message ? e.message : e.toString()), project, module);
+                [],e && e.message ? e.message : e.toString()), project, module);
         }
     }
 
