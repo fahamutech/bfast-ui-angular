@@ -69,8 +69,8 @@ export class PageService {
         const pageJsonFile = {};
         pageJsonFile.name = pageName;
         pageJsonFile.injections = this._getStateInjectionsFromPageFile(pageFile);
-        pageJsonFile.styles = this._geStylesFromPageFile(pageFile);
-        pageJsonFile.template = this._getTemplateFromPageFile(pageFile);
+        pageJsonFile.styles = this.geStylesFromPageFile(pageFile);
+        pageJsonFile.template = this.getTemplateFromPageFile(pageFile);
         // pageJsonFile.fields = this._getPageFieldFromPageFile(pageFile);
         pageJsonFile.methods = this.appUtil.getMethodsFromFile(pageFile);
         return pageJsonFile;
@@ -97,9 +97,12 @@ export class PageService {
      */
     async jsonToPageFile(page, project, module) {
         const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
-        const pageInjectionsWithType = page.injections
-            .map(x => 'public readonly ' + x.name + ': ' + this._firstCaseUpper(x.state) + 'State')
-            .join(',');
+        const pageInjectionsWithType = page.injections.map(x => 'public readonly '
+            + this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(x.name))
+            + ': '
+            + this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(x.state))
+            + 'State'
+        ).join(',');
         //     const fields = page.fields.map(x => {
         //         return `
         // ${x.name}: any;`
@@ -136,11 +139,11 @@ import {BehaviorSubject, Subject} from 'rxjs';
 ${this._getPageImports(page.injections)}
 
 @Component({
-    selector: 'app-${page.name}',
+    selector: 'app-${page.name}-page',
     template: \`${page.template}\`,
     styleUrls: [${this._getPageStylesFromJson(page.styles)}]
 })
-export class ${this._firstCaseUpper(page.name)}Page implements OnInit, OnDestroy{
+export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(page.name))}Page implements OnInit, OnDestroy{
     constructor(${pageInjectionsWithType}){
     }
     ${methods}
@@ -153,8 +156,8 @@ export class ${this._firstCaseUpper(page.name)}Page implements OnInit, OnDestroy
     _getPageImports(injections = []) {
         let im = '';
         for (const injection of injections) {
-            const pageName = this._firstCaseUpper(injection.state)
-            im += `import {${pageName}State} from '../states/${injection.state.toLowerCase()}.state';\n`
+            const pageName = this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(injection.state));
+            im += `import {${pageName}State} from '../states/${injection.state}.state';\n`
         }
         return im;
     }
@@ -170,15 +173,6 @@ export class ${this._firstCaseUpper(page.name)}Page implements OnInit, OnDestroy
         }
     }
 
-    _firstCaseUpper(name) {
-        return name.toLowerCase().split('').map((value, index, array) => {
-            if (index === 0) {
-                return value.toUpperCase();
-            }
-            return value;
-        }).join('');
-    }
-
     _getStateInjectionsFromPageFile(pageFile) {
         const reg = new RegExp('constructor\\(.*\\)');
         const results = pageFile.toString().match(reg) ? pageFile.toString().match(reg)[0] : [];
@@ -190,7 +184,7 @@ export class ${this._firstCaseUpper(page.name)}Page implements OnInit, OnDestroy
                 .map(x => {
                     return {
                         name: x.split(':')[0] ? x.split(':')[0].trim() : '',
-                        state: x.split(':')[1] ? x.split(':')[1].replace('State', '').toLowerCase().trim() : ''
+                        state: this.appUtil.camelCaseToKebal(x.split(':')[1] ? x.split(':')[1].replace('State', '').trim() : '')
                     }
                 });
         } else {
@@ -224,8 +218,9 @@ export class ${this._firstCaseUpper(page.name)}Page implements OnInit, OnDestroy
      * @param pageName - {string}
      */
     async createPage(project, module, pageName) {
-        pageName = this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(pageName.toString().replace('.page.ts', '')));
-        pageName = pageName.replace(new RegExp('[^A-Za-z0-9]*', 'ig'), '');
+        pageName = pageName.toString().replace('.page.ts', '');
+        pageName = pageName.replace(new RegExp('[^A-Za-z0-9-]*', 'ig'), '');
+        pageName = pageName.replace(new RegExp('([-]{2,})', 'ig'), '-');
         if (pageName && pageName === '') {
             throw new Error('Page must be alphanumeric');
         }
@@ -349,7 +344,7 @@ export class ${this._firstCaseUpper(page.name)}Page implements OnInit, OnDestroy
         return allPages.filter(x => x !== page);
     }
 
-    _geStylesFromPageFile(pageFile) {
+    geStylesFromPageFile(pageFile) {
         const reg = new RegExp('(styleUrls.*\:).*[\\[.*\\]]', 'ig');
         const results = pageFile.toString().match(reg) ? pageFile.toString().match(reg)[0] : [];
         if (results) {
@@ -368,7 +363,7 @@ export class ${this._firstCaseUpper(page.name)}Page implements OnInit, OnDestroy
         }
     }
 
-    _getTemplateFromPageFile(pageFile) {
+    getTemplateFromPageFile(pageFile) {
         const reg = new RegExp('template:.*((.|\\n)*)\\`', 'ig');
         const results = pageFile.toString().match(reg) ? pageFile.toString().match(reg)[0] : [];
         if (results) {

@@ -39,8 +39,8 @@ export class ModelsService {
         const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         const modelFile = await promisify(readFile)(join(projectPath, 'modules', module, 'models', `${model}.model.ts`));
         const modelJsonFile = {};
-        modelJsonFile.name = this._getModelName(modelFile);
-        modelJsonFile.body = this._getModelBody(modelFile);
+        modelJsonFile.name = this.getModelName(modelFile);
+        modelJsonFile.body = this.getModelBody(modelFile);
         return modelJsonFile;
     }
 
@@ -62,7 +62,7 @@ export class ModelsService {
         const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         await promisify(writeFile)(join(projectPath, 'modules', module, 'models', `${model.name}.model.ts`),
             `
-export interface ${model.name}Model {
+export interface ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(model.name))}Model {
     ${model.body}
 }
             `
@@ -77,8 +77,9 @@ export interface ${model.name}Model {
      * @param model - {string}
      */
     async createModel(project, module, model) {
-        model = this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(model.toString().replace('.model.ts', '')));
-        model = model.replace(new RegExp('[^A-Za-z0-9]*', 'ig'), '');
+        model = model.toString().replace('.model.ts', '');
+        model = model.replace(new RegExp('[^A-Za-z0-9-]*', 'ig'), '');
+        model = model.replace(new RegExp('([-]{2,})', 'ig'), '-');
         if (model && model === '') {
             throw new Error('Model must be alphanumeric');
         }
@@ -105,7 +106,7 @@ export interface ${model.name}Model {
         return this.jsonToModelFile(project, module, model);
     }
 
-    _getModelName(modelFile) {
+    getModelName(modelFile) {
         const reg = new RegExp('(export).*\\{', 'i');
         const result = modelFile.toString().match(reg);
         if (result && result[0]) {
@@ -120,7 +121,7 @@ export interface ${model.name}Model {
         }
     }
 
-    _getModelBody(modelFile) {
+    getModelBody(modelFile) {
         const reg = new RegExp('(export).*\\{', 'i');
         const result = modelFile.toString().match(reg);
         if (result && result[0]) {

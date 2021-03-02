@@ -70,9 +70,9 @@ export class StylesService {
      * @param style - {string}
      */
     async createStyle(project, module, style) {
-        // style = style.toString().replace('.style.scss', '');
-        style = this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(style.toString().replace('.style.scss', '')));
-        style = style.replace(new RegExp('[^A-Za-z0-9]*', 'ig'), '');
+        style = style.toString().replace('.style.scss', '');
+        style = style.replace(new RegExp('[^A-Za-z0-9-]*', 'ig'), '');
+        style = style.replace(new RegExp('([-]{2,})', 'ig'), '-');
         if (style && style === '') {
             throw new Error('Style must be alphanumeric');
         }

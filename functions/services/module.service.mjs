@@ -87,8 +87,9 @@ export class ModuleService {
      */
     async createModule(project, name, detail) {
         const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
-        name = this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(name.toString().replace('.module.ts', '')));
-        name = name.replace(new RegExp('[^A-Za-z0-9]*', 'ig'), '');
+        name = name.toString().replace('.module.ts', '');
+        name = name.replace(new RegExp('[^A-Za-z0-9-]*', 'ig'), '');
+        name = name.replace(new RegExp('([-]{2,})', 'ig'), '');
         if (name && name === '') {
             throw new Error('Module must be alphanumeric');
         }
@@ -99,7 +100,7 @@ export class ModuleService {
                 for (const resource of resources) {
                     await promisify(mkdir)(join(projectPath, 'modules', name, resource));
                 }
-                return promisify(writeFile)(join(projectPath, 'modules', name, `${this.appUtil.camelCaseToKebal(name)}.module.ts`),
+                return promisify(writeFile)(join(projectPath, 'modules', name, `${name}.module.ts`),
                     `import {NgModule} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {RouterModule, Routes} from '@angular/router';
@@ -114,7 +115,7 @@ const routes: Routes = [
     RouterModule.forChild(routes)
   ]
 })
-export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
+export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(name))}Module {
     constructor(){
     }// end
 }
@@ -156,10 +157,10 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
         moduleFile = moduleFile.toString();
         const moduleJson = {};
         moduleJson.name = module;
-        moduleJson.routes = this._getRoutesFromModuleFile(moduleFile);
-        moduleJson.declarations = await this._getDeclarationsFromModuleFolder(project, module);
-        moduleJson.exports = this._getExportsFromModuleFile(moduleFile);
-        moduleJson.imports = this._getUserImportsFromModuleFile(moduleFile);
+        moduleJson.routes = this.getRoutesFromModuleFile(moduleFile);
+        moduleJson.declarations = await this.getDeclarationsFromModuleFolder(project, module);
+        moduleJson.exports = this.getExportsFromModuleFile(moduleFile);
+        moduleJson.imports = this.getUserImportsFromModuleFile(moduleFile);
         moduleJson.injections = this.appUtil.getInjectionsFromFile(moduleFile);
         moduleJson.constructor = this.appUtil.getConstructorBodyFromModuleFile(moduleFile);
         return moduleJson;
@@ -190,9 +191,9 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
         moduleFile = moduleFile.toString();
         const moduleJson = {};
         moduleJson.name = this.appUtil.camelCaseToKebal(module);
-        moduleJson.routes = this._getRoutesFromMainModuleFile(moduleFile);
-        moduleJson.exports = this._getExportsFromModuleFile(moduleFile);
-        moduleJson.imports = this._getUserImportsFromModuleFile(moduleFile).filter(x => x.name.toLowerCase() !== 'appcomponent');
+        moduleJson.routes = this.getRoutesFromMainModuleFile(moduleFile);
+        moduleJson.exports = this.getExportsFromModuleFile(moduleFile);
+        moduleJson.imports = this.getUserImportsFromModuleFile(moduleFile).filter(x => x.name.toLowerCase() !== 'appcomponent');
         moduleJson.injections = this.appUtil.getInjectionsFromFile(moduleFile);
         moduleJson.constructor = this.appUtil.getConstructorBodyFromModuleFile(moduleFile);
         // console.log(moduleJson);
@@ -205,7 +206,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
      * @return {Array<*>}
      * @private
      */
-    _getRoutesFromModuleFile(moduleFile) {
+    getRoutesFromModuleFile(moduleFile) {
         const reg = new RegExp('const.*routes.*\:.*\=.*\\[(.|\\n)*\];', 'ig');
         const results = moduleFile.toString().match(reg) ? moduleFile.toString().match(reg)[0] : [];
         if (results) {
@@ -276,7 +277,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
      * @return {Array<*>}
      * @private
      */
-    _getRoutesFromMainModuleFile(moduleFile) {
+    getRoutesFromMainModuleFile(moduleFile) {
         const reg = new RegExp('const.*routes.*\:.*\=.*\\[(.|\\n)*\];', 'ig');
         const results = moduleFile.toString().match(reg) ? moduleFile.toString().match(reg)[0] : [];
         if (results) {
@@ -360,19 +361,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
         }
     }
 
-    _getDeclarationsFromModuleFile(moduleFile) {
-        const reg = new RegExp('(declarations.*:.*\\[)((.|\\n)+?)(\].*\,)', 'ig');
-        const results = moduleFile.toString().match(reg) ? moduleFile.toString().match(reg)[0] : [];
-        if (results) {
-            // const
-            return [];
-        } else {
-            return [];
-        }
-
-    }
-
-    async _getDeclarationsFromModuleFolder(project, module) {
+    async getDeclarationsFromModuleFolder(project, module) {
         if (module.toString().includes('.module.ts')) {
             module = module.toString().split('.')[0];
         }
@@ -410,7 +399,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
         return declarations;
     }
 
-    _getExportsFromModuleFile(moduleFile) {
+    getExportsFromModuleFile(moduleFile) {
         const reg = new RegExp('(exports.*:.*\\[)((.|\\n)+?)(\].*\,)', 'ig');
         let results = moduleFile.toString().match(reg) ? moduleFile.toString().match(reg)[0] : [];
         if (results) {
@@ -426,7 +415,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
         }
     }
 
-    _getUserImportsFromModuleFile(moduleFile) {
+    getUserImportsFromModuleFile(moduleFile) {
         const reg = new RegExp('(import).*(.|\\n)*(from).*;', 'ig');
         let results = moduleFile.toString().match(reg) ? moduleFile.toString().match(reg)[0] : [];
         if (results) {
@@ -504,8 +493,11 @@ export class ${this.appUtil.kebalCaseToCamelCase(name)}Module {
     async moduleJsonToFile(project, module, moduleJson) {
         module = module.replace('.module.ts', '').trim();
         const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
-        const moduleInjectionsWithType = moduleJson.injections.map(
-            x => 'private readonly ' + x.name + ': ' + this.appUtil.firstCaseUpper(x.service) + 'Service'
+        const moduleInjectionsWithType = moduleJson.injections.map(x => 'private readonly '
+            + this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(x.name))
+            + ': '
+            + this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(x.service))
+            + 'Service'
         ).join(',');
 
         const moduleInString = `import {bfast} from 'bfastjs';
@@ -514,14 +506,14 @@ import {CommonModule} from '@angular/common';
 import {RouterModule} from '@angular/router';
 import {Routes} from '@angular/router';
 import {ROUTES} from '@angular/router';
-${this._getServiceImports(moduleJson.injections)}
-${this._getGuardsImports(moduleJson.routes)}
-${await this._getComponentsImports(project, module)}
-${await this._getPagesImports(project, module)}
+${this.getServiceImports(moduleJson.injections)}
+${this.getGuardsImports(moduleJson.routes)}
+${await this.getComponentsImports(project, module)}
+${await this.getPagesImports(project, module)}
 ${moduleJson.imports.map(x => `import {${x.name}} from '${x.ref}';`).join('\n')}
 
 const routes: Routes = [
-   ${this._getModuleRoutesFromModuleJson(moduleJson.routes)}
+   ${this.getModuleRoutesFromModuleJson(moduleJson.routes)}
 ];
 
 @NgModule({
@@ -546,7 +538,7 @@ const routes: Routes = [
     ${moduleJson.exports.map(x => x.toString().concat('Component,')).join('\n    ')}
   ],
 })
-export class ${this.appUtil.firstCaseUpper(moduleJson.name)}Module {
+export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(moduleJson.name))}Module {
     constructor(${moduleInjectionsWithType}){
         ${moduleJson.constructor}
     }// end
@@ -599,7 +591,7 @@ import {Routes} from '@angular/router';
 ${moduleJson.imports.map(x => `import {${x.name}} from '${x.ref}';`).join('\n')}
 
 const routes: Routes = [
-   ${this._getRoutesFromMainModuleJson(moduleJson.routes)}
+   ${this.getRoutesFromMainModuleJson(moduleJson.routes)}
 ];
 
 @NgModule({
@@ -612,7 +604,7 @@ const routes: Routes = [
   providers: [],
   bootstrap: [AppComponent],
 })
-export class ${this.appUtil.kebalCaseToCamelCase(module)}Module {
+export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(module))}Module {
     constructor(){
         ${moduleJson.constructor}
     }// end
@@ -639,7 +631,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(module)}Module {
      * @private
      * @return {string}
      */
-    _getModuleRoutesFromModuleJson(routes) {
+    getModuleRoutesFromModuleJson(routes) {
         return routes.map(x => {
             return `{ path: '${x.path}', canActivate: [ ${x.guards.filter(x => x !== '').map(y => y.toString().trim().concat('Guard')).join(',')} ], component: ${x.page}Page },`
         }).join('\n   ')
@@ -657,18 +649,18 @@ export class ${this.appUtil.kebalCaseToCamelCase(module)}Module {
      * @private
      * @return {string}
      */
-    _getRoutesFromMainModuleJson(routes) {
+    getRoutesFromMainModuleJson(routes) {
         return routes.map(x => {
             return `{ path: '${x.path}', canActivate: [ ${x.guards.filter(x => x !== '').map(y => y.toString().trim().concat('Guard')).join(',')} ], loadChildren: () => import('${x.ref}').then(mod => mod.${x.module}Module) },`
         }).join('\n   ')
     }
 
-    _getServiceImports(injections = []) {
+    getServiceImports(injections = []) {
         let im = new Set();
         let result = '';
         for (const injection of injections) {
-            const serviceName = this.appUtil.firstCaseUpper(injection.service)
-            im.add(`import {${serviceName}Service} from './services/${injection.service.toLowerCase()}.service';`)
+            const serviceName = this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(injection.service));
+            im.add(`import {${serviceName}Service} from './services/${injection.service}.service';`);
         }
         return result.concat(Array.from(im).filter(x => x !== '').join('\n'));
     }
@@ -684,18 +676,18 @@ export class ${this.appUtil.kebalCaseToCamelCase(module)}Module {
      * @return {string}
      * @private
      */
-    _getGuardsImports(routes) {
+    getGuardsImports(routes) {
         let im = new Set();
         let result = '';
         routes.forEach(route => {
             route.guards.forEach(guard => {
-                const guardName = this.appUtil.firstCaseUpper(guard);
+                const guardName = this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(guard));
                 let guardNameInKebal = this.appUtil.camelCaseToKebal(guardName);
                 if (guardNameInKebal !== '') {
                     im.add(`import {${guardName}Guard} from './guards/${guardNameInKebal}.guard';`);
                 }
             });
-        })
+        });
         return result.concat(Array.from(im).filter(x => x !== '').join('\n'));
     }
 
@@ -706,7 +698,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(module)}Module {
      * @return {Promise<string>}
      * @private
      */
-    async _getComponentsImports(project, module) {
+    async getComponentsImports(project, module) {
         if (module.toString().includes('.module.ts')) {
             module = module.toString().split('.')[0];
         }
@@ -721,7 +713,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(module)}Module {
             const componentName =
                 this.appUtil.kebalCaseToCamelCase(x.toString().replace('.component.ts', ''))
                     .concat('Component');
-            return `import {${componentName}} from './components/${x.replace('.ts', '').trim()}';`
+            return `import {${this.appUtil.firstCaseUpper(componentName)}} from './components/${x.replace('.ts', '').trim()}';`
         }).join('\n');
     }
 
@@ -732,7 +724,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(module)}Module {
      * @return {Promise<string>}
      * @private
      */
-    async _getPagesImports(project, module) {
+    async getPagesImports(project, module) {
         if (module.toString().includes('.module.ts')) {
             module = module.toString().split('.')[0];
         }
@@ -751,7 +743,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(module)}Module {
         }).join('\n');
     }
 
-    _getAngularMaterialImports() {
+    getAngularMaterialImports() {
         return '';
     }
 }

@@ -39,10 +39,9 @@ export class GuardsService {
         const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         const guardFile = await promisify(readFile)(join(projectPath, 'modules', module, 'guards', `${guard}.guard.ts`));
         const guardJsonFile = {};
-        guardJsonFile.name = this._getGuardName(guardFile.toString());
-        guardJsonFile.body = this._getGuardBody(guardFile.toString());
+        guardJsonFile.name = this.getGuardName(guardFile.toString());
+        guardJsonFile.body = this.getGuardBody(guardFile.toString());
         guardJsonFile.injections = this.appUtil.getInjectionsFromFile(guardFile.toString());
-        console.log(guardJsonFile)
         return guardJsonFile;
     }
 
@@ -72,7 +71,7 @@ export class GuardsService {
                 return 'private readonly '
                     .concat(this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(x.name)))
                     .concat(': ')
-                    .concat(this.appUtil.kebalCaseToCamelCase(x.service))
+                    .concat(this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(x.service)))
                     .concat('Service')
             });
         serviceInjectionsWithType.push('private readonly router: Router');
@@ -81,13 +80,13 @@ export class GuardsService {
             `import {Injectable} from '@angular/core';
 import {ActivatedRouteSnapshot, CanActivate, Router, RouterStateSnapshot, UrlTree} from '@angular/router';
 import {Observable} from 'rxjs';
-${this._getServiceImports(guard.injections)}
+${this.getServiceImports(guard.injections)}
 import {bfast, BFast} from 'bfastjs';
 
 @Injectable({
   providedIn: 'any'
 })
-export class ${this._firstCaseUpper(guard.name)}Guard implements CanActivate {
+export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(guard.name))}Guard implements CanActivate {
     constructor(${serviceInjectionsWithType}){
     }
     
@@ -107,8 +106,9 @@ export class ${this._firstCaseUpper(guard.name)}Guard implements CanActivate {
      * @param guard - {string}
      */
     async createGuard(project, module, guard) {
-        guard = this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(guard.toString().replace('.guard.ts', '')));
-        guard = guard.replace(new RegExp('[^A-Za-z0-9]*', 'ig'), '');
+        guard = guard.toString().replace('.guard.ts', '');
+        guard = guard.replace(new RegExp('[^A-Za-z0-9-]*', 'ig'), '');
+        guard = guard.replace(new RegExp('([-]{2,})', 'ig'), '-');
         if (guard && guard === '') {
             throw new Error('Guard must be alphanumeric');
         }
@@ -117,7 +117,7 @@ export class ${this._firstCaseUpper(guard.name)}Guard implements CanActivate {
         if (exists && Array.isArray(guards) && exists.length > 0) {
             throw new Error('Guard already exist');
         } else {
-            return this.jsonToGuardFile(project, module, {name: guard, body: '', injections: []});
+            return this.jsonToGuardFile(project, module, {name: this.appUtil.camelCaseToKebal(guard), body: '', injections: []});
         }
     }
 
@@ -138,7 +138,7 @@ export class ${this._firstCaseUpper(guard.name)}Guard implements CanActivate {
         return this.jsonToGuardFile(project, module, guard);
     }
 
-    _getGuardName(guardFile) {
+    getGuardName(guardFile) {
         const reg = new RegExp('(export).*(class).*({)', 'i');
         const result = guardFile.toString().match(reg);
         if (result && result[0]) {
@@ -157,7 +157,7 @@ export class ${this._firstCaseUpper(guard.name)}Guard implements CanActivate {
         }
     }
 
-    _getGuardBody(guardFile) {
+    getGuardBody(guardFile) {
         guardFile = guardFile.toString();
         const reg = new RegExp('(canActivate).*(.|\\n)+?(<.*>.*{)', 'gm');
         const result = guardFile.toString().match(reg);
@@ -170,20 +170,11 @@ export class ${this._firstCaseUpper(guard.name)}Guard implements CanActivate {
         }
     }
 
-    _firstCaseUpper(name) {
-        return name.toLowerCase().split('').map((value, index, array) => {
-            if (index === 0) {
-                return value.toUpperCase();
-            }
-            return value;
-        }).join('');
-    }
-
-    _getServiceImports(injections = []) {
+    getServiceImports(injections = []) {
         let im = '';
         for (const injection of injections) {
-            const serviceName = this._firstCaseUpper(injection.service)
-            im += `import {${serviceName}Service} from '../services/${injection.service.toLowerCase()}.service';\n`
+            const serviceName = this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(injection.service))
+            im += `import {${serviceName}Service} from '../services/${injection.service}.service';\n`
         }
 
         return im;

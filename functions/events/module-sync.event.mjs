@@ -11,7 +11,6 @@ const moduleService = new ModuleService(storage, appUtil);
 export const mainModuleSync = bfast.functions().onEvent(
     '/sync',
     (request, response) => {
-        console.log(request, "*************88");
         const project = request.body.project;
         const module = request.body.module;
         const type = request.body.type;

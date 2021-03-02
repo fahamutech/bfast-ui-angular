@@ -2,7 +2,6 @@ import bfastnode from 'bfastnode'
 import {PagesPage} from "../pages/pages.page.mjs";
 import {PageService} from "../services/page.service.mjs";
 import {StorageUtil} from "../utils/storage.util.mjs";
-import {ModuleService} from "../services/module.service.mjs";
 import {AppUtil} from "../utils/app.util.mjs";
 
 const {bfast} = bfastnode;
@@ -90,14 +89,12 @@ export const viewModulePage = bfastnode.bfast.functions().onGetHttpRequest(
 
 export const updatePageTemplate = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/pages/:page/template',
-    (request, response, next) => {
-
+    (request, response) => {
         const project = request.params.project;
         const module = request.params.module;
         const selectedPage = request.params.page;
         pagesPage.updateTemplatePage(project, module, selectedPage, request.query.error).then(value => {
-            request.body._results = value;
-            next();
+            response.send(value);
         }).catch(_ => {
             response.status(400).send(_);
         });
@@ -226,26 +223,24 @@ export const deleteMethodInAPageSubmit = bfastnode.bfast.functions().onPostHttpR
 export const addInjectionInAPageSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/pages/:page/injections/:injection',
     (request, response) => {
-
         const project = request.params.project;
         const module = request.params.module;
         const page = request.params.page;
         const injection = request.params.injection;
+        const injectionName = appUtil.firstCaseLower(appUtil.kebalCaseToCamelCase(injection.toString().split('.')[0]));
         pageService.pageFileToJson(project, module, page).then(async value => {
             if (value && value.injections && Array.isArray(value.injections)) {
-                const exist = value.injections.filter(x => x.state.toString().toLowerCase()
-                    === injection.toString().split('.')[0].toLowerCase());
+                const exist = value.injections.filter(x => x.state === injectionName);
                 if (exist.length === 0) {
                     value.injections.push({
-                        name: injection.toString().split('.')[0].toString().toLowerCase() + 'State'.trim(),
-                        state: injection.toString().split('.')[0].toString().toLowerCase().trim()
+                        name: injectionName + 'State'.trim(),
+                        state: injection.toString().split('.')[0].trim()
                     });
                     await pageService.jsonToPageFile(value, project, module)
                 }
             }
             response.redirect(`/project/${project}/modules/${module}/resources/pages/${page}`);
         }).catch(reason => {
-            console.log(reason);
             response.redirect(`/project/${project}/modules/${module}/resources/pages/${page}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
         });
     }

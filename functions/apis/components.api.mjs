@@ -90,13 +90,12 @@ export const viewModuleComponent = bfastnode.bfast.functions().onGetHttpRequest(
 
 export const updateComponentTemplate1 = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/components/:component/template',
-    (request, response, next) => {
+    (request, response) => {
         const project = request.params.project;
         const module = request.params.module;
         const selectedComponent = request.params.component;
         componentsPage.updateTemplatePage(project, module, selectedComponent, request.query.error).then(value => {
-            request.body._results = value;
-            next();
+            response.send(value)
         }).catch(_ => {
             response.status(400).send(_);
         }).finally(() => {
@@ -237,21 +236,20 @@ export const addInjectionInAComponentSubmit = bfastnode.bfast.functions().onPost
         const module = request.params.module;
         const component = request.params.component;
         const injection = request.params.injection;
+        const injectionName = appUtil.firstCaseLower(appUtil.kebalCaseToCamelCase(injection.toString().split('.')[0]));
         componentService.componentFileToJson(project, module, component).then(async value => {
             if (value && value.injections && Array.isArray(value.injections)) {
-                const exist = value.injections.filter(x => x.state.toString().toLowerCase()
-                    === injection.toString().split('.')[0].toLowerCase());
+                const exist = value.injections.filter(x => x.state === injectionName);
                 if (exist.length === 0) {
                     value.injections.push({
-                        name: injection.toString().split('.')[0].toString().toLowerCase() + 'State'.trim(),
-                        state: injection.toString().split('.')[0].toString().toLowerCase().trim()
+                        name: injectionName + 'State'.trim(),
+                        state: injection.toString().split('.')[0].trim()
                     });
                     await componentService.jsonToComponentFile(value, project, module)
                 }
             }
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`);
         }).catch(reason => {
-            console.log(reason);
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
         }).finally(() => {
             syncEvent.emit({body: {project: project, module: module, type: 'child'}});

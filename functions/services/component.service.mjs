@@ -68,10 +68,10 @@ export class ComponentService {
         );
         const componentJsonFile = {};
         componentJsonFile.name = componentName;
-        componentJsonFile.injections = this._getStateInjectionsFromComponentFile(componentFile);
-        componentJsonFile.styles = this._geStylesFromComponentFile(componentFile);
-        componentJsonFile.template = this._getTemplateFromComponentFile(componentFile);
-        componentJsonFile.fields = this._getComponentFieldFromComponentFile(componentFile);
+        componentJsonFile.injections = this.getStateInjectionsFromComponentFile(componentFile);
+        componentJsonFile.styles = this.geStylesFromComponentFile(componentFile);
+        componentJsonFile.template = this.getTemplateFromComponentFile(componentFile);
+        componentJsonFile.fields = this.getComponentFieldFromComponentFile(componentFile);
         componentJsonFile.methods = this.appUtil.getMethodsFromFile(componentFile);
         return componentJsonFile;
     }
@@ -97,9 +97,12 @@ export class ComponentService {
      */
     async jsonToComponentFile(component, project, module) {
         const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
-        const componentInjectionsWithType = component.injections
-            .map(x => 'public readonly ' + x.name + ': ' + this.appUtil.firstCaseUpper(x.state) + 'State')
-            .join(',');
+        const componentInjectionsWithType = component.injections.map(x => 'public readonly '
+            + this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(x.name))
+            + ': '
+            + this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(x.state))
+            + 'State'
+        ).join(',');
         const fields = component.fields.map(x => {
             return x.value.toString().trim() + ';'
         }).join('\n    ');
@@ -136,14 +139,14 @@ import {SelectionModel} from '@angular/cdk/collections';
 import {MatTableDataSource} from '@angular/material/table';
 import {BehaviorSubject, Subject} from 'rxjs';
 import {takeUntil, map} from 'rxjs/operators';
-${this._getComponentImports(component.injections)}
+${this.getStateImports(component.injections)}
 
 @Component({
     selector: 'app-${component.name}',
     template: \`${component.template}\`,
-    styleUrls: [${this._getComponentStylesFromJson(component.styles)}]
+    styleUrls: [${this.getComponentStylesFromJson(component.styles)}]
 })
-export class ${this.appUtil.kebalCaseToCamelCase(component.name)}Component implements OnInit, OnDestroy{
+export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(component.name))}Component implements OnInit, OnDestroy{
 
     ${fields}
     
@@ -156,16 +159,16 @@ export class ${this.appUtil.kebalCaseToCamelCase(component.name)}Component imple
         return 'done write component'
     }
 
-    _getComponentImports(injections = []) {
+    getStateImports(injections = []) {
         let im = '';
         for (const injection of injections) {
-            const componentName = this.appUtil.firstCaseUpper(injection.state)
-            im += `import {${componentName}State} from '../states/${injection.state.toLowerCase()}.state';\n`
+            const componentName = this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(injection.state));
+            im += `import {${componentName}State} from '../states/${injection.state}.state';\n`
         }
         return im;
     }
 
-    _getComponentStylesFromJson(styles = []) {
+    getComponentStylesFromJson(styles = []) {
         if (styles) {
             return styles.map(style => {
                 style = style.toString().replace('.style.scss', '').trim()
@@ -176,7 +179,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(component.name)}Component imple
         }
     }
 
-    _getStateInjectionsFromComponentFile(componentFile) {
+    getStateInjectionsFromComponentFile(componentFile) {
         const reg = new RegExp('constructor\\(.*\\)');
         const results = componentFile.toString().match(reg) ? componentFile.toString().match(reg)[0] : [];
         if (results) {
@@ -187,7 +190,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(component.name)}Component imple
                 .map(x => {
                     return {
                         name: x.split(':')[0] ? x.split(':')[0].trim() : '',
-                        state: x.split(':')[1] ? x.split(':')[1].replace('State', '').toLowerCase().trim() : ''
+                        state: this.appUtil.camelCaseToKebal(x.split(':')[1] ? x.split(':')[1].replace('State', '').trim() : '')
                     }
                 });
         } else {
@@ -195,7 +198,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(component.name)}Component imple
         }
     }
 
-    _getComponentFieldFromComponentFile(componentFile) {
+    getComponentFieldFromComponentFile(componentFile) {
         const fieldBodyReg = new RegExp('(export)(.|\\n)*(class)(.|\\n)*(constructor)(\\W|\\n)*\\(', 'ig');
         const headReplacerReg = new RegExp('(export)(.|\\n)*(class)(.|\\n)+?\\{', 'ig');
         const footReplacerReg = new RegExp('(constructor)(\\W|\\n)*\\(', 'ig');
@@ -228,13 +231,14 @@ export class ${this.appUtil.kebalCaseToCamelCase(component.name)}Component imple
 
     /**
      *
-     * @param project - {string}
-     * @param module - {string}
-     * @param componentName - {string}
+     * @param project {string}
+     * @param module {string}
+     * @param componentName {string}
      */
     async createComponent(project, module, componentName) {
-        componentName = this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(componentName.toString().replace('.component.ts', '')));
-        componentName = componentName.replace(new RegExp('[^A-Za-z0-9]*', 'ig'), '');
+        componentName = componentName.toString().replace('.component.ts', '');
+        componentName = componentName.replace(new RegExp('[^A-Za-z0-9-]*', 'ig'), '');
+        componentName = componentName.replace(new RegExp('([-]{2,})', 'ig'), '-');
         if (componentName && componentName !== '') {
             const components = await this.getComponents(project, module);
             const exists = components.filter(x => x === componentName.toString().concat('.component.ts'));
@@ -359,7 +363,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(component.name)}Component imple
         return allComponents.filter(x => x !== component);
     }
 
-    _geStylesFromComponentFile(componentFile) {
+    geStylesFromComponentFile(componentFile) {
         const reg = new RegExp('(styleUrls.*\:).*[\\[.*\\]]', 'ig');
         const results = componentFile.toString().match(reg) ? componentFile.toString().match(reg)[0] : [];
         if (results) {
@@ -378,7 +382,7 @@ export class ${this.appUtil.kebalCaseToCamelCase(component.name)}Component imple
         }
     }
 
-    _getTemplateFromComponentFile(componentFile) {
+    getTemplateFromComponentFile(componentFile) {
         const reg = new RegExp('template:.*((.|\\n)*)\\`', 'ig');
         const results = componentFile.toString().match(reg) ? componentFile.toString().match(reg)[0] : [];
         if (results) {

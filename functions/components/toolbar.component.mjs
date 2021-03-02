@@ -28,7 +28,7 @@ export const appToolBarComponent = function (project) {
                 }
                
                 const dontShow = name === 'null' || name === 'undefined';
-                console.log(dontShow);
+                // console.log(dontShow);
                 if (dontShow) {
                     document.getElementById('closeTerminal').removeAttribute('style');
                     document.getElementById('openTerminal').removeAttribute('style');

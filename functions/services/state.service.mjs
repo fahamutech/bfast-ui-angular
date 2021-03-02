@@ -37,21 +37,24 @@ export class StateService {
 
     /**
      *
-     * @param stateName - {string} state name
-     * @param project - {string} current project
-     * @param module - {string} current module
-     * @return {Promise<void>}
+     * @param stateName {string} state name
+     * @param project {string} current project
+     * @param module {string} current module
+     * @return {Promise<{
+     *     methods: Array<*>,
+     *     name: string,
+     *     injections: Array<*>,
+     *     states: Array<*>
+     * }>}
      */
     async stateFileToJson(stateName, project, module) {
-        if (stateName.toString().includes('.state.ts')) {
-            stateName = stateName.toString().split('.')[0];
-        }
+        stateName = stateName.toString().replace('.state.ts', '');
         const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         const stateFile = await promisify(readFile)(join(projectPath, 'modules', module, 'states', `${stateName}.state.ts`));
         const stateJsonFile = {};
         stateJsonFile.name = stateName;
         stateJsonFile.injections = this.appUtil.getInjectionsFromFile(stateFile);
-        stateJsonFile.states = this._getStateFieldFromStateFile(stateFile);
+        stateJsonFile.states = this.getStateFieldFromStateFile(stateFile);
         stateJsonFile.methods = this.appUtil.getMethodsFromFile(stateFile);
         return stateJsonFile;
     }
@@ -81,9 +84,12 @@ export class StateService {
      */
     async jsonToStateFile(state, project, module) {
         const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
-        const stateInjectionsWithType = state.injections
-            .map(x => 'private readonly ' + x.name + ': ' + this._firstCaseUpper(x.service) + 'Service')
-            .join(',');
+        const stateInjectionsWithType = state.injections.map(x => 'private readonly '
+            + this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(x.name))
+            + ': '
+            + this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(x.service))
+            + 'Service'
+        ).join(',');
         const states = state.states.map(x => {
             return `
     ${x.name}: BehaviorSubject<any> = new BehaviorSubject<any>(null);`
@@ -99,12 +105,12 @@ export class StateService {
             `import {bfast, BFast} from 'bfastjs';
 import {Injectable} from '@angular/core';
 import {BehaviorSubject, Subject} from 'rxjs';
-${this._getStateImports(state.injections)}
+${this.getStateImports(state.injections)}
 
 @Injectable({
     providedIn: 'any'
 })
-export class ${this._firstCaseUpper(state.name)}State {
+export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(state.name))}State {
     constructor(${stateInjectionsWithType}){
     }
     ${states}
@@ -115,23 +121,14 @@ export class ${this._firstCaseUpper(state.name)}State {
         return 'done write state'
     }
 
-    _getStateImports(injections = []) {
+    getStateImports(injections = []) {
         let im = '';
         for (const injection of injections) {
-            const stateName = this._firstCaseUpper(injection.service)
-            im += `import {${stateName}Service} from '../services/${injection.service.toLowerCase()}.service';\n`
+            const stateName = this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(injection.service))
+            im += `import {${stateName}Service} from '../services/${injection.service}.service';\n`
         }
 
         return im;
-    }
-
-    _firstCaseUpper(name) {
-        return name.toLowerCase().split('').map((value, index, array) => {
-            if (index === 0) {
-                return value.toUpperCase();
-            }
-            return value;
-        }).join('');
     }
 
     // _getMethodsFromStateFile(stateFile) {
@@ -166,7 +163,7 @@ export class ${this._firstCaseUpper(state.name)}State {
     //     }
     // }
 
-    _getStateFieldFromStateFile(stateFile) {
+    getStateFieldFromStateFile(stateFile) {
         const reg = new RegExp('(\\w)+(:).*(\\;)', 'ig');
         const results = stateFile.toString().match(reg) ? stateFile.toString().match(reg) : [];
         if (results) {
@@ -192,8 +189,9 @@ export class ${this._firstCaseUpper(state.name)}State {
      * @param stateName - {string}
      */
     async createState(project, module, stateName) {
-        stateName = this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(stateName.toString().replace('.state.ts', '')));
-        stateName = stateName.replace(new RegExp('[^A-Za-z0-9]*', 'ig'), '');
+        stateName = this.appUtil.camelCaseToKebal(stateName.toString().replace('.state.ts', ''));
+        stateName = stateName.replace(new RegExp('[^A-Za-z0-9-]*', 'ig'), '');
+        stateName = stateName.replace(new RegExp('([-]{2,})', 'ig'), '-');
         if (stateName && stateName === '') {
             throw new Error('State must be alphanumeric');
         }
@@ -208,10 +206,10 @@ export class ${this._firstCaseUpper(state.name)}State {
 
     /**
      *
-     * @param project - {string}
-     * @param module - {string}
-     * @param state - {string}
-     * @param method - {{
+     * @param project {string}
+     * @param module  {string}
+     * @param state  {string}
+     * @param method  {{
      *     name: string,
      *     inputs: string,
      *     return: string,
@@ -233,10 +231,10 @@ export class ${this._firstCaseUpper(state.name)}State {
 
     /**
      *
-     * @param project - {string}
-     * @param module - {string}
-     * @param state - {string}
-     * @param method - {string}
+     * @param project  {string}
+     * @param module  {string}
+     * @param state  {string}
+     * @param method  {string}
      * @return {Promise<any>}
      */
     async getMethod(project, module, state, method) {
