@@ -364,13 +364,12 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(pag
     }
 
     getTemplateFromPageFile(pageFile) {
-        const reg = new RegExp('template:.*((.|\\n)*)\\`', 'ig');
+        const reg = new RegExp('(template)(\\s|\\n)*:(\\s|\\n)*`(.|\\n)*?`', 'ig');
         const results = pageFile.toString().match(reg) ? pageFile.toString().match(reg)[0] : [];
         if (results) {
             return results.toString()
-                .replace(new RegExp('template.*\:', 'gim'), '')
-                .replace('\`', '')
-                .replace('\`', '')
+                .replace(new RegExp('(template)(\\s|\\n)*?:', 'gim'), '')
+                .replace(new RegExp('\`', 'ig'), '')
                 .trim();
         } else {
             return [];

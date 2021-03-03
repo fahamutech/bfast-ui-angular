@@ -133,7 +133,7 @@ export class ComponentService {
 
         await promisify(writeFile)(join(projectPath, 'modules', module, 'components', `${component.name}.component.ts`),
             `import {bfast, BFast} from 'bfastjs';
-import {Component, EventEmitter, Input, OnDestroy, OnInit, Output} from '@angular/core';
+import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 import {FormGroup, FormArray, FormBuilder, Validators, FormControl} from '@angular/forms';
 import {SelectionModel} from '@angular/cdk/collections';
 import {MatTableDataSource} from '@angular/material/table';
@@ -202,7 +202,7 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(com
         const fieldBodyReg = new RegExp('(export)(.|\\n)*(class)(.|\\n)*(constructor)(\\W|\\n)*\\(', 'ig');
         const headReplacerReg = new RegExp('(export)(.|\\n)*(class)(.|\\n)+?\\{', 'ig');
         const footReplacerReg = new RegExp('(constructor)(\\W|\\n)*\\(', 'ig');
-        const fieldsReg = new RegExp('.*;', 'ig');
+        const fieldsReg = new RegExp('[\\w@](.|\\n)+?(:|=)(.|\\n)+?;', 'ig');
         let fields = componentFile.toString().match(fieldBodyReg) ?
             componentFile.toString().match(fieldBodyReg)[0]
             : '';
@@ -210,8 +210,7 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(com
             .replace(headReplacerReg, '')
             .replace(footReplacerReg, '')
             .trim();
-        const results = fields
-            .match(fieldsReg)
+        const results = fields.match(fieldsReg)
             ? fields.match(fieldsReg)
             : []
         if (results) {
@@ -383,13 +382,13 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(com
     }
 
     getTemplateFromComponentFile(componentFile) {
-        const reg = new RegExp('template:.*((.|\\n)*)\\`', 'ig');
+        const reg = new RegExp('(template)(\\s|\\n)*:(\\s|\\n)*`(.|\\n)*?`', 'ig');
         const results = componentFile.toString().match(reg) ? componentFile.toString().match(reg)[0] : [];
         if (results) {
             return results.toString()
-                .replace(new RegExp('template.*\:', 'gim'), '')
-                .replace('\`', '')
-                .replace('\`', '')
+                .replace(new RegExp('(template)(\\s|\\n)*?:', 'gi'), '')
+                .replace(new RegExp('\`', 'ig'), '')
+                // .replace('\`', '')
                 .trim();
         } else {
             return [];
