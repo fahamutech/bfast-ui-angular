@@ -1,8 +1,13 @@
 function terminalIsOpen() {
     return document.getElementById('terminal').children.length > 0;
 }
+
 let terminalEvents;
 let bfastTerminal;
+let prevCommand = '';
+let prevAnswer = ''
+const END_OF_LINE = '\x1B[1;32mbfast :~\x1B[0m$';
+let finishExecute = true;
 
 function autoStartTerminal(project) {
     const value = localStorage.getItem('terminal');
@@ -35,6 +40,7 @@ function startTerminal(project) {
 
         bfastTerminal = new Terminal({
             cursorBlink: true,
+            cwd: project,
             rows: 10
         });
         //  const initialTermText = '$ ';
@@ -50,7 +56,7 @@ function startTerminal(project) {
 
         bfastTerminal.open(document.getElementById('terminal'));
         bfastTerminal.prompt = () => {
-            bfastTerminal.write('\r\n\x1B[1;32mbfast :~\x1B[0m$ ');
+            bfastTerminal.write(`\n${END_OF_LINE} `);
         };
         bfastTerminal.help = () => {
             bfastTerminal.writeln('');
@@ -90,6 +96,7 @@ function startTerminal(project) {
                 } else {
                     bfastTerminal.writeln('');
                     bfastTerminal.exec(curr_line);
+                    prevCommand = curr_line;
                 }
                 curr_line = '';
             } else if (ev.key === 'Backspace') {
@@ -99,17 +106,30 @@ function startTerminal(project) {
                 }
             } else if (printable) {
                 curr_line += ev.key;
-                // console.log(curr_line, ev.key);
-                bfastTerminal.write(ev.key);
+                if (finishExecute) {
+                    bfastTerminal.write(ev.key);
+                } else {
+                    bfastTerminal.write('*');
+                }
             }
         }
         terminalEvents.listener(response => {
             const msg = response.body;
-            if (msg && msg.toString().trim().startsWith('efl')) {
+            // if (finishExecute === false) {
+            // } else {
+            if (msg.toString().trim() === prevCommand.toString().trim()) {
+                prevCommand = '';
+            } else if (msg.toString().trim() === 'no') {
+                bfastTerminal.prompt();
+                prevCommand = '';
+            } else if (msg.toString().trim() === '^C') {
+                prevCommand = '';
                 bfastTerminal.prompt();
             } else {
                 bfastTerminal.write(msg);
             }
+            // }
+            finishExecute = msg.toString().trim() === END_OF_LINE.trim();
         });
         localStorage.setItem('terminal', 'open');
     } else {

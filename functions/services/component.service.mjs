@@ -137,7 +137,7 @@ import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} fr
 import {FormGroup, FormArray, FormBuilder, Validators, FormControl} from '@angular/forms';
 import {SelectionModel} from '@angular/cdk/collections';
 import {MatTableDataSource} from '@angular/material/table';
-import {BehaviorSubject, Subject} from 'rxjs';
+import {BehaviorSubject, Subject, of, Observable} from 'rxjs';
 import {takeUntil, map} from 'rxjs/operators';
 ${this.getStateImports(component.injections)}
 

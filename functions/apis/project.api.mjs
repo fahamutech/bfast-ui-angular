@@ -2,8 +2,10 @@ import {StorageUtil} from "../utils/storage.util.mjs";
 import {ProjectService} from "../services/project.service.mjs";
 import {ProjectPage} from "../pages/project.page.mjs";
 import bfastnode from "bfastnode";
+import {AppUtil} from "../utils/app.util.mjs";
 
 const {bfast} = bfastnode;
+const appUtil = new AppUtil();
 const projectService = new ProjectService(new StorageUtil());
 
 function addProject(name, module, path, response) {
@@ -24,7 +26,7 @@ export const projectAll = bfast.functions().onGetHttpRequest('/project',
         const module = request.query.module;
         const path = request.query.path;
         if (name && module && path && name !== '' && module !== '' && path !== '') {
-            addProject(name, module, path, response);
+            addProject(appUtil.camelCaseToKebal(name).toLowerCase(), module, path, response);
         } else {
             new ProjectPage(projectService).indexPage(request.query.error).then(value => {
                 response.send(value);
@@ -41,7 +43,7 @@ export const projectAdd = bfast.functions().onPostHttpRequest('/project',
         const projectService = new ProjectService(new StorageUtil());
         const body = JSON.parse(JSON.stringify(request.body));
         if (body && body.name && body.module && body.projectPath && body.name !== '' && body.module !== '' && body.projectPath !== '') {
-            addProject(body.name, body.module, body.projectPath, response);
+            addProject(appUtil.camelCaseToKebal(body.name).toLowerCase(), body.module, body.projectPath, response);
         } else {
             response.redirect(`/project?error=${encodeURIComponent('fill all require fields')}`);
         }
