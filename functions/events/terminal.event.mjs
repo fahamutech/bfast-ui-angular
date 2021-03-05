@@ -2,6 +2,7 @@ import bfastnode from "bfastnode";
 import {StorageUtil} from "../utils/storage.util.mjs";
 import {platform} from 'os';
 import {spawn} from 'node-pty-prebuilt-multiarch';
+import {resolve} from 'path';
 
 const shell = platform() === 'win32' ? 'cmd.exe' : 'bash';
 const terminals = {};
@@ -16,7 +17,7 @@ function initiateTerm(project, path, response) {
             name: 'bfast-terminal',
             cols: 1000,
             rows: 700,
-            cwd: path,
+            cwd: resolve(path, '../../'),
             env: process.env
         });
         terminals[project].on('data', function (data) {

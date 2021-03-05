@@ -57,6 +57,7 @@ function startTerminal(project) {
         bfastTerminal.open(document.getElementById('terminal'));
         bfastTerminal.prompt = () => {
             bfastTerminal.write(`\n${END_OF_LINE} `);
+            finishExecute = true;
         };
         bfastTerminal.help = () => {
             bfastTerminal.writeln('');
@@ -79,7 +80,7 @@ function startTerminal(project) {
             }
         }
 
-        bfastTerminal.writeln('bfast ui shell.');
+        // bfastTerminal.writeln('bfast ui shell.');
         bfastTerminal.prompt();
         bfastTerminal.textarea.onkeydown = function (ev) {
             const printable = ev.key.length === 1;
@@ -115,21 +116,23 @@ function startTerminal(project) {
         }
         terminalEvents.listener(response => {
             const msg = response.body;
-            // if (finishExecute === false) {
-            // } else {
             if (msg.toString().trim() === prevCommand.toString().trim()) {
                 prevCommand = '';
+                // console.log(msg.toString().trim());
+                // finishExecute = msg.toString().trim().includes(END_OF_LINE.trim());
             } else if (msg.toString().trim() === 'no') {
+                finishExecute = true;
                 bfastTerminal.prompt();
                 prevCommand = '';
             } else if (msg.toString().trim() === '^C') {
+                finishExecute = true;
                 prevCommand = '';
                 bfastTerminal.prompt();
             } else {
                 bfastTerminal.write(msg);
+                // console.log(msg.toString().trim());
+                finishExecute = msg.toString().trim().includes(END_OF_LINE.trim());
             }
-            // }
-            finishExecute = msg.toString().trim() === END_OF_LINE.trim();
         });
         localStorage.setItem('terminal', 'open');
     } else {
