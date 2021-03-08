@@ -20,7 +20,7 @@ function initiateTerm(project, path, response) {
             cwd: resolve(path, '../../'),
             env: process.env
         });
-        terminals[project].on('data', function (data) {
+        terminals[project].onData((data) => {
             // if (data.toString().trim() === '^C') {
             //     response.broadcast(END_OF_LINE);
             //     ending = true;
@@ -36,12 +36,12 @@ function initiateTerm(project, path, response) {
                 terminals[project].isExecute = data.toString().match(new RegExp('.*@.*:.*[#$]', 'i')) === null;
             }
             data = data.toString().replace(new RegExp('.*@.*:.*[#$]', 'i'), END_OF_LINE)
-            response.broadcast(data);
+            response.topic(project).announce(data);
             //         }
             //     }
             // }
         });
-        terminals[project].on('exit', _ => {
+        terminals[project].onExit(_ => {
         });
     } else {
         // console.log(`terminal of ${project} already initialized pid --> ` + terminals[project].pid);
@@ -68,7 +68,7 @@ async function execCommand(cmd, project, response) {
             terminals[project].write(`${cmd.toString()}\r`);
         } else {
             // terminals[project].write(`^C`);
-            response.broadcast(`no`);
+            response.topic(project).announce(`no`);
         }
     }
 }
@@ -76,21 +76,24 @@ async function execCommand(cmd, project, response) {
 export const terminalEvent = bfast.functions().onEvent(
     '/terminal',
     (request, response) => {
+        // console.log(request);
         const project = request.auth ? request.auth.project : undefined;
+        const init = request.auth.init;
         const body = request.body;
-        if (!project) {
-            response.broadcast('INFO: unknown project, add in auth object when establish connection');
-            response.broadcast(END_OF_LINE);
+        if (!project && !init) {
+            response.emit('INFO: unknown project, add in auth object when establish connection\r\n');
+            response.emit(END_OF_LINE);
         } else {
             if (body && body.command) {
+                response.topic(project).join();
                 execCommand(body.command.toString().trim(), project, response).catch(reason => {
                     console.log(reason);
                     response.broadcast(reason && reason.message ? reason.message : reason.toString());
                     response.broadcast('\r\n');
                 });
             } else {
-                response.broadcast('INFO: unknown value command');
-                response.broadcast(END_OF_LINE);
+                response.emit('INFO: unknown value command\r\n');
+                response.emit(END_OF_LINE);
             }
         }
     }

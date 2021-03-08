@@ -11,24 +11,26 @@ const moduleService = new ModuleService(storage, appUtil);
 export const mainModuleSync = bfast.functions().onEvent(
     '/sync',
     (request, response) => {
+        const topic = request.body.project ? request.body.project + '_sync' : 'sync';
         const project = request.body.project;
         const module = request.body.module;
         const type = request.body.type;
+        response.topic(topic).join();
         if (type && type === 'main') {
             moduleService.mainModuleFileToJson(project).then(value => {
                 return moduleService.mainModuleJsonToFile(project, value);
             }).then(value => {
-                response.emit(value);
+                response.topic(topic).announce(value);
             }).catch(reason => {
-                response.emit(reason);
+                response.topic(topic).announce(reason);
             });
         } else if (type && type === 'child' && module && typeof module === 'string') {
             moduleService.moduleFileToJson(project, module).then(value => {
                 return moduleService.moduleJsonToFile(project, module, value);
             }).then(value => {
-                response.emit(value);
+                response.topic(topic).announce(value);
             }).catch(reason => {
-                response.emit(reason);
+                response.topic(topic).announce(reason);
             });
         }
     }

@@ -46,17 +46,19 @@ function startTerminal(project) {
         //  const initialTermText = '$ ';
         let curr_line = '';
         terminalEvents = bfast.functions().event('/terminal', _ => {
-            console.log('terminal connected');
+            bfastTerminal.writeln('terminal connected');
+            // bfastTerminal.prompt();
             if (location.pathname.trim() === '/project') {
                 terminalEvents.close();
             }
         }, _ => {
-            console.log('terminal disconnected');
+            bfastTerminal.writeln('terminal disconnected');
+            bfastTerminal.prompt();
         });
-
+        terminalEvents.emit({body: {command: 'ls'}, auth: {project: project}});
         bfastTerminal.open(document.getElementById('terminal'));
         bfastTerminal.prompt = () => {
-            bfastTerminal.write(`\n${END_OF_LINE} `);
+            bfastTerminal.write(`${END_OF_LINE} `);
             finishExecute = true;
         };
         bfastTerminal.help = () => {
@@ -80,9 +82,10 @@ function startTerminal(project) {
             }
         }
 
-        // bfastTerminal.writeln('bfast ui shell.');
+        bfastTerminal.writeln('bfast ui shell.');
         bfastTerminal.prompt();
         bfastTerminal.textarea.onkeydown = function (ev) {
+            // console.log(ev);
             const printable = ev.key.length === 1;
             if (ev.key === 'Enter') {
                 if (curr_line.trim().startsWith('reset')) {
