@@ -20,9 +20,9 @@ export const modelCreateComponent = async function (project, module, model = {
             <div>
                 <div>
                     <div class="d-flex lex-row" style="margin-bottom: 8px">
-                        <h3>Model Name</h3>
+                        <h3><a href="/project/${project}/modules/${module}/resources/models" >${model.name} model</a> update</h3>
                         <span style="flex: 1 1 auto"></span>
-<!--                        <button class="btn btn-sm btn-primary">Save Service</button>-->
+        <!--                        <button class="btn btn-sm btn-primary">Save Service</button>-->
                     </div>
                     <input class="form-control" readonly value="${model.name}" name="name" placeholder="enter service name" type="text">
                 </div>
@@ -35,7 +35,7 @@ export const modelCreateComponent = async function (project, module, model = {
 <!--                      <span class="visually-hidden">Loading...</span>-->
                     </div>
                 </div>
-                <div style="height: 70vh" id="styleCode"></div>
+                <div class="code-editor" id="styleCode"></div>
                 <div>
                     ${codeEditorComponent('styleCode', model.body, 'typescript', 'updateStyleButton', null)}
                 </div>

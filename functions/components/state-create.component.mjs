@@ -23,9 +23,9 @@ export const stateCreateComponent = async function (project, module, state = {
             <div>
                 <div>
                     <div class="d-flex lex-row" style="margin-bottom: 8px">
-                        <h3>Name</h3>
+                        <h3>${state.name} state</h3>
                         <span style="flex: 1 1 auto"></span>
-<!--                        <button class="btn btn-sm btn-primary">Save Service</button>-->
+        <!--                        <button class="btn btn-sm btn-primary">Save Service</button>-->
                     </div>
                     <input class="form-control" disabled value="${state.name}" name="name" placeholder="enter state name" type="text">
                 </div>

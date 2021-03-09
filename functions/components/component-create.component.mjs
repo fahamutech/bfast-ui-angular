@@ -26,7 +26,7 @@ export const componentCreateComponent = async function (project, module, compone
             <div>
                 <div>
                     <div class="d-flex lex-row" style="margin-bottom: 8px">
-                        <h3>Name</h3>
+                        <h3>${component.name} component</h3>
                         <span style="flex: 1 1 auto"></span>
                         <a href="/project/${project}/modules/${module}/resources/components/${component.name}/template">
                             <button class="btn btn-sm btn-primary">Update Template</button>

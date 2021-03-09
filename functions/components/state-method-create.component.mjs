@@ -23,6 +23,11 @@ export const stateMethodCreateComponent = function (project, module, state, meth
     return (`
         <div style="margin-top: 24px;" class="container col-9 col-xl-9 col-lg-9 col-sm-11 col-md-10">
             ${errorMessageComponent(error)}
+            <div class="d-flex lex-row" style="margin-bottom: 8px">
+                <h3><a href="/project/${project}/modules/${module}/resources/states/${state}" >${state} state</a> create method</h3>
+                <span style="flex: 1 1 auto"></span>
+<!--                        <button class="btn btn-sm btn-primary">Save Service</button>-->
+            </div>
             <form id="methodCreateForm" class="form" action="/project/${project}/modules/${module}/resources/states/${state}/method" method="post" enctype="application/json">
                 <div class="form-group">
                     <label for="name" class="form-label">Name</label>
@@ -38,7 +43,7 @@ export const stateMethodCreateComponent = function (project, module, state, meth
                         <button id="saveServiceMethodButton" class="btn btn-primary btn-block" style="display: none">Save Method</button>
                     </div>
                     <label for="detail" class="form-label">Method contents</label>
-                    <div id="stateMethodEditor" style="height: 60vh"></div>
+                    <div id="stateMethodEditor" class="code-editor"></div>
                     ${codeEditorComponent('stateMethodEditor', method.body ? method.body : '//your codes\n\n', 'javascript', 'saveServiceMethodButton')}
                 </div>
             </form>

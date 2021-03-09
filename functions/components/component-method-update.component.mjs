@@ -23,7 +23,11 @@ export const componentMethodUpdateComponent = function (project, module, compone
     return (`
         <div style="margin-top: 24px;" class="container col-9 col-xl-9 col-lg-9 col-sm-11 col-md-10">
             ${errorMessageComponent(error)}
-            <h2>Update Service Method</h2>
+            <div class="d-flex lex-row" style="margin-bottom: 8px">
+                <h3><a href="/project/${project}/modules/${module}/resources/components/${component}" >${component} component</a> update method</h3>
+                <span style="flex: 1 1 auto"></span>
+<!--                        <button class="btn btn-sm btn-primary">Save Service</button>-->
+            </div>
             <hr>
             <form id="methodUpdateForm" class="form" action="/project/${project}/modules/${module}/resources/components/${component}/method/${method.name}" method="post" enctype="application/json">
                 <div class="form-group">
@@ -40,7 +44,7 @@ export const componentMethodUpdateComponent = function (project, module, compone
                         <button id="saveServiceMethodButton" class="btn btn-primary btn-block" style="display: none">Update Method</button>
                     </div>
                     <label for="detail" class="form-label">Method contents</label>
-                    <div id="componentMethodEditor" style="height: 60vh"></div>
+                    <div id="componentMethodEditor" class="code-editor"></div>
                     ${codeEditorComponent('componentMethodEditor', method.body ? method.body : '//your codes\n\n', 'javascript', 'saveServiceMethodButton')}
                 </div>
             </form>

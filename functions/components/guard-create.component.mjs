@@ -23,9 +23,9 @@ export const guardCreateComponent = async function (project, module, guard = {
             <div>
                 <div>
                     <div class="d-flex lex-row" style="margin-bottom: 8px">
-                        <h3>Guard Name</h3>
+                        <h3>${guard.name} guard</h3>
                         <span style="flex: 1 1 auto"></span>
-<!--                        <button class="btn btn-sm btn-primary">Save Service</button>-->
+                <!--                        <button class="btn btn-sm btn-primary">Save Service</button>-->
                     </div>
                     <input class="form-control" readonly value="${guard.name}" name="name" placeholder="enter guard name" type="text">
                 </div>

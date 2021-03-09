@@ -41,7 +41,7 @@ export const guardListComponent = async function (project, module, guards, error
                        ${await getTableContents(project, module, guards)}
                       </tbody>
                     </table>
-                    ${newStyleModal(project, module)}
+                    ${newGuardModal(project, module)}
                 </div>
             </div>
         </div>
@@ -63,7 +63,7 @@ async function getTableContents(project, module, guards = [], lines = 0) {
 }
 
 
-function newStyleModal(project, module) {
+function newGuardModal(project, module) {
     return `
     <!-- Modal -->
     <div class="modal fade" id="newServiceModal" data-backdrop="static" data-keyboard="false" tabindex="-1"
@@ -71,7 +71,7 @@ function newStyleModal(project, module) {
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="staticBackdropLabel">Create Style</h5>
+            <h5 class="modal-title" id="staticBackdropLabel">Create Guard</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>

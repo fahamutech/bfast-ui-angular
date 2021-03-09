@@ -25,9 +25,9 @@ export const serviceCreateComponent = async function (project, module, service =
             <div>
                 <div>
                     <div class="d-flex lex-row" style="margin-bottom: 8px">
-                        <h3>Service Name</h3>
+                        <h3>${service.name} service</h3>
                         <span style="flex: 1 1 auto"></span>
-<!--                        <button class="btn btn-sm btn-primary">Save Service</button>-->
+        <!--                        <button class="btn btn-sm btn-primary">Save Service</button>-->
                     </div>
                     <input class="form-control" disabled value="${service.name}" name="name" placeholder="enter service name" type="text">
                 </div>

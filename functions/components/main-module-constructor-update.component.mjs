@@ -21,7 +21,7 @@ export const mainModuleConstructorUpdateComponent = function (project, body, err
     return (`
         <div style="margin-top: 24px;" class="container col-9 col-xl-9 col-lg-9 col-sm-11 col-md-10">
             ${errorMessageComponent(error)}
-            <h2>main module constructor body</h2>
+            <h2><a href="/project/${project}/modules">main module</a> constructor body</h2>
             <hr>
             <form id="methodUpdateForm" class="form" action="/project/${project}/modules/main/constructor" method="post">
 <!--                <div class="form-group">-->

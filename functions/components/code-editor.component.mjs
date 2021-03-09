@@ -1,5 +1,3 @@
-import {readFile} from 'fs'
-
 /**
  *
  * @param id - {string}
@@ -16,17 +14,14 @@ export const codeEditorComponent = function (id, codes, language = 'typescript',
             require.config({ paths: { vs: '/assets/editor/min/vs' } });
             let  editor;
             require(['vs/editor/editor.main'], function () {
-                
                 monaco.languages.typescript.javascriptDefaults.setDiagnosticsOptions({
                     noSemanticValidation: true,
-                    noSyntaxValidation: false
+                    // noSyntaxValidation: false
                 });
-                
                 monaco.languages.typescript.javascriptDefaults.setCompilerOptions({
                     target: monaco.languages.typescript.ScriptTarget.ES6,
                     allowNonTsExtensions: true
                 });
-                
                 const libSource = "";
                 const libUri = 'ts:filename/bfast.d.ts';
                 monaco.languages.typescript.javascriptDefaults.addExtraLib(libSource, libUri);
@@ -39,7 +34,7 @@ export const codeEditorComponent = function (id, codes, language = 'typescript',
                     theme: 'vs-dark',
                     tabCompletion: 'on',
                     });
-                 document.getElementById('${saveButtonId}').setAttribute('style','display:block');
+                document.getElementById('${saveButtonId}').setAttribute('style','display:block');
             });
         </script>
     `

@@ -25,7 +25,11 @@ export const pageCreateComponent = async function (project, module, page = {
             <div>
                 <div>
                     <div class="d-flex lex-row" style="margin-bottom: 8px">
-                        <h3>Page Name</h3>
+                     <div class="d-flex lex-row" style="margin-bottom: 8px">
+                        <h3>${page.name} page</h3>
+                        <span style="flex: 1 1 auto"></span>
+<!--                        <button class="btn btn-sm btn-primary">Save Service</button>-->
+                    </div>
                         <span style="flex: 1 1 auto"></span>
                         <a href="/project/${project}/modules/${module}/resources/pages/${page.name}/template">
                             <button class="btn btn-sm btn-primary">Update Template</button>

@@ -17,7 +17,11 @@ export const pageTemplateUpdateComponent = function (project, module, page, temp
             <div>
                 <div>
                     <div class="d-flex lex-row" style="margin-bottom: 8px">
-                        <h3>${page} template</h3>
+                    <div class="d-flex lex-row" style="margin-bottom: 8px">
+                        <h3><a href="/project/${project}/modules/${module}/resources/pages/${page}" >${page} page</a> template</h3>
+                        <span style="flex: 1 1 auto"></span>
+<!--                        <button class="btn btn-sm btn-primary">Save Service</button>-->
+                    </div>
                         <span style="flex: 1 1 auto"></span>
 <!--                        <button class="btn btn-sm btn-primary">Save Service</button>-->
                     </div>
@@ -32,7 +36,7 @@ export const pageTemplateUpdateComponent = function (project, module, page, temp
 <!--                      <span class="visually-hidden">Loading...</span>-->
                     </div>
                 </div>
-                <div style="height: 70vh" id="templateCode"></div>
+                <div class="code-editor" id="templateCode"></div>
                 <div>
                     ${codeEditorComponent('templateCode', template, 'html', 'updateTemplateButton', null)}
                 </div>

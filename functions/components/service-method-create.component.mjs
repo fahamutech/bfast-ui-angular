@@ -23,6 +23,11 @@ export const serviceMethodCreateComponent = function (project, module, service, 
     return (`
         <div style="margin-top: 24px;" class="container col-9 col-xl-9 col-lg-9 col-sm-11 col-md-10">
             ${errorMessageComponent(error)}
+            <div class="d-flex lex-row" style="margin-bottom: 8px">
+                <h3><a href="/project/${project}/modules/${module}/resources/services/${service}" >${service} service</a> create method</h3>
+                <span style="flex: 1 1 auto"></span>
+<!--                        <button class="btn btn-sm btn-primary">Save Service</button>-->
+            </div>
             <form id="methodCreateForm" class="form" action="/project/${project}/modules/${module}/resources/services/${service}/method" method="post" enctype="application/json">
                 <div class="form-group">
                     <label for="name" class="form-label">Name</label>
@@ -38,7 +43,7 @@ export const serviceMethodCreateComponent = function (project, module, service, 
                         <button id="saveServiceMethodButton" class="btn btn-primary btn-block" style="display: none">Save Method</button>
                     </div>
                     <label for="detail" class="form-label">Method contents</label>
-                    <div id="serviceMethodEditor" style="height: 60vh"></div>
+                    <div id="serviceMethodEditor" class="code-editor"></div>
                     ${codeEditorComponent('serviceMethodEditor', method.body ? method.body : '//your codes\n\n', 'javascript', 'saveServiceMethodButton')}
                 </div>
             </form>
