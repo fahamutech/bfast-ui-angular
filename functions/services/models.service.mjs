@@ -19,7 +19,12 @@ export class ModelsService {
         try {
             const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
             const modelsDir = join(projectPath, 'modules', module, 'models');
-            return promisify(readdir)(modelsDir);
+            /**
+             *
+             * @type {string[]}
+             */
+            const model = await promisify(readdir)(modelsDir);
+            return model.filter(x => x.toString().trim().endsWith('.ts'));
         } catch (e) {
             return [];
         }

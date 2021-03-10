@@ -19,7 +19,12 @@ export class PageService {
         try {
             const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
             const pagesDir = join(projectPath, 'modules', module, 'pages');
-            return promisify(readdir)(pagesDir);
+            /**
+             *
+             * @type {string[]}
+             */
+            const pages = await promisify(readdir)(pagesDir);
+            return pages.filter(x => x.toString().trim().endsWith('.ts'));
         } catch (e) {
             return [];
         }

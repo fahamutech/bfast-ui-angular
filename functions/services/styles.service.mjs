@@ -17,8 +17,13 @@ export class StylesService {
     async getStyles(project, module) {
         try {
             const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
-            const servicesDir = join(projectPath, 'modules', module, 'styles');
-            return promisify(readdir)(servicesDir);
+            const stylesDir = join(projectPath, 'modules', module, 'styles');
+            /**
+             *
+             * @type {string[]}
+             */
+            const styles = await promisify(readdir)(stylesDir);
+            return styles.filter(x => x.toString().trim().endsWith('.scss'));
         } catch (e) {
             return [];
         }

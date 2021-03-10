@@ -51,4 +51,23 @@ export class ProjectService {
             throw 'Folder structure is unknown';
         }
     }
+
+    async ensureProjectFolder() {
+        // const projectsPath = join(homedir(), 'BFastProjects1');
+        // try{
+        //     const r = await promisify(stat)(projectsPath);
+        //     console.log(r);
+        // }catch (e){
+        //     await promisify(mkdir)(projectsPath)
+        // }
+    }
+
+    /**
+     * create bfast ui project
+     * @param project {string}
+     * @return {Promise<*>}
+     */
+    async createProject(project) {
+
+    }
 }

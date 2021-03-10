@@ -19,7 +19,12 @@ export class GuardsService {
         try {
             const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
             const guardsDir = join(projectPath, 'modules', module, 'guards');
-            return promisify(readdir)(guardsDir);
+            /**
+             *
+             * @type {string[]}
+             */
+            const guards = await promisify(readdir)(guardsDir);
+            return guards.filter(x => x.toString().trim().endsWith('.ts'));
         } catch (e) {
             return [];
         }
@@ -117,7 +122,11 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(gua
         if (exists && Array.isArray(guards) && exists.length > 0) {
             throw new Error('Guard already exist');
         } else {
-            return this.jsonToGuardFile(project, module, {name: this.appUtil.camelCaseToKebal(guard), body: '', injections: []});
+            return this.jsonToGuardFile(project, module, {
+                name: this.appUtil.camelCaseToKebal(guard),
+                body: '',
+                injections: []
+            });
         }
     }
 

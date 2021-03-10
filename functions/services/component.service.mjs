@@ -19,7 +19,12 @@ export class ComponentService {
         try {
             const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
             const componentsDir = join(projectPath, 'modules', module, 'components');
-            return promisify(readdir)(componentsDir);
+            /**
+             *
+             * @type {string[]}
+             */
+            const components = await promisify(readdir)(componentsDir);
+            return components.filter(x => x.toString().endsWith('.ts'));
         } catch (e) {
             return [];
         }

@@ -99,7 +99,7 @@ export class ModuleService {
                 await promisify(mkdir)(join(projectPath, 'modules', name));
                 for (const resource of resources) {
                     await promisify(mkdir)(join(projectPath, 'modules', name, resource));
-                    await promisify(writeFile)(join(projectPath, 'modules', name, resource, 'README.md', `#${resource}`));
+                    await promisify(writeFile)(join(projectPath, 'modules', name, resource, 'README.md'), `#${resource}`);
                 }
                 return promisify(writeFile)(join(projectPath, 'modules', name, `${name}.module.ts`),
                     `import {NgModule} from '@angular/core';

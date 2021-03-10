@@ -54,7 +54,7 @@ export const projectDelete = bfast.functions().onPostHttpRequest('/project/:proj
     (request, response) => {
         const projectService = new ProjectService(new StorageUtil());
         const project = request.params.project;
-        projectService.deleteProject(project).then(_ => {
+        projectService.deleteRecentProject(project).then(_ => {
             response.redirect('/project');
         }).catch(reason => {
             response.redirect('/project?error=' + encodeURIComponent(reason && reason.message ? reason.message : reason.toString()))

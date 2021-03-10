@@ -231,10 +231,9 @@ export const moduleCreatePost = bfastnode.bfast.functions().onPostHttpRequest(
             _moduleService.createModule(project, request.body.name, request.body.detail).then(_ => {
                 response.redirect(`/project/${request.params.project}/modules/`);
             }).catch(reason => {
+                console.log(reason)
                 response.status(400)
                     .redirect(`/project/${request.params.project}/modules/create?error=` + reason.toString());
-            }).finally(() => {
-                syncEvent.emit({body: {project: project, type: 'main'}});
             });
         }
     ]

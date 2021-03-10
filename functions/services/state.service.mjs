@@ -19,7 +19,12 @@ export class StateService {
         try {
             const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
             const statesDir = join(projectPath, 'modules', module, 'states');
-            return promisify(readdir)(statesDir);
+            /**
+             *
+             * @type {string[]}
+             */
+            const states = await promisify(readdir)(statesDir);
+            return states.filter(x => x.toString().trim().endsWith('.ts'));
         } catch (e) {
             return [];
         }
