@@ -30,26 +30,6 @@ export class ComponentService {
         }
     }
 
-    async getStates(project, module) {
-        try {
-            const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
-            const componentsDir = join(projectPath, 'modules', module, 'states');
-            return promisify(readdir)(componentsDir);
-        } catch (e) {
-            return [];
-        }
-    }
-
-    async getStyles(project, module) {
-        try {
-            const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
-            const componentsDir = join(projectPath, 'modules', module, 'styles');
-            return promisify(readdir)(componentsDir);
-        } catch (e) {
-            return [];
-        }
-    }
-
     /**
      *
      * @param componentName - {string} component name

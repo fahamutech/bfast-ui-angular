@@ -30,16 +30,6 @@ export class StateService {
         }
     }
 
-    async getServices(project, module) {
-        try {
-            const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
-            const statesDir = join(projectPath, 'modules', module, 'services');
-            return promisify(readdir)(statesDir);
-        } catch (e) {
-            return [];
-        }
-    }
-
     /**
      *
      * @param stateName {string} state name

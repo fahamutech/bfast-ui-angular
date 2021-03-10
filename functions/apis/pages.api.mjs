@@ -3,6 +3,8 @@ import {PagesPage} from "../pages/pages.page.mjs";
 import {PageService} from "../services/page.service.mjs";
 import {StorageUtil} from "../utils/storage.util.mjs";
 import {AppUtil} from "../utils/app.util.mjs";
+import {StylesService} from "../services/styles.service.mjs";
+import {StateService} from "../services/state.service.mjs";
 
 const {bfast} = bfastnode;
 bfast.init({
@@ -14,7 +16,9 @@ const syncEvent = bfast.functions().event(`/sync`);
 const storage = new StorageUtil();
 const appUtil = new AppUtil();
 const pageService = new PageService(storage, appUtil);
-const pagesPage = new PagesPage(pageService);
+const styleService = new StylesService(storage, appUtil);
+const stateService = new StateService(storage, appUtil);
+const pagesPage = new PagesPage(pageService, styleService, stateService);
 
 export const viewModulePages = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/pages',

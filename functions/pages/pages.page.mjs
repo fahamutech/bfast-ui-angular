@@ -4,15 +4,21 @@ import {pageCreateComponent} from "../components/page-create.component.mjs";
 import {pageMethodCreateComponent} from "../components/page-method-create.component.mjs";
 import {pageMethodUpdateComponent} from "../components/page-method-update.component.mjs";
 import {pageTemplateUpdateComponent} from "../components/page-template-update.component.mjs";
+import {StylesService} from "../services/styles.service.mjs";
+import {StateService} from "../services/state.service.mjs";
 
 export class PagesPage {
 
     /**
      *
      * @param pagesService {PageService}
+     * @param styleService {StylesService}
+     * @param stateService {StateService}
      */
-    constructor(pagesService) {
+    constructor(pagesService, styleService, stateService) {
         this.pagesService = pagesService
+        this.stateService = stateService;
+        this.styleService = styleService;
     }
 
     /**
@@ -42,8 +48,8 @@ export class PagesPage {
                     pageName += '.page.ts';
                 }
                 pageInJson = await this.pagesService.pageFileToJson(project, module, pageName);
-                states = await this.pagesService.getStates(project, module);
-                styles = await this.pagesService.getStyles(project, module);
+                states = await this.stateService.getStates(project, module);
+                styles = await this.styleService.getStyles(project, module);
             }
             return appLayoutComponent(await pageCreateComponent(project, module, pageInJson, states, styles, error), project, module);
         } catch (e) {

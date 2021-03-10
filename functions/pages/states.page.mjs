@@ -3,15 +3,18 @@ import {stateListComponent} from "../components/states-list.component.mjs";
 import {stateCreateComponent} from "../components/state-create.component.mjs";
 import {stateMethodCreateComponent} from "../components/state-method-create.component.mjs";
 import {stateMethodUpdateComponent} from "../components/state-method-update.component.mjs";
+import {ServicesService} from "../services/services.service.mjs";
 
 export class StatesPage {
 
     /**
      *
      * @param statesService {StateService}
+     * @param serviceService {ServicesService}
      */
-    constructor(statesService) {
+    constructor(statesService, serviceService) {
         this.statesService = statesService
+        this.serviceService = serviceService;
     }
 
     /**
@@ -40,7 +43,7 @@ export class StatesPage {
                     stateName += '.state.ts';
                 }
                 stateInJson = await this.statesService.stateFileToJson(stateName, project, module);
-                services = await this.statesService.getServices(project, module);
+                services = await this.serviceService.getServices(project, module);
                 // services = services.filter(x => x.toString() !== stateName);
             }
             return appLayoutComponent(await stateCreateComponent(project, module, stateInJson, services, error), project, module);

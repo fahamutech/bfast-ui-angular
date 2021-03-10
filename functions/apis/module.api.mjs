@@ -17,10 +17,10 @@ const syncEvent = bfast.functions().event(`/sync`);
 
 const storageUtil = new StorageUtil();
 const appUtil = new AppUtil();
-const _moduleService = new ModuleService(storageUtil, appUtil);
-const servicesService = new ServicesService(storageUtil, appUtil);
 const componentService = new ComponentService(storageUtil, appUtil);
 const pageService = new PageService(storageUtil, appUtil);
+const _moduleService = new ModuleService(storageUtil, componentService, pageService, appUtil);
+const servicesService = new ServicesService(storageUtil, appUtil);
 const guardsService = new GuardsService(storageUtil, appUtil);
 const modulePage = new ModulePage(_moduleService, servicesService, componentService, pageService, guardsService);
 

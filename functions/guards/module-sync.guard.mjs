@@ -2,11 +2,15 @@ import bfastnode from 'bfastnode';
 import {ModuleService} from "../services/module.service.mjs";
 import {StorageUtil} from "../utils/storage.util.mjs";
 import {AppUtil} from "../utils/app.util.mjs";
+import {ComponentService} from "../services/component.service.mjs";
+import {PageService} from "../services/page.service.mjs";
 
 const {bfast} = bfastnode;
 const storage = new StorageUtil();
 const appUtil = new AppUtil();
-const moduleService = new ModuleService(storage, appUtil);
+const componentService = new ComponentService(storage, appUtil);
+const pageService = new PageService(storage, appUtil);
+const moduleService = new ModuleService(storage, componentService, pageService, appUtil);
 
 export const mainModuleSync = bfast.functions().onGuard(
     '/project/:project/modules',

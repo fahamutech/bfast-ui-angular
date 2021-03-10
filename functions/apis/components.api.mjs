@@ -3,13 +3,17 @@ import {ComponentsPage} from "../pages/components.page.mjs";
 import {ComponentService} from "../services/component.service.mjs";
 import {StorageUtil} from "../utils/storage.util.mjs";
 import {AppUtil} from "../utils/app.util.mjs";
+import {StylesService} from "../services/styles.service.mjs";
+import {StateService} from "../services/state.service.mjs";
 
 const {bfast} = bfastnode;
 
 const storage = new StorageUtil();
 const appUtil = new AppUtil();
 const componentService = new ComponentService(storage, appUtil);
-const componentsPage = new ComponentsPage(componentService);
+const styleService = new StylesService(storage, appUtil);
+const stateService = new StateService(storage, appUtil);
+const componentsPage = new ComponentsPage(componentService, styleService, stateService);
 
 export const viewModuleComponents = bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/components',

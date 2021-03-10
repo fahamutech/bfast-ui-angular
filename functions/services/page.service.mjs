@@ -30,26 +30,6 @@ export class PageService {
         }
     }
 
-    async getStates(project, module) {
-        try {
-            const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
-            const pagesDir = join(projectPath, 'modules', module, 'states');
-            return promisify(readdir)(pagesDir);
-        } catch (e) {
-            return [];
-        }
-    }
-
-    async getStyles(project, module) {
-        try {
-            const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
-            const pagesDir = join(projectPath, 'modules', module, 'styles');
-            return promisify(readdir)(pagesDir);
-        } catch (e) {
-            return [];
-        }
-    }
-
     /**
      *
      * @param pageName - {string} page name

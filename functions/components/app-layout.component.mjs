@@ -3,13 +3,17 @@ import {sideNavComponent} from "./side-nav.component.mjs";
 import {StorageUtil} from "../utils/storage.util.mjs";
 import {AppUtil} from "../utils/app.util.mjs";
 import {ModuleService} from "../services/module.service.mjs";
+import {ComponentService} from "../services/component.service.mjs";
+import {PageService} from "../services/page.service.mjs";
 
 export const appLayoutComponent = async function (body, project, module) {
     async function getModules() {
         if (project) {
             const storage = new StorageUtil();
             const appUtil = new AppUtil();
-            const moduleService = new ModuleService(storage, appUtil);
+            const componentService = new ComponentService(storage, appUtil);
+            const pageService = new PageService(storage, appUtil);
+            const moduleService = new ModuleService(storage, componentService, pageService, appUtil);
             const module = await moduleService.getModules(project);
             return module.modules.map(x => {
                 return {

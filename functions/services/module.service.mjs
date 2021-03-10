@@ -2,16 +2,22 @@ import {mkdir, readdir, readFile, writeFile} from 'fs';
 import {join} from 'path';
 import {promisify} from 'util';
 import {StorageUtil} from '../utils/storage.util.mjs'
+import {ComponentService} from './component.service.mjs'
+import {PageService} from './page.service.mjs'
 import {AppUtil} from "../utils/app.util.mjs";
 
 export class ModuleService {
 
     /**
      * @param storageService {StorageUtil}
+     * @param componentService {ComponentService}
+     * @param pageService {PageService}
      * @param appUtil {AppUtil}
      */
-    constructor(storageService, appUtil) {
+    constructor(storageService, componentService, pageService, appUtil) {
         this.storageService = storageService;
+        this.componentService = componentService;
+        this.pageService = pageService;
         this.appUtil = appUtil;
     }
 
@@ -371,12 +377,12 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(nam
          *
          * @type {string[]}
          */
-        let components = await promisify(readdir)(join(projectPath, 'modules', module, 'components'));
+        let components = await this.componentService.getComponents(project, module);
         /**
          *
          * @type {string[]}
          */
-        let pages = await promisify(readdir)(join(projectPath, 'modules', module, 'pages'));
+        let pages = await this.pageService.getPages(project, module);
 
         components = components.map(
             x => x.toString()
@@ -708,7 +714,7 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(mod
          *
          * @type {string[]}
          */
-        let components = await promisify(readdir)(join(projectPath, 'modules', module, 'components'));
+        let components = await this.componentService.getComponents(project, module);
 
         return components.map(x => {
             const componentName =
@@ -734,7 +740,7 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(mod
          *
          * @type {string[]}
          */
-        let pages = await promisify(readdir)(join(projectPath, 'modules', module, 'pages'));
+        let pages = await this.pageService.getPages(project, module);
 
         return pages.map(x => {
             const componentName =

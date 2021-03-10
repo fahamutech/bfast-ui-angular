@@ -4,15 +4,21 @@ import {componentCreateComponent} from "../components/component-create.component
 import {componentMethodCreateComponent} from "../components/component-method-create.component.mjs";
 import {componentMethodUpdateComponent} from "../components/component-method-update.component.mjs";
 import {componentTemplateUpdateComponent} from "../components/component-template-update.component.mjs";
+import {StylesService} from "../services/styles.service.mjs";
+import {StateService} from "../services/state.service.mjs";
 
 export class ComponentsPage {
 
     /**
      *
      * @param componentsService {ComponentService}
+     * @param styleService {StylesService}
+     * @param stateService {StateService}
      */
-    constructor(componentsService) {
+    constructor(componentsService, styleService, stateService) {
         this.componentsService = componentsService
+        this.stateService = stateService;
+        this.styleService = styleService;
     }
 
     /**
@@ -42,8 +48,8 @@ export class ComponentsPage {
                     componentName += '.component.ts';
                 }
                 componentInJson = await this.componentsService.componentFileToJson(project, module, componentName);
-                states = await this.componentsService.getStates(project, module);
-                styles = await this.componentsService.getStyles(project, module);
+                states = await this.stateService.getStates(project, module);
+                styles = await this.styleService.getStyles(project, module);
             }
             return appLayoutComponent(await componentCreateComponent(project, module, componentInJson, states, styles, error), project, module);
         } catch (e) {

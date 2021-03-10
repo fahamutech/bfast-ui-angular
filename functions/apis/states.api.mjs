@@ -3,16 +3,17 @@ import {StatesPage} from "../pages/states.page.mjs";
 import {StateService} from "../services/state.service.mjs";
 import {StorageUtil} from "../utils/storage.util.mjs";
 import {AppUtil} from "../utils/app.util.mjs";
+import {ServicesService} from "../services/services.service.mjs";
 
 const storage = new StorageUtil();
 const appUtil = new AppUtil();
 const stateService = new StateService(storage, appUtil);
-const statesPage = new StatesPage(stateService);
+const serviceService = new ServicesService(storage, appUtil)
+const statesPage = new StatesPage(stateService, serviceService);
 
 export const viewModuleStates = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/states',
     (request, response) => {
-
         const project = request.params.project;
         const module = request.params.module;
         statesPage.indexPage(project, module).then(value => {
@@ -26,7 +27,6 @@ export const viewModuleStates = bfastnode.bfast.functions().onGetHttpRequest(
 export const createModuleStates = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/states',
     (request, response) => {
-
         const project = request.params.project;
         const module = request.params.module;
         const body = JSON.parse(JSON.stringify(request.body));
