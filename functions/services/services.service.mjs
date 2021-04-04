@@ -57,7 +57,7 @@ export class ServicesService {
         const serviceJsonFile = {};
         serviceJsonFile.name = serviceName;
         serviceJsonFile.imports = this.getUserImportsFromServiceFile(serviceFile);
-        serviceJsonFile.injections = this.appUtil.getInjectionsFromFile(serviceFile, serviceJsonFile.imports.map(x => x.name));
+        serviceJsonFile.injections = this.appUtil.getInjectionsFromFile(serviceFile, this.getUserImportsFromServiceFile(serviceFile).map(x => x.name), 'Service');
         serviceJsonFile.methods = this.appUtil.getMethodsFromFile(serviceFile);
         return serviceJsonFile;
     }
@@ -258,8 +258,9 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(ser
      * @private
      */
     getUserImportsFromServiceFile(serviceFile) {
-        const reg = new RegExp('(import).*(.|\\n)*(from).*;', 'ig');
-        let results = serviceFile.toString().match(reg) ? serviceFile.toString().match(reg)[0] : [];
+        serviceFile = serviceFile.toString();
+        const reg = new RegExp('(import).*(.|\\n)*(from).*;', 'igm');
+        let results = serviceFile.toString().match(reg) ? serviceFile.toString().match(reg).join('\n') : '';
         if (results) {
             results = results.toString()
                 // remove angular core imports
@@ -272,7 +273,8 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(ser
                 .replace(new RegExp('(\\n){2,}', 'ig'), '\n')
                 .trim()
                 .split('\n')
-                .filter(y => (typeof y === "string" && y.length > 1))
+                .map(t=>t.trim())
+                .filter(y => (typeof y === "string" && y!==''))
                 .map(x => {
                     const isModule = x.includes('{') && x.includes('}');
                     const xParts = x.replace('import', '')
@@ -284,21 +286,23 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(ser
                     return {
                         name: xParts[0] ? xParts[0].trim() : null,
                         type: isModule ? 'module' : 'common',
+                        readonly: false,
                         ref: xParts[1] ? xParts[1].replace(new RegExp('[\'\"]', 'ig'), '').trim() : null
                     }
                 });
-            const singleImports = results.filter(x => x.name.split(',').length === 1);
-            const multipleImports = results.filter(x => x.name.split(',').length > 1);
-            multipleImports.forEach(mImport => {
-                singleImports.push(...mImport.name.split(',').map(y => {
-                    return {
-                        name: y.trim(),
-                        type: mImport.type,
-                        ref: mImport.ref
-                    }
-                }))
-            });
-            return singleImports;
+            return this.appUtil.multipleImportToSingleImportOfLib(results, []);
+            // const singleImports = results.filter(x => x.name.split(',').length === 1);
+            // const multipleImports = results.filter(x => x.name.split(',').length > 1);
+            // multipleImports.forEach(mImport => {
+            //     singleImports.push(...mImport.name.split(',').map(y => {
+            //         return {
+            //             name: y.trim(),
+            //             type: mImport.type,
+            //             ref: mImport.ref
+            //         }
+            //     }))
+            // });
+            // return singleImports;
         } else {
             return [];
         }

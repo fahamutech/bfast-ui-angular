@@ -168,7 +168,7 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(nam
         moduleJson.declarations = await this.getDeclarationsFromModuleFolder(project, module);
         moduleJson.exports = this.getExportsFromModuleFile(moduleFile);
         moduleJson.imports = this.getUserImportsFromModuleFile(moduleFile);
-        moduleJson.injections = this.appUtil.getInjectionsFromFile(moduleFile);
+        moduleJson.injections = this.appUtil.getInjectionsFromFile(moduleFile, [], 'Service');
         moduleJson.constructor = this.appUtil.getConstructorBodyFromModuleFile(moduleFile);
         return moduleJson;
     }
@@ -201,7 +201,7 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(nam
         moduleJson.routes = this.getRoutesFromMainModuleFile(moduleFile);
         moduleJson.exports = this.getExportsFromModuleFile(moduleFile);
         moduleJson.imports = this.getUserImportsFromModuleFile(moduleFile).filter(x => x.name.toLowerCase() !== 'appcomponent');
-        moduleJson.injections = this.appUtil.getInjectionsFromFile(moduleFile);
+        moduleJson.injections = this.appUtil.getInjectionsFromFile(moduleFile, [], 'Service');
         moduleJson.constructor = this.appUtil.getConstructorBodyFromModuleFile(moduleFile);
         // console.log(moduleJson);
         return moduleJson;
@@ -417,9 +417,8 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(nam
                 .filter(t => (typeof t === "string" && t.trim() !== ''))
                 .map(x => x.replace('Component', '').trim());
             return results;
-        } else {
-            return [];
         }
+        return [];
     }
 
     getUserImportsFromModuleFile(moduleFile) {
@@ -427,12 +426,6 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(nam
         let results = moduleFile.toString().match(reg) ? moduleFile.toString().match(reg)[0] : [];
         if (results) {
             results = results.toString()
-                // remove angular core imports
-                .replace(new RegExp('(import).*(NgModule).*(@angular/core).*', 'ig'), '')
-                // remove angular route imports
-                .replace(new RegExp('(import).*(@angular/router).*', 'ig'), '')
-                // remove angular common imports
-                .replace(new RegExp('(import).*(CommonModule).*(@angular/common).*', 'ig'), '')
                 // remove component imports
                 .replace(new RegExp('(import).*(\\.\/component).*', 'ig'), '')
                 // remove page imports
@@ -442,7 +435,7 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(nam
                 // remove guards imports
                 .replace(new RegExp('(import).*(\\.\/guard).*', 'ig'), '')
                 // remove bfast imports
-                .replace(new RegExp('(import).*(bfastjs).*', 'ig'), '')
+                //.replace(new RegExp('(import).*(bfastjs).*', 'ig'), '')
                 // remove service import
                 .replace(new RegExp('(import).*(\\.\/service).*', 'ig'), '')
                 // remove space left behind
@@ -459,23 +452,14 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(nam
                         .split('from');
                     return {
                         name: xParts[0] ? xParts[0].trim() : null,
+                        readonly: false,
+                        type: 'module',
                         ref: xParts[1] ? xParts[1].replace(new RegExp('[\'\"]', 'ig'), '').trim() : null
                     }
                 });
-            const singleImports = results.filter(x => x.name.split(',').length === 1);
-            const multipleImports = results.filter(x => x.name.split(',').length > 1);
-            multipleImports.forEach(mImport => {
-                singleImports.push(...mImport.name.split(',').map(y => {
-                    return {
-                        name: y.trim(),
-                        ref: mImport.ref
-                    }
-                }))
-            });
-            return singleImports;
-        } else {
-            return [];
+            return this.appUtil.multipleImportToSingleImportOfLib(results, AppUtil.readonlyModulesImport)
         }
+        return [];
     }
 
     /**
@@ -491,7 +475,7 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(nam
      *     }[],
      *     declarations: Array<*>,
      *     exports: Array<*>,
-     *     imports: Array<{name: string, ref: string}>,
+     *     imports: Array<{name: string, ref: string, readonly: boolean, type: string}>,
      *     injections: Array<{name: string, service: string}>,
      *     constructor: string
      * }}
@@ -517,7 +501,7 @@ ${this.getServiceImports(moduleJson.injections)}
 ${this.getGuardsImports(moduleJson.routes)}
 ${await this.getComponentsImports(project, module)}
 ${await this.getPagesImports(project, module)}
-${moduleJson.imports.map(x => `import {${x.name}} from '${x.ref}';`).join('\n')}
+${moduleJson.imports.filter(i => typeof i.readonly === "boolean" && i.readonly === false).map(x => `import {${x.name}} from '${x.ref}';`).join('\n')}
 
 const routes: Routes = [
    ${this.getModuleRoutesFromModuleJson(moduleJson.routes)}
@@ -539,7 +523,7 @@ const routes: Routes = [
         }
       ]
     },
-    ${moduleJson.imports.map(x => x.name.concat(',')).join('\n    ')}
+    ${moduleJson.imports.filter(i => typeof i.readonly === "boolean" && i.readonly === false).map(x => x.name.concat(',')).join('\n    ')}
   ],
   exports: [
     ${moduleJson.exports.map(x => x.toString().concat('Component,')).join('\n    ')}
@@ -563,7 +547,7 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(mod
      * @param project {string}
      * @param moduleJson {{
      *     name: string,
-     *     imports: Array<{name: string, ref: string}>,
+     *     imports: Array<{name: string, ref: string, type: string, readonly: boolean}>,
      *     routes: {
      *         path: string,
      *         guards: Array<*>,
@@ -589,13 +573,13 @@ export class AppComponent {
 }
 `
 
-        const moduleInString = `import {BFast, bfast} from 'bfastjs';
+        const moduleInString = `import {bfast} from 'bfastjs';
 import {CommonModule} from '@angular/common';
 import {NgModule} from '@angular/core';
 import {AppComponent} from './app.component';
 import {RouterModule} from '@angular/router';
 import {Routes} from '@angular/router';
-${moduleJson.imports.map(x => `import {${x.name}} from '${x.ref}';`).join('\n')}
+${moduleJson.imports.filter(i => typeof i.readonly === "boolean" && i.readonly === false).map(x => `import {${x.name}} from '${x.ref}';`).join('\n')}
 
 const routes: Routes = [
    ${this.getRoutesFromMainModuleJson(moduleJson.routes)}
@@ -606,7 +590,7 @@ const routes: Routes = [
   imports: [
     CommonModule,
     RouterModule.forRoot(routes),
-    ${moduleJson.imports.map(x => x.name.concat(',')).join('\n    ')}
+    ${moduleJson.imports.filter(i => typeof i.readonly === "boolean" && i.readonly === false).map(x => x.name.concat(',')).join('\n    ')}
   ],
   providers: [],
   bootstrap: [AppComponent],
@@ -752,5 +736,34 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(mod
 
     getAngularMaterialImports() {
         return '';
+    }
+
+    /**
+     *
+     * @param project {string}
+     * @return {Promise<*>}
+     */
+    async exportMainModule(project) {
+        const projectInfo = await this.storageService.getConfig(project);
+        const modules = await this.getModules(project);
+        const _modulesMap = {};
+        modules.modules.forEach(x => {
+            _modulesMap[x] = {
+                services: {},
+                components: {},
+                pages: {},
+                guards: {},
+                states: {},
+                styles: {},
+                modules: {}
+            }
+        });
+        return {
+            name: projectInfo.name,
+            main: {
+                name: projectInfo.module,
+                modules: _modulesMap
+            }
+        }
     }
 }

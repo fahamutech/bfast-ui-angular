@@ -65,6 +65,8 @@ export const addImportToMainModuleSubmit = bfastnode.bfast.functions().onPostHtt
                     if (exist.length === 0) {
                         value.imports.push({
                             name: appUtil.kebalCaseToCamelCase(body.name.toString().split('.')[0]).concat('Module'),
+                            readonly: false,
+                            type: 'module',
                             ref: body.ref.toString().replace('.ts', '')
                         });
                         await _moduleService.mainModuleJsonToFile(project, value);
@@ -135,6 +137,17 @@ export const mainModuleConstructorUpdateSubmit = bfastnode.bfast.functions().onP
         }
     }
 );
+
+export const exportMainModule = bfastnode.bfast.functions().onGetHttpRequest(
+    '/project/:project/modules/main/export',
+    (request, response) => {
+        _moduleService.exportMainModule(request.params.project).then(value => {
+            response.json(value);
+        }).catch(reason => {
+            response.status(400).send(reason);
+        })
+    }
+)
 
 export const addRouteToMainModuleSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/routes',
@@ -356,6 +369,7 @@ export const addImportToModuleSubmit = bfastnode.bfast.functions().onPostHttpReq
                     if (exist.length === 0) {
                         value.imports.push({
                             name: appUtil.kebalCaseToCamelCase(body.name.toString().split('.')[0]).concat('Module'),
+                            readonly: false,
                             ref: body.ref.toString().replace('.ts', '')
                         });
                         await _moduleService.moduleJsonToFile(project, module, value);

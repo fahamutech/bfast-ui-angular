@@ -63,12 +63,6 @@ async function addInjectionModal(project, module, service, services, imports = [
                             </select>
                         </label>
                     </div>
-<!--                    <div>-->
-<!--                        <label class="form-label btn-block">-->
-<!--                            Reference-->
-<!--                            <input class="form-control btn-block" placeholder="Enter import reference" name="ref" id="ref">-->
-<!--                        </label>-->
-<!--                    </div>-->
                     <button class="btn btn-primary btn-block" type="submit">
                        Import Manual
                     </button>

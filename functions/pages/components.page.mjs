@@ -51,7 +51,16 @@ export class ComponentsPage {
                 states = await this.stateService.getStates(project, module);
                 styles = await this.styleService.getStyles(project, module);
             }
-            return appLayoutComponent(await componentCreateComponent(project, module, componentInJson, states, styles, error), project, module);
+            return appLayoutComponent(
+                await componentCreateComponent(
+                    project,
+                    module,
+                    componentInJson,
+                    states,
+                    styles,
+                    error
+                ), project, module
+            );
         } catch (e) {
             return appLayoutComponent(
                 await componentCreateComponent(project, module, componentInJson, states, styles,

@@ -48,7 +48,7 @@ export class StateService {
         const stateFile = await promisify(readFile)(join(projectPath, 'modules', module, 'states', `${stateName}.state.ts`));
         const stateJsonFile = {};
         stateJsonFile.name = stateName;
-        stateJsonFile.injections = this.appUtil.getInjectionsFromFile(stateFile);
+        stateJsonFile.injections = this.appUtil.getInjectionsFromFile(stateFile, [], 'Service');
         stateJsonFile.states = this.getStateFieldFromStateFile(stateFile);
         stateJsonFile.methods = this.appUtil.getMethodsFromFile(stateFile);
         return stateJsonFile;

@@ -24,7 +24,7 @@ export class ComponentService {
              * @type {string[]}
              */
             const components = await promisify(readdir)(componentsDir);
-            return components.filter(x => x.toString().endsWith('.ts'));
+            return components.filter(x => x.toString().includes('.component'));
         } catch (e) {
             return [];
         }
@@ -40,7 +40,8 @@ export class ComponentService {
      *     name: string,
      *     injections: Array<*>,
      *     styles: Array<string>,
-     *     methods: Array<*>
+     *     methods: Array<*>,
+     *     imports: Array<*>
      * }>}
      */
     async componentFileToJson(project, module, componentName) {
@@ -53,7 +54,12 @@ export class ComponentService {
         );
         const componentJsonFile = {};
         componentJsonFile.name = componentName;
-        componentJsonFile.injections = this.getStateInjectionsFromComponentFile(componentFile);
+        componentJsonFile.imports = this.getUserImportsFromComponentFile(componentFile);
+        componentJsonFile.injections = this.appUtil.getInjectionsFromFile(
+            componentFile,
+            componentJsonFile.imports.map(x => x.name),
+            'State'
+        );
         componentJsonFile.styles = this.geStylesFromComponentFile(componentFile);
         componentJsonFile.template = this.getTemplateFromComponentFile(componentFile);
         componentJsonFile.fields = this.getComponentFieldFromComponentFile(componentFile);
@@ -69,6 +75,7 @@ export class ComponentService {
      *         name: string,
      *         component: string
      *     }[],
+     *     imports: Array<*>,
      *     methods: {
      *         name: string,
      *         inputs: string,
@@ -85,9 +92,8 @@ export class ComponentService {
         const componentInjectionsWithType = component.injections.map(x => 'public readonly '
             + this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(x.name))
             + ': '
-            + this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(x.state))
-            + 'State'
-        ).join(',');
+            + (x.auto === true ? this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(x.service)).concat('State') : x.service)
+        ).join(',\n                ');
         const fields = component.fields.map(x => {
             return x.value.toString().trim() + ';'
         }).join('\n    ');
@@ -119,12 +125,8 @@ export class ComponentService {
         await promisify(writeFile)(join(projectPath, 'modules', module, 'components', `${component.name}.component.ts`),
             `import {bfast, BFast} from 'bfastjs';
 import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
-import {FormGroup, FormArray, FormBuilder, Validators, FormControl} from '@angular/forms';
-import {SelectionModel} from '@angular/cdk/collections';
-import {MatTableDataSource} from '@angular/material/table';
-import {BehaviorSubject, Subject, of, Observable} from 'rxjs';
-import {takeUntil, map} from 'rxjs/operators';
 ${this.getStateImports(component.injections)}
+${this.getLibImports(component.imports.filter(s => typeof s.readonly === "boolean" && s.readonly === false))}
 
 @Component({
     selector: 'app-${component.name}',
@@ -144,11 +146,33 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(com
         return 'done write component'
     }
 
+    /**
+     * get state imports for write to file
+     * @param injections {Array<*>}
+     * @return {string}
+     */
     getStateImports(injections = []) {
         let im = '';
-        for (const injection of injections) {
-            const componentName = this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(injection.state));
-            im += `import {${componentName}State} from '../states/${injection.state}.state';\n`
+        for (const injection of injections.filter(x => x.auto && x.auto === true)) {
+            const componentName = this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(injection.service));
+            im += `import {${componentName}State} from '../states/${injection.service}.state';\n`
+        }
+        return im;
+    }
+
+    /**
+     *
+     * @param imports {Array<{name: string, ref: string, type: string}>}
+     * @return {string}
+     */
+    getLibImports(imports) {
+        let im = '';
+        for (const imp of imports) {
+            if (imp.type === 'common') {
+                im += `import ${imp.name} from '${imp.ref}';\n`
+            } else {
+                im += `import {${imp.name}} from '${imp.ref}';\n`
+            }
         }
         return im;
     }
@@ -347,6 +371,204 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(com
         return allComponents.filter(x => x !== component);
     }
 
+    /**
+     * add state to a component
+     * @param project {string}
+     * @param module {string}
+     * @param component {string}
+     * @param injection {string}
+     * @returns {Promise<*>}
+     */
+    async addInjection(project, module, component, injection) {
+        injection = injection.toString().replace('.state.ts', '');
+        const injectionName = this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(injection).concat('State'));
+        return this.componentFileToJson(project, module, component).then(async value => {
+            if (value && value.injections && Array.isArray(value.injections)) {
+                const exist = value.injections.filter(x => x.name === injectionName);
+                if (exist.length === 0) {
+                    value.injections.push({
+                        name: injectionName.trim(),
+                        service: this.appUtil.camelCaseToKebal(injection.trim()),
+                        auto: true
+                    });
+                    await this.jsonToComponentFile(value, project, module)
+                }
+            }
+            return {message: 'injection added to component'};
+        });
+    }
+
+    /**
+     *
+     * @param project {string}
+     * @param module {string}
+     * @param component {string}
+     * @param injection {string}
+     * @return {Promise<{message: string}>}
+     */
+    async addInjectionFromExternalLib(project, module, component, injection) {
+        return this.componentFileToJson(project, module, component).then(async value => {
+            if (value && value.injections && Array.isArray(value.injections)) {
+                const exist = value.injections.filter(x => x.service.toString().trim() === injection.trim());
+                if (exist.length === 0) {
+                    value.injections.push({
+                        name: this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(injection)).trim(),
+                        service: injection.trim(),
+                        auto: false
+                    });
+                    await this.jsonToComponentFile(value, project, module);
+                }
+            }
+            return {message: 'lib updated to component'};
+        })
+    }
+
+    /**
+     * remove injected state from component resource
+     * @param project {string}
+     * @param module {string}
+     * @param component {string}
+     * @param injection {string} injection reference
+     * @returns {Promise<*>}
+     */
+    async deleteInjection(project, module, component, injection) {
+        injection = injection.replace('.state.ts', '');
+        return this.componentFileToJson(project, module, component).then(async value => {
+            if (value && value.injections && Array.isArray(value.injections)) {
+                value.injections = value.injections.filter(x => x.service.toString().trim()
+                    !== injection.toString().trim());
+                await this.jsonToComponentFile(value, project, module)
+            }
+            return {message: 'injection deleted from component'};
+        });
+    }
+
+    /**
+     *
+     * @param project
+     * @param module
+     * @param component
+     * @param importObj {{name: string, ref: string, type: string}}
+     * @return {Promise<{message: string}>}
+     */
+    async addImport(project, module, component, importObj) {
+        return this.componentFileToJson(project, module, component).then(async value => {
+            if (value && value.imports && Array.isArray(value.imports)) {
+                const exist = value.imports.filter(
+                    x => x.name.trim() === importObj.name.trim()
+                );
+                if (exist.length === 0) {
+                    value.imports.push({
+                        name: importObj.name,
+                        type: importObj.type,
+                        readonly: false,
+                        ref: importObj.ref.toString(),
+                    });
+                    await this.jsonToComponentFile(value, project, module);
+                }
+            }
+            return {message: 'imports updated'};
+        })
+    }
+
+    /**
+     * add style to component
+     * @param project {string}
+     * @param module {string}
+     * @param component {string}
+     * @param style {string}
+     * @returns {Promise<*>}
+     */
+    async addStyle(project, module, component, style) {
+        return this.componentFileToJson(project, module, component).then(async value => {
+            if (value && value.styles && Array.isArray(value.styles)) {
+                const exist = value.styles.filter(x => x.toString().toLowerCase()
+                    === style.toString().split('.')[0].toLowerCase());
+                if (exist.length === 0) {
+                    value.styles.push(style.toString().split('.')[0]);
+                    await this.jsonToComponentFile(value, project, module);
+                }
+            }
+            return {message: 'style added to component'};
+        });
+    }
+
+    /**
+     * delete style from component
+     * @param project {string}
+     * @param module {string}
+     * @param component {string}
+     * @param style {string}
+     * @returns {Promise<*>}
+     */
+    async deleteStyle(project, module, component, style) {
+        return this.componentFileToJson(project, module, component).then(async value => {
+            if (value && value.styles && Array.isArray(value.styles)) {
+                value.styles = value.styles.filter(x => x.toString().toLowerCase()
+                    !== style.toString().split('.')[0].toLowerCase());
+                await this.jsonToComponentFile(value, project, module)
+            }
+            return {message: 'style deleted from component'};
+        });
+    }
+
+    /**
+     * add field to a component
+     * @param project {string}
+     * @param module {string}
+     * @param component {string}
+     * @param field {string}
+     * @returns {Promise<*>}
+     */
+    async addField(project, module, component, field) {
+        if (!field) {
+            throw {message: 'Field required'};
+        }
+        if (field.includes('=')) {
+            if (!field.includes(':')) {
+                const fieldParts = field.split('=');
+                field = `${fieldParts[0]}: any = ${fieldParts[1]}`;
+            }
+        } else {
+            field = field.concat(': any = null');
+        }
+        field = field.replace(new RegExp('[\;]', 'g'), '').trim();
+        return this.componentFileToJson(project, module, component).then(async value => {
+            if (value && value.fields && Array.isArray(value.fields)) {
+                const exist = value.fields.filter(
+                    x => x.name.toString().toLowerCase().trim() === field.split(':')[0].toString().toLowerCase().trim()
+                );
+                if (exist.length === 0) {
+                    value.fields.push({
+                        name: field.toString().split(':')[0].trim(),
+                        value: field.toString().trim(),
+                    });
+                    await this.jsonToComponentFile(value, project, module);
+                }
+            }
+            return {message: 'field added to component'};
+        });
+    }
+
+    /**
+     * delete a field from a component
+     * @param project {string}
+     * @param module {string}
+     * @param component {string}
+     * @param field {string}
+     * @returns {Promise<*>}
+     */
+    async deleteField(project, module, component, field) {
+        return this.componentFileToJson(project, module, component).then(async value => {
+            if (value && value.fields && Array.isArray(value.fields)) {
+                value.fields = value.fields.filter(x => x.name.toString().toLowerCase().trim()
+                    !== field.toString().toLowerCase().trim());
+                await this.jsonToComponentFile(value, project, module);
+            }
+            return {message: 'field removed from component'};
+        });
+    }
+
     geStylesFromComponentFile(componentFile) {
         const reg = new RegExp('(styleUrls.*\:).*[\\[.*\\]]', 'ig');
         const results = componentFile.toString().match(reg) ? componentFile.toString().match(reg)[0] : [];
@@ -378,5 +600,42 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(com
         } else {
             return [];
         }
+    }
+
+    /**
+     *
+     * @param serviceFile
+     * @return {*[]|{ref: string|null, name: string|null, type: string}[]}
+     * @private
+     */
+    getUserImportsFromComponentFile(serviceFile) {
+        const reg = new RegExp('(import).*(.|\\n)*(from).*;', 'ig');
+        let results = serviceFile.toString().match(reg) ? serviceFile.toString().match(reg)[0] : [];
+        if (results) {
+            results = results.toString()
+                .replace(new RegExp('(import).*(\\.service).*;', 'ig'), '')
+                .replace(new RegExp('(import).*(\\.state).*;', 'ig'), '')
+                .replace(new RegExp('(\\n){2,}', 'ig'), '\n')
+                .trim()
+                .split('\n')
+                .filter(y => (typeof y === "string" && y.length > 1))
+                .map(x => {
+                    const isModule = x.includes('{') && x.includes('}');
+                    const xParts = x.replace('import', '')
+                        .replace('{', '')
+                        .replace('}', '')
+                        .replace(';', '')
+                        .trim()
+                        .split('from');
+                    return {
+                        name: xParts[0] ? xParts[0].trim() : null,
+                        type: isModule ? 'module' : 'common',
+                        readonly: false,
+                        ref: xParts[1] ? xParts[1].replace(new RegExp('[\'\"]', 'ig'), '').trim() : null
+                    }
+                });
+            return this.appUtil.multipleImportToSingleImportOfLib(results, AppUtil.readonlyComponentImports);
+        }
+        return [];
     }
 }

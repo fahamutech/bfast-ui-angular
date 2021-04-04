@@ -1,4 +1,26 @@
 export class AppUtil {
+    static readonlyComponentImports = [
+        'bfast',
+        'BFast',
+        'Component',
+        'EventEmitter',
+        'Input',
+        'Output',
+        'OnInit',
+        'OnDestroy',
+        'ViewChild'
+    ];
+    static readonlyModulesImport = [
+        'BrowserModule',
+        'ROUTES',
+        'bfast',
+        'CommonModule',
+        'NgModule',
+        'RouterModule',
+        'Routes',
+        'BrowserModule'
+    ];
+
     /**
      *
      * @param name
@@ -56,12 +78,19 @@ export class AppUtil {
         }
     }
 
-    getInjectionsFromFile(file, thirdPartLib = []) {
+    /**
+     *
+     * @param file {string} file to extract injections
+     * @param thirdPartLib {Array<*>}
+     * @param type {"Service" || "State"}
+     * @return {*[]|{auto: boolean, service: string|string|string, name: *|string}[]}
+     */
+    getInjectionsFromFile(file, thirdPartLib, type) {
         const reg = new RegExp('(constructor).*\:(.|\\n)+?\\)', 'ig');
-        const results = file.toString().match(reg) ? file.toString().match(reg)[0] : [];
+        const results = file.toString().match(reg) ? file.toString().match(reg).join('\n') : [];
         if (results) {
             return results.toString()
-                .replace(new RegExp('(constructor.*\\()|(private)|(readonly)|\\)', 'gim'), '')
+                .replace(new RegExp('(constructor.*\\()|(private)|(public)|(readonly)|\\)', 'gim'), '')
                 .split(',')
                 .filter(x => x !== '')
                 .map(x => {
@@ -78,16 +107,15 @@ export class AppUtil {
                         service: auto === true
                             ? (
                                 typeof sImp == "string"
-                                    ? this.camelCaseToKebal(sImp.replace('Service', '').trim())
+                                    ? this.camelCaseToKebal(sImp.replace(type, '').trim())
                                     : ''
                             )
                             : sImp,
                         auto: auto
                     }
                 }).filter(x => x.name !== '');
-        } else {
-            return [];
         }
+        return [];
     }
 
     getMethodsFromFile(file) {
@@ -148,5 +176,32 @@ export class AppUtil {
         } else {
             return '';
         }
+    }
+
+    /**
+     *
+     * @param rawImports {Array<{name: string, type: string, ref: string, readonly: boolean}>}
+     * @param readonlyImports {Array<string>} readonly import names
+     * @return {*}
+     */
+    multipleImportToSingleImportOfLib(rawImports, readonlyImports) {
+        const singleImports = rawImports.filter(x => x.name.split(',').length === 1);
+        const multipleImports = rawImports.filter(x => x.name.split(',').length > 1);
+        multipleImports.forEach(mImport => {
+            singleImports.push(...mImport.name.split(',').map(y => {
+                return {
+                    name: y.trim(),
+                    type: mImport.type,
+                    readonly: false,
+                    ref: mImport.ref
+                }
+            }))
+        });
+        return singleImports.map(s => {
+            s.readonly = readonlyImports.includes(s.name);
+            return s;
+        }).sort((a, b) => {
+            return (a.readonly === b.readonly) ? 0 : a.readonly ? 1 : -1;
+        });
     }
 }

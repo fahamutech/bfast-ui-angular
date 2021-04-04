@@ -46,7 +46,7 @@ export class GuardsService {
         const guardJsonFile = {};
         guardJsonFile.name = this.getGuardName(guardFile.toString());
         guardJsonFile.body = this.getGuardBody(guardFile.toString());
-        guardJsonFile.injections = this.appUtil.getInjectionsFromFile(guardFile.toString());
+        guardJsonFile.injections = this.appUtil.getInjectionsFromFile(guardFile.toString(), [], 'Service');
         return guardJsonFile;
     }
 

@@ -38,9 +38,11 @@ function getTableContents(project, module, imports = []) {
                   <td style="flex-grow: 1">${importComponent.ref}</td>
                   <td>
                     <div class="d-flex flex-row">
+                    ${importComponent.readonly? 'readonly':`
                         <form method="post" action="/project/${project}/modules/${module}/resources/imports/${importComponent.name}/delete">
                             <button type="submit" class="btn-sm btn btn-danger">Delete</button>
                         </form>
+                     `}
                     </div>
                   </td>
                 </tr>`
