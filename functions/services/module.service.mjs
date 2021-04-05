@@ -1,9 +1,14 @@
 import {mkdir, readdir, readFile, writeFile} from 'fs';
 import {join} from 'path';
 import {promisify} from 'util';
-import {StorageUtil} from '../utils/storage.util.mjs'
-import {ComponentService} from './component.service.mjs'
-import {PageService} from './page.service.mjs'
+import {StorageUtil} from '../utils/storage.util.mjs';
+import {ComponentService} from './component.service.mjs';
+import {PageService} from './page.service.mjs';
+import {ServicesService} from './services.service.mjs';
+import {GuardsService} from './guards.service.mjs';
+import {StylesService} from './styles.service.mjs';
+import {StateService} from './state.service.mjs';
+import {ModelsService} from './models.service.mjs';
 import {AppUtil} from "../utils/app.util.mjs";
 
 export class ModuleService {
@@ -12,12 +17,30 @@ export class ModuleService {
      * @param storageService {StorageUtil}
      * @param componentService {ComponentService}
      * @param pageService {PageService}
+     * @param serviceService {ServicesService}
+     * @param guardsService {GuardsService}
+     * @param stylesService {StylesService}
+     * @param stateService {StateService}
+     * @param modelsService {ModelsService}
      * @param appUtil {AppUtil}
      */
-    constructor(storageService, componentService, pageService, appUtil) {
+    constructor(storageService,
+                componentService,
+                pageService,
+                serviceService,
+                guardsService,
+                stylesService,
+                stateService,
+                modelsService,
+                appUtil) {
         this.storageService = storageService;
         this.componentService = componentService;
         this.pageService = pageService;
+        this.serviceService = serviceService;
+        this.guardsService = guardsService;
+        this.stylesService = stylesService;
+        this.stateService = stateService;
+        this.modelsService = modelsService;
         this.appUtil = appUtil;
     }
 
@@ -203,7 +226,6 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(nam
         moduleJson.imports = this.getUserImportsFromModuleFile(moduleFile).filter(x => x.name.toLowerCase() !== 'appcomponent');
         moduleJson.injections = this.appUtil.getInjectionsFromFile(moduleFile, [], 'Service');
         moduleJson.constructor = this.appUtil.getConstructorBodyFromModuleFile(moduleFile);
-        // console.log(moduleJson);
         return moduleJson;
     }
 
@@ -747,17 +769,52 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(mod
         const projectInfo = await this.storageService.getConfig(project);
         const modules = await this.getModules(project);
         const _modulesMap = {};
-        modules.modules.forEach(x => {
-            _modulesMap[x] = {
-                services: {},
-                components: {},
-                pages: {},
-                guards: {},
-                states: {},
-                styles: {},
-                modules: {}
+        for (const module of modules.modules) {
+            _modulesMap[module] = {
+                services: await Promise.all(
+                    (await this.serviceService.getServices(project, module)).map(async x => {
+                        x = x.toString().replace(new RegExp('\\.(service).*'), '');
+                        return await this.serviceService.serviceFileToJson(project, module, x);
+                    })
+                ),
+                components: await Promise.all(
+                    (await this.componentService.getComponents(project, module)).map(async x => {
+                        x = x.toString().replace(new RegExp('\\.(component).*'), '');
+                        return await this.componentService.componentFileToJson(project, module, x);
+                    })
+                ),
+                pages: await Promise.all(
+                    (await this.pageService.getPages(project, module)).map(async x => {
+                        x = x.toString().replace(new RegExp('\\.(page).*'), '');
+                        return await this.pageService.pageFileToJson(project, module, x);
+                    })
+                ),
+                guards: await Promise.all(
+                    (await this.guardsService.getGuards(project, module)).map(async x => {
+                        x = x.toString().replace(new RegExp('\\.(guard).*'), '');
+                        return await this.guardsService.guardFileToJson(project, module, x);
+                    })
+                ),
+                states: await Promise.all(
+                    (await this.stateService.getStates(project, module)).map(async x => {
+                        x = x.toString().replace(new RegExp('\\.(state).*'), '');
+                        return await this.stateService.stateFileToJson(x, project, module);
+                    })
+                ),
+                styles: await Promise.all(
+                    (await this.stylesService.getStyles(project, module)).map(async x => {
+                        x = x.toString().replace(new RegExp('\\.(style).*'), '');
+                        return await this.stylesService.styleFileToJson(project, module, x);
+                    })
+                ),
+                models: await Promise.all(
+                    (await this.modelsService.getModels(project, module)).map(async x => {
+                        x = x.toString().replace(new RegExp('\\.(model).*'), '');
+                        return await this.modelsService.modelFileToJson(project, module, x);
+                    })
+                )
             }
-        });
+        }
         return {
             name: projectInfo.name,
             main: {

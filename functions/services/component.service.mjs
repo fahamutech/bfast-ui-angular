@@ -24,7 +24,7 @@ export class ComponentService {
              * @type {string[]}
              */
             const components = await promisify(readdir)(componentsDir);
-            return components.filter(x => x.toString().includes('.component'));
+            return components.filter(x => x !== '' && x.toString().includes('.component'));
         } catch (e) {
             return [];
         }
