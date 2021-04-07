@@ -771,6 +771,7 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(mod
         const _modulesMap = {};
         for (const module of modules.modules) {
             _modulesMap[module] = {
+                module: await this.moduleFileToJson(project,module),
                 services: await Promise.all(
                     (await this.serviceService.getServices(project, module)).map(async x => {
                         x = x.toString().replace(new RegExp('\\.(service).*'), '');
@@ -817,10 +818,8 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(mod
         }
         return {
             name: projectInfo.name,
-            main: {
-                name: projectInfo.module,
-                modules: _modulesMap
-            }
+            main: await this.mainModuleFileToJson(project),
+            modules: _modulesMap
         }
     }
 }

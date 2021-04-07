@@ -256,6 +256,7 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(com
                 return this.jsonToComponentFile({
                     name: componentName,
                     injections: [],
+                    imports: [],
                     fields: [],
                     methods: []
                 }, project, module);

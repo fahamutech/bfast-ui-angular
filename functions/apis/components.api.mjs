@@ -48,6 +48,7 @@ export const createModuleComponents = bfastnode.bfast.functions().onPostHttpRequ
             componentService.createComponent(project, module, componentName).then(_ => {
                 componentPage();
             }).catch(reason => {
+                console.log(reason);
                 componentPage(reason && reason.message ? reason.message : reason.toString());
             });
         } else {

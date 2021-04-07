@@ -16,7 +16,6 @@ bfast.init({
     functionsURL: `http://localhost:${process.env.DEV_PORT ? process.env.DEV_PORT : process.env.PORT}`,
     databaseURL: `http://localhost:${process.env.DEV_PORT ? process.env.DEV_PORT : process.env.PORT}`,
 });
-const syncEvent = bfast.functions().event(`/sync`);
 
 const storageUtil = new StorageUtil();
 const appUtil = new AppUtil();
@@ -38,6 +37,7 @@ const moduleService = new ModuleService(
     modelsService,
     appUtil
 );
+
 const modulePage = new ModulePage(moduleService, servicesService, componentService, pageService, guardsService);
 
 export const moduleHome = bfastnode.bfast.functions().onGetHttpRequest(
@@ -49,8 +49,6 @@ export const moduleHome = bfastnode.bfast.functions().onGetHttpRequest(
             response.send(value);
         }).catch(reason => {
             response.status(400).send(reason);
-        }).finally(() => {
-            syncEvent.emit({body: {project: project, type: 'main'}});
         });
     }
 );
@@ -61,10 +59,6 @@ export const moduleHomeUpdateMainModule = bfastnode.bfast.functions().onPostHttp
         const project = request.params.project;
         // _moduleService.updateMainModuleContents(project, request.body.code).then(_ => {
         response.json({message: 'done update'});
-        //  syncEvent.emit({body: {project: project, type: 'main'}});
-        // }).catch(reason => {
-        //     response.status(400).json({message: reason.toString()});
-        // });
     }
 );
 
@@ -157,7 +151,9 @@ export const mainModuleConstructorUpdateSubmit = bfastnode.bfast.functions().onP
 export const exportMainModule = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/main/export',
     (request, response) => {
-        moduleService.exportMainModule(request.params.project).then(value => {
+        const project = request.params.project;
+        moduleService.exportMainModule(project).then(value => {
+            response.setHeader('Content-Disposition',`attachment; filename="bfast-ui-${project}.json"`);
             response.json(value);
         }).catch(reason => {
             console.log(reason);
@@ -280,8 +276,6 @@ export const moduleResourcesView = bfastnode.bfast.functions().onGetHttpRequest(
         }).catch(reason => {
             console.log(reason);
             response.redirect(`/project/${project}/modules?error=${reason.toString()}`);
-        }).finally(() => {
-            syncEvent.emit({body: {project: project, module: module, type: 'child'}});
         });
     }
 );
