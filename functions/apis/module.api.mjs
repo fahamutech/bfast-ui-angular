@@ -7,34 +7,48 @@ import {ComponentService} from "../services/component.service.mjs";
 import {AppUtil} from "../utils/app.util.mjs";
 import {PageService} from "../services/page.service.mjs";
 import {GuardsService} from "../services/guards.service.mjs";
+import {StylesService} from "../services/styles.service.mjs";
+import {StateService} from "../services/state.service.mjs";
+import {ModelsService} from "../services/models.service.mjs";
 
 const {bfast} = bfastnode;
 bfast.init({
     functionsURL: `http://localhost:${process.env.DEV_PORT ? process.env.DEV_PORT : process.env.PORT}`,
     databaseURL: `http://localhost:${process.env.DEV_PORT ? process.env.DEV_PORT : process.env.PORT}`,
 });
-const syncEvent = bfast.functions().event(`/sync`);
 
 const storageUtil = new StorageUtil();
 const appUtil = new AppUtil();
 const componentService = new ComponentService(storageUtil, appUtil);
 const pageService = new PageService(storageUtil, appUtil);
-const _moduleService = new ModuleService(storageUtil, componentService, pageService, appUtil);
 const servicesService = new ServicesService(storageUtil, appUtil);
+const styleService = new StylesService(storageUtil, appUtil);
+const stateService = new StateService(storageUtil, appUtil);
 const guardsService = new GuardsService(storageUtil, appUtil);
-const modulePage = new ModulePage(_moduleService, servicesService, componentService, pageService, guardsService);
+const modelsService = new ModelsService(storageUtil, appUtil);
+const moduleService = new ModuleService(
+    storageUtil,
+    componentService,
+    pageService,
+    servicesService,
+    guardsService,
+    styleService,
+    stateService,
+    modelsService,
+    appUtil
+);
+
+const modulePage = new ModulePage(moduleService, servicesService, componentService, pageService, guardsService);
 
 export const moduleHome = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules',
     (request, response) => {
         const project = request.params.project;
-        const modulePage = new ModulePage(_moduleService, servicesService, componentService, pageService, guardsService);
+        const modulePage = new ModulePage(moduleService, servicesService, componentService, pageService, guardsService);
         modulePage.indexPage(project, request.query.error).then(value => {
             response.send(value);
         }).catch(reason => {
             response.status(400).send(reason);
-        }).finally(() => {
-            syncEvent.emit({body: {project: project, type: 'main'}});
         });
     }
 );
@@ -45,10 +59,6 @@ export const moduleHomeUpdateMainModule = bfastnode.bfast.functions().onPostHttp
         const project = request.params.project;
         // _moduleService.updateMainModuleContents(project, request.body.code).then(_ => {
         response.json({message: 'done update'});
-        //  syncEvent.emit({body: {project: project, type: 'main'}});
-        // }).catch(reason => {
-        //     response.status(400).json({message: reason.toString()});
-        // });
     }
 );
 
@@ -58,16 +68,18 @@ export const addImportToMainModuleSubmit = bfastnode.bfast.functions().onPostHtt
         const project = request.params.project;
         const body = JSON.parse(JSON.stringify(request.body));
         if (body && body.name && body.ref) {
-            _moduleService.mainModuleFileToJson(project).then(async value => {
+            moduleService.mainModuleFileToJson(project).then(async value => {
                 if (value && value.imports && Array.isArray(value.imports)) {
                     const exist = value.imports.filter(x => x.name.toString().toLowerCase()
                         === appUtil.kebalCaseToCamelCase(body.name.toString().split('.')[0]).concat('Module').toLowerCase());
                     if (exist.length === 0) {
                         value.imports.push({
                             name: appUtil.kebalCaseToCamelCase(body.name.toString().split('.')[0]).concat('Module'),
+                            readonly: false,
+                            type: 'module',
                             ref: body.ref.toString().replace('.ts', '')
                         });
-                        await _moduleService.mainModuleJsonToFile(project, value);
+                        await moduleService.mainModuleJsonToFile(project, value);
                     }
                 }
                 response.redirect(`/project/${project}/modules`);
@@ -85,11 +97,11 @@ export const deleteImportInMainModuleSubmit = bfastnode.bfast.functions().onPost
     (request, response) => {
         const project = request.params.project;
         const name = request.params.name;
-        _moduleService.mainModuleFileToJson(project).then(async value => {
+        moduleService.mainModuleFileToJson(project).then(async value => {
             if (value && value.imports && Array.isArray(value.imports)) {
                 value.imports = value.imports.filter(x => x.name.toString().toLowerCase()
                     !== name.toString().trim().toLowerCase());
-                await _moduleService.mainModuleJsonToFile(project, value);
+                await moduleService.mainModuleJsonToFile(project, value);
             }
             response.redirect(`/project/${project}/modules`);
         }).catch(reason => {
@@ -120,9 +132,9 @@ export const mainModuleConstructorUpdateSubmit = bfastnode.bfast.functions().onP
         const module = request.params.module;
         const body = JSON.parse(JSON.stringify(request.body));
         if (body && body.body) {
-            _moduleService.mainModuleFileToJson(project).then(async value => {
+            moduleService.mainModuleFileToJson(project).then(async value => {
                 value.constructor = body.body
-                return _moduleService.mainModuleJsonToFile(project, value);
+                return moduleService.mainModuleJsonToFile(project, value);
             }).then(_ => {
                 // response.redirect(`/project/${project}/modules/${module}/resources`);
                 response.json({message: 'Constructor Updated, Successful'});
@@ -135,6 +147,20 @@ export const mainModuleConstructorUpdateSubmit = bfastnode.bfast.functions().onP
         }
     }
 );
+
+export const exportMainModule = bfastnode.bfast.functions().onGetHttpRequest(
+    '/project/:project/modules/main/export',
+    (request, response) => {
+        const project = request.params.project;
+        moduleService.exportMainModule(project).then(value => {
+            response.setHeader('Content-Disposition',`attachment; filename="bfast-ui-${project}.json"`);
+            response.json(value);
+        }).catch(reason => {
+            console.log(reason);
+            response.status(400).send(reason);
+        })
+    }
+)
 
 export const addRouteToMainModuleSubmit = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/routes',
@@ -155,7 +181,7 @@ export const addRouteToMainModuleSubmit = bfastnode.bfast.functions().onPostHttp
                 const _m = appUtil.camelCaseToKebal(body.module);
                 body.ref = `./modules/${_m}/${_m}.module`;
             }
-            _moduleService.mainModuleFileToJson(project).then(async value => {
+            moduleService.mainModuleFileToJson(project).then(async value => {
                 if (value && value.routes && Array.isArray(value.routes)) {
                     const exist = value.routes.filter(x => x.path.toString().toLowerCase()
                         === body.path.toString().toLowerCase());
@@ -166,7 +192,7 @@ export const addRouteToMainModuleSubmit = bfastnode.bfast.functions().onPostHttp
                             module: appUtil.kebalCaseToCamelCase(body.module.toString().replace('.module.ts', '')),
                             guards: body.guards.map(x => appUtil.kebalCaseToCamelCase(x.replace('.guard.ts', '')))
                         });
-                        await _moduleService.mainModuleJsonToFile(project, value);
+                        await moduleService.mainModuleJsonToFile(project, value);
                     }
                 }
                 response.redirect(`/project/${project}/modules`);
@@ -189,11 +215,11 @@ export const deleteRouteInMainModuleSubmit = bfastnode.bfast.functions().onPostH
         if (route === '-') {
             route = '';
         }
-        _moduleService.mainModuleFileToJson(project).then(async value => {
+        moduleService.mainModuleFileToJson(project).then(async value => {
             if (value && value.routes && Array.isArray(value.routes)) {
                 value.routes = value.routes.filter(x => x.path.toString().toLowerCase()
                     !== route.toString().trim().toLowerCase());
-                await _moduleService.mainModuleJsonToFile(project, value);
+                await moduleService.mainModuleJsonToFile(project, value);
             }
             response.redirect(`/project/${project}/modules`);
         }).catch(reason => {
@@ -228,7 +254,7 @@ export const moduleCreatePost = bfastnode.bfast.functions().onPostHttpRequest(
         },
         (request, response) => {
             const project = request.params.project;
-            _moduleService.createModule(project, request.body.name, request.body.detail).then(_ => {
+            moduleService.createModule(project, request.body.name, request.body.detail).then(_ => {
                 response.redirect(`/project/${request.params.project}/modules/`);
             }).catch(reason => {
                 console.log(reason)
@@ -244,14 +270,12 @@ export const moduleResourcesView = bfastnode.bfast.functions().onGetHttpRequest(
     (request, response) => {
         const project = request.params.project;
         const module = request.params.module;
-        const modulePage = new ModulePage(_moduleService, servicesService, componentService, pageService, guardsService);
+        const modulePage = new ModulePage(moduleService, servicesService, componentService, pageService, guardsService);
         modulePage.viewModuleResources(request.params.module, project).then(value => {
             response.send(value);
         }).catch(reason => {
             console.log(reason);
             response.redirect(`/project/${project}/modules?error=${reason.toString()}`);
-        }).finally(() => {
-            syncEvent.emit({body: {project: project, module: module, type: 'child'}});
         });
     }
 );
@@ -262,7 +286,7 @@ export const addInjectionToModuleSubmit = bfastnode.bfast.functions().onPostHttp
         const project = request.params.project;
         const module = request.params.module;
         const injection = request.params.injection;
-        _moduleService.moduleFileToJson(project, module).then(async value => {
+        moduleService.moduleFileToJson(project, module).then(async value => {
             if (value && value.injections && Array.isArray(value.injections)) {
                 const exist = value.injections.filter(x => x.service.toString().toLowerCase()
                     === injection.toString().split('.')[0].toLowerCase());
@@ -271,7 +295,7 @@ export const addInjectionToModuleSubmit = bfastnode.bfast.functions().onPostHttp
                         name: injection.toString().split('.')[0].toString().toLowerCase() + 'Service'.trim(),
                         service: injection.toString().split('.')[0].toString().toLowerCase().trim()
                     });
-                    await _moduleService.moduleJsonToFile(project, module, value);
+                    await moduleService.moduleJsonToFile(project, module, value);
                 }
             }
             response.redirect(`/project/${project}/modules/${module}/resources`);
@@ -287,11 +311,11 @@ export const deleteInjectionInModuleSubmit = bfastnode.bfast.functions().onPostH
         const project = request.params.project;
         const module = request.params.module;
         const injection = request.params.injection;
-        _moduleService.moduleFileToJson(project, module).then(async value => {
+        moduleService.moduleFileToJson(project, module).then(async value => {
             if (value && value.injections && Array.isArray(value.injections)) {
                 value.injections = value.injections.filter(x => x.service.toString().toLowerCase()
                     !== injection.toString().split('.')[0].toLowerCase());
-                await _moduleService.moduleJsonToFile(project, module, value);
+                await moduleService.moduleJsonToFile(project, module, value);
             }
             response.redirect(`/project/${project}/modules/${module}/resources`);
         }).catch(reason => {
@@ -307,13 +331,13 @@ export const addExportToModuleSubmit = bfastnode.bfast.functions().onPostHttpReq
         const project = request.params.project;
         const module = request.params.module;
         const component = request.params.component;
-        _moduleService.moduleFileToJson(project, module).then(async value => {
+        moduleService.moduleFileToJson(project, module).then(async value => {
             if (value && value.exports && Array.isArray(value.exports)) {
                 const exist = value.exports.filter(x => x.toString().toLowerCase()
                     === appUtil.kebalCaseToCamelCase(component.toString().split('.')[0]).toLowerCase());
                 if (exist.length === 0) {
                     value.exports.push(appUtil.kebalCaseToCamelCase(component.toString().split('.')[0]));
-                    await _moduleService.moduleJsonToFile(project, module, value);
+                    await moduleService.moduleJsonToFile(project, module, value);
                 }
             }
             response.redirect(`/project/${project}/modules/${module}/resources`);
@@ -329,11 +353,11 @@ export const deleteExportInModuleSubmit = bfastnode.bfast.functions().onPostHttp
         const project = request.params.project;
         const module = request.params.module;
         const component = request.params.component;
-        _moduleService.moduleFileToJson(project, module).then(async value => {
+        moduleService.moduleFileToJson(project, module).then(async value => {
             if (value && value.exports && Array.isArray(value.exports)) {
                 value.exports = value.exports.filter(x => x.toString().toLowerCase()
                     !== component.toString().trim().toLowerCase());
-                await _moduleService.moduleJsonToFile(project, module, value);
+                await moduleService.moduleJsonToFile(project, module, value);
             }
             response.redirect(`/project/${project}/modules/${module}/resources`);
         }).catch(reason => {
@@ -349,16 +373,17 @@ export const addImportToModuleSubmit = bfastnode.bfast.functions().onPostHttpReq
         const module = request.params.module;
         const body = JSON.parse(JSON.stringify(request.body));
         if (body && body.name && body.ref) {
-            _moduleService.moduleFileToJson(project, module).then(async value => {
+            moduleService.moduleFileToJson(project, module).then(async value => {
                 if (value && value.imports && Array.isArray(value.imports)) {
                     const exist = value.imports.filter(x => x.name.toString().toLowerCase()
                         === appUtil.kebalCaseToCamelCase(body.name.toString().split('.')[0]).concat('Module').toLowerCase());
                     if (exist.length === 0) {
                         value.imports.push({
                             name: appUtil.kebalCaseToCamelCase(body.name.toString().split('.')[0]).concat('Module'),
+                            readonly: false,
                             ref: body.ref.toString().replace('.ts', '')
                         });
-                        await _moduleService.moduleJsonToFile(project, module, value);
+                        await moduleService.moduleJsonToFile(project, module, value);
                     }
                 }
                 response.redirect(`/project/${project}/modules/${module}/resources`);
@@ -377,11 +402,11 @@ export const deleteImportInModuleSubmit = bfastnode.bfast.functions().onPostHttp
         const project = request.params.project;
         const module = request.params.module;
         const name = request.params.name;
-        _moduleService.moduleFileToJson(project, module).then(async value => {
+        moduleService.moduleFileToJson(project, module).then(async value => {
             if (value && value.imports && Array.isArray(value.imports)) {
                 value.imports = value.imports.filter(x => x.name.toString().toLowerCase()
                     !== name.toString().trim().toLowerCase());
-                await _moduleService.moduleJsonToFile(project, module, value);
+                await moduleService.moduleJsonToFile(project, module, value);
             }
             response.redirect(`/project/${project}/modules/${module}/resources`);
         }).catch(reason => {
@@ -406,7 +431,7 @@ export const addRouteToModuleSubmit = bfastnode.bfast.functions().onPostHttpRequ
             if (body.path.toString().startsWith('/')) {
                 body.path = body.path.toString().substring(1);
             }
-            _moduleService.moduleFileToJson(project, module).then(async value => {
+            moduleService.moduleFileToJson(project, module).then(async value => {
                 if (value && value.routes && Array.isArray(value.routes)) {
                     const exist = value.routes.filter(x => x.path.toString().toLowerCase()
                         === body.path.toString().toLowerCase());
@@ -416,7 +441,7 @@ export const addRouteToModuleSubmit = bfastnode.bfast.functions().onPostHttpRequ
                             page: appUtil.kebalCaseToCamelCase(body.page.toString().replace('.page.ts', '')),
                             guards: body.guards.map(x => appUtil.kebalCaseToCamelCase(x.replace('.guard.ts', '')))
                         });
-                        await _moduleService.moduleJsonToFile(project, module, value);
+                        await moduleService.moduleJsonToFile(project, module, value);
                     }
                 }
                 response.redirect(`/project/${project}/modules/${module}/resources`);
@@ -438,11 +463,11 @@ export const deleteRouteInModuleSubmit = bfastnode.bfast.functions().onPostHttpR
         if (route === '-') {
             route = '';
         }
-        _moduleService.moduleFileToJson(project, module).then(async value => {
+        moduleService.moduleFileToJson(project, module).then(async value => {
             if (value && value.routes && Array.isArray(value.routes)) {
                 value.routes = value.routes.filter(x => x.path.toString().toLowerCase()
                     !== route.toString().trim().toLowerCase());
-                await _moduleService.moduleJsonToFile(project, module, value);
+                await moduleService.moduleJsonToFile(project, module, value);
             }
             response.redirect(`/project/${project}/modules/${module}/resources`);
         }).catch(reason => {
@@ -457,7 +482,7 @@ export const moduleConstructorUpdate = bfastnode.bfast.functions().onGetHttpRequ
         const project = request.params.project;
         const module = request.params.module;
         const error = decodeURIComponent(request.query.error);
-        const modulePage = new ModulePage(_moduleService, servicesService, componentService, pageService, guardsService);
+        const modulePage = new ModulePage(moduleService, servicesService, componentService, pageService, guardsService);
         modulePage.moduleConstructorUpdateView(project, module).then(value => {
             response.send(value);
         }).catch(reason => {
@@ -474,9 +499,9 @@ export const moduleConstructorUpdateSubmit = bfastnode.bfast.functions().onPostH
         const module = request.params.module;
         const body = JSON.parse(JSON.stringify(request.body));
         if (body && body.body) {
-            _moduleService.moduleFileToJson(project, module).then(async value => {
+            moduleService.moduleFileToJson(project, module).then(async value => {
                 value.constructor = body.body
-                return _moduleService.moduleJsonToFile(project, module, value);
+                return moduleService.moduleJsonToFile(project, module, value);
             }).then(_ => {
                 // response.redirect(`/project/${project}/modules/${module}/resources`);
                 response.json({message: 'Constructor Updated, Successful'});

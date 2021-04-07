@@ -11,7 +11,6 @@ bfast.init({
     functionsURL: `http://localhost:${process.env.DEV_PORT ? process.env.DEV_PORT : process.env.PORT}`,
     databaseURL: `http://localhost:${process.env.DEV_PORT ? process.env.DEV_PORT : process.env.PORT}`,
 });
-const syncEvent = bfast.functions().event(`/sync`);
 
 const storage = new StorageUtil();
 const appUtil = new AppUtil();
@@ -29,8 +28,6 @@ export const viewModulePages = bfastnode.bfast.functions().onGetHttpRequest(
             response.send(value);
         }).catch(_ => {
             response.status(400).send(_);
-        }).finally(() => {
-            syncEvent.emit({body: {project: project, module: module, type: 'child'}});
         });
     }
 );
@@ -47,8 +44,6 @@ export const createModulePages = bfastnode.bfast.functions().onPostHttpRequest(
                 response.send(value);
             }).catch(_ => {
                 response.status(400).send(_);
-            }).finally(() => {
-                syncEvent.emit({body: {project: project, module: module, type: 'child'}});
             });
         }
 
@@ -58,8 +53,6 @@ export const createModulePages = bfastnode.bfast.functions().onPostHttpRequest(
                 pagePage();
             }).catch(reason => {
                 pagePage(reason && reason.message ? reason.message : reason.toString());
-            }).finally(() => {
-                syncEvent.emit({body: {project: project, module: module, type: 'child'}});
             });
         } else {
             pagePage("Please enter valid page name");
@@ -117,8 +110,6 @@ export const updatePageTemplateSubmit = bfastnode.bfast.functions().onPostHttpRe
                 response.send({message: 'done update template'})
             }).catch(reason => {
                 response.status(400).send(reason.toString());
-            }).finally(() => {
-                syncEvent.emit({body: {project: project, module: module, type: 'child'}});
             });
         } else {
             response.status(400).send("Please enter valid template html code");

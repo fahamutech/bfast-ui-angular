@@ -48,6 +48,7 @@ export const createModuleComponents = bfastnode.bfast.functions().onPostHttpRequ
             componentService.createComponent(project, module, componentName).then(_ => {
                 componentPage();
             }).catch(reason => {
+                console.log(reason);
                 componentPage(reason && reason.message ? reason.message : reason.toString());
             });
         } else {
@@ -199,7 +200,6 @@ export const deleteMethodInAComponentSubmit = bfastnode.bfast.functions().onPost
         const module = request.params.module;
         const component = request.params.component;
         const method = request.params.method;
-        //  const body = JSON.parse(JSON.stringify(request.body));
         componentService.deleteMethod(project, module, component, method).then(_ => {
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`);
         }).catch(reason => {
@@ -215,21 +215,26 @@ export const addInjectionInAComponentSubmit = bfastnode.bfast.functions().onPost
         const module = request.params.module;
         const component = request.params.component;
         const injection = request.params.injection;
-        const injectionName = appUtil.firstCaseLower(appUtil.kebalCaseToCamelCase(injection.toString().split('.')[0]));
-        componentService.componentFileToJson(project, module, component).then(async value => {
-            if (value && value.injections && Array.isArray(value.injections)) {
-                const exist = value.injections.filter(x => x.state === injectionName);
-                if (exist.length === 0) {
-                    value.injections.push({
-                        name: injectionName + 'State'.trim(),
-                        state: injection.toString().split('.')[0].trim()
-                    });
-                    await componentService.jsonToComponentFile(value, project, module)
-                }
-            }
+        componentService.addInjection(project, module, component, injection).then(_ => {
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`);
         }).catch(reason => {
-            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
+            console.log(reason);
+            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())}`);
+        });
+    }
+);
+
+export const addInjectionManualInAComponentSubmit = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/:module/resources/components/:component/injections',
+    (request, response) => {
+        const project = request.params.project;
+        const module = request.params.module;
+        const component = request.params.component;
+        const body = JSON.parse(JSON.stringify(request.body));
+        componentService.addInjectionFromExternalLib(project, module, component, body.name).then(async _ => {
+            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`);
+        }).catch(reason => {
+            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`);
         });
     }
 );
@@ -241,16 +246,11 @@ export const deleteInjectionInAComponentSubmit = bfastnode.bfast.functions().onP
         const module = request.params.module;
         const component = request.params.component;
         const injection = request.params.injection;
-        componentService.componentFileToJson(project, module, component).then(async value => {
-            if (value && value.injections && Array.isArray(value.injections)) {
-                value.injections = value.injections.filter(x => x.state.toString().toLowerCase()
-                    !== injection.toString().split('.')[0].toLowerCase());
-                await componentService.jsonToComponentFile(value, project, module)
-            }
+        componentService.deleteInjection(project, module, component, injection).then(_ => {
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`)
         }).catch(reason => {
             console.log(reason);
-            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
+            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())}`);
         });
     }
 );
@@ -262,19 +262,11 @@ export const addStyleInAComponentSubmit = bfastnode.bfast.functions().onPostHttp
         const module = request.params.module;
         const component = request.params.component;
         const style = request.params.style;
-        componentService.componentFileToJson(project, module, component).then(async value => {
-            if (value && value.styles && Array.isArray(value.styles)) {
-                const exist = value.styles.filter(x => x.toString().toLowerCase()
-                    === style.toString().split('.')[0].toLowerCase());
-                if (exist.length === 0) {
-                    value.styles.push(style.toString().split('.')[0]);
-                    await componentService.jsonToComponentFile(value, project, module);
-                }
-            }
+        componentService.addStyle(project, module, component, style).then(_ => {
             response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`);
         }).catch(reason => {
             console.log(reason);
-            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
+            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())}`)
         });
     }
 );
@@ -286,16 +278,11 @@ export const deleteStyleInAComponentSubmit = bfastnode.bfast.functions().onPostH
         const module = request.params.module;
         const component = request.params.component;
         const style = request.params.style;
-        componentService.componentFileToJson(project, module, component).then(async value => {
-            if (value && value.styles && Array.isArray(value.styles)) {
-                value.styles = value.styles.filter(x => x.toString().toLowerCase()
-                    !== style.toString().split('.')[0].toLowerCase());
-                await componentService.jsonToComponentFile(value, project, module)
-            }
-            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`)
+        componentService.deleteStyle(project, module, component, style).then(_ => {
+            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`);
         }).catch(reason => {
             console.log(reason);
-            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
+            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())}`);
         });
     }
 );
@@ -308,29 +295,12 @@ export const addFieldInAComponentSubmit = bfastnode.bfast.functions().onPostHttp
         const component = request.params.component;
         const body = JSON.parse(JSON.stringify(request.body));
         const field = body.name;
-        if (field && field.toString().includes(':')) {
-            componentService.componentFileToJson(project, module, component).then(async value => {
-                if (value && value.fields && Array.isArray(value.fields)) {
-                    const exist = value.fields.filter(
-                        x =>
-                            x.value.toString().toLowerCase().trim() === field.toString().toLowerCase().trim()
-                    );
-                    if (exist.length === 0) {
-                        value.fields.push({
-                            name: field.toString().split(':')[0].trim(),
-                            value: field.toString().trim(),
-                        });
-                        await componentService.jsonToComponentFile(value, project, module)
-                    }
-                }
-                response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`)
-            }).catch(reason => {
-                console.log(reason);
-                response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
-            });
-        } else {
-            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent('Component field is bad formatted, must contain : to separate nam and type')}`)
-        }
+        componentService.addField(project, module, component, field).then(_ => {
+            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`);
+        }).catch(reason => {
+            console.log(reason);
+            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())}`);
+        });
     }
 );
 
@@ -341,16 +311,56 @@ export const deleteFieldInAComponentSubmit = bfastnode.bfast.functions().onPostH
         const module = request.params.module;
         const component = request.params.component;
         const field = decodeURIComponent(request.params.field);
-        componentService.componentFileToJson(project, module, component).then(async value => {
-            if (value && value.fields && Array.isArray(value.fields)) {
-                value.fields = value.fields.filter(x => x.name.toString().toLowerCase().trim()
-                    !== field.toString().toLowerCase().trim());
-                await componentService.jsonToComponentFile(value, project, module);
-            }
-            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`)
+        componentService.deleteField(project, module, component, field).then(_ => {
+            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`);
         }).catch(reason => {
             console.log(reason);
-            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`)
+            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())}`);
+        });
+    }
+);
+
+export const addExternalLibToComponent = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/:module/resources/components/:component/imports',
+    (request, response) => {
+        const project = request.params.project;
+        const module = request.params.module;
+        const component = request.params.component;
+        const body = JSON.parse(JSON.stringify(request.body));
+        if (body && body.name && body.ref && body.type) {
+            componentService.addImport(project, module, component, {
+                name: body.name,
+                type: body.type,
+                ref: body.ref
+            }).then(async _ => {
+                response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`);
+            }).catch(reason => {
+                console.log(reason);
+                response.redirect(`/project/${project}/modules/${module}/resources/components/${component}s?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`);
+            });
+        } else {
+            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent('name and ref attribute in a body is required')})`);
+        }
+    }
+);
+
+export const removeExternalLibToComponent = bfastnode.bfast.functions().onPostHttpRequest(
+    '/project/:project/modules/:module/resources/components/:component/imports/:name/delete',
+    (request, response) => {
+        const project = request.params.project;
+        const module = request.params.module;
+        const component = request.params.component;
+        const name = decodeURIComponent(request.params.name);
+        componentService.componentFileToJson(project, module, component).then(async value => {
+            if (value && value.imports && Array.isArray(value.imports)) {
+                value.imports = value.imports.filter(x => x.name.toString().toLowerCase()
+                    !== name.toString().trim().toLowerCase());
+                await componentService.jsonToComponentFile(value, project, module);
+            }
+            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}`);
+        }).catch(reason => {
+            console.log(reason);
+            response.redirect(`/project/${project}/modules/${module}/resources/components/${component}?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())})`);
         });
     }
 );

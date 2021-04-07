@@ -30,6 +30,10 @@ export const mainModuleAvailablesComponent = async function (
                <div class="d-flex flex-row">
                      <h2>Main module</h2>
                      <span style="flex: 1 1 auto"></span>
+                     <a href="/project/${project}/modules/main/export">
+                        <button class="btn btn-outline-primary btn-sm">Export</button>
+                     </a>
+                     <div style="width: 10px; height: 10px"></div>
                      <a href="/project/${project}/modules/main/constructor">
                         <button class="btn btn-primary btn-sm">Update Constructor</button>
                      </a>

@@ -1,9 +1,9 @@
-export const componentInjectionTableComponent = async function (project, module, component, injections = [], services = []) {
+export const componentInjectionTableComponent = async function (project, module, component, injections = [], otherStates = [], imports) {
     return `
         <div class="d-flex flex-row" style="margin: 8px 0">
              <h3 style="margin: 0">States</h3>
              <span style="flex: 1 1 auto"></span>
-             <button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#addInjectionModal">Add State</button>
+             <button class="btn btn-sm btn-outline-primary" data-toggle="modal" data-target="#addInjectionModal">Add State / Inject Lib</button>
         </div>
         <div class="shadow">
             <table class="table table-hover">
@@ -11,7 +11,7 @@ export const componentInjectionTableComponent = async function (project, module,
                 <tr>
                   <th scope="col">#</th>
                   <th scope="col">Name</th>
-                  <th scope="col">State</th>
+                  <th scope="col">State / Lib</th>
                   <th scope="col">Actions</th>
                 </tr>
               </thead>
@@ -19,7 +19,7 @@ export const componentInjectionTableComponent = async function (project, module,
                ${getTableContents(project, module, component, injections)}
               </tbody>
             </table>
-            ${await addInjectionModal(project, module, component, services)}
+            ${await addInjectionModal(project, module, component, otherStates, imports)}
         </div>
     `
 }
@@ -30,10 +30,10 @@ function getTableContents(project, module, component, injections = []) {
         row += `<tr style="cursor: pointer">
                   <th scope="row">${injections.indexOf(injection) + 1}</th>
                   <td>${injection.name}</td>
-                  <td style="flex-grow: 1">${injection.state}.state.ts</td>
+                  <td style="flex-grow: 1">${injection.auto?injection.service+'.state.ts': injection.service}</td>
                   <td>
                     <div class="d-flex flex-row">
-                        <form method="post" action="/project/${project}/modules/${module}/resources/components/${component}/injections/${injection.state}.state.ts/delete">
+                        <form method="post" action="/project/${project}/modules/${module}/resources/components/${component}/injections/${injection.auto?injection.service+'.state.ts': injection.service}.state.ts/delete">
                             <button type="submit" class="btn-sm btn btn-danger">Delete</button>
                         </form>
                     </div>
@@ -44,23 +44,46 @@ function getTableContents(project, module, component, injections = []) {
 }
 
 
-async function addInjectionModal(project, module, component, services) {
+async function addInjectionModal(project, module, component, states, imports = []) {
     function allOtherServices() {
-        let otherServices = ''
-        for (const injection of services) {
-            otherServices += `
+        let externalLibList = ''
+        for (const imp of imports) {
+            externalLibList += `
+            <option value="${imp}">${imp}</option>
+            `
+        }
+        let externalLibInjectForm = `
+            <div>
+                <form method="post" action="/project/${project}/modules/${module}/resources/components/${component}/injections">
+                    <div>
+                        <label class="form-label btn-block">
+                            Name
+                            <select class="form-control"  name="name" id="name">
+                                ${externalLibList}
+                            </select>
+                        </label>
+                    </div>
+                    <button class="btn btn-primary btn-block" type="submit">
+                       Inject External Lib
+                    </button>
+                </form>
+            </div>
+            <hr>
+        `;
+        for (const state of states) {
+            externalLibInjectForm += `
             <div style="margin-bottom: 5px">
-                <form method="post" action="/project/${project}/modules/${module}/resources/components/${component}/injections/${injection}">
+                <form method="post" action="/project/${project}/modules/${module}/resources/components/${component}/injections/${state}">
                     <button class="btn btn-outline-primary btn-block" type="submit">
-                        ${injection}
+                        ${state}
                     </button>
                 </form>
             </div>`
         }
-        if (otherServices === '') {
-            return 'No Other Services';
+        if (externalLibInjectForm === '') {
+            return 'No states to add';
         } else {
-            return otherServices;
+            return externalLibInjectForm;
         }
     }
 
@@ -71,7 +94,7 @@ async function addInjectionModal(project, module, component, services) {
       <div class="modal-dialog">
         <div class="modal-content">
           <div class="modal-header">
-            <h5 class="modal-title" id="staticBackdropLabel">Other Services</h5>
+            <h5 class="modal-title" id="staticBackdropLabel">States and libs</h5>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
               <span aria-hidden="true">&times;</span>
             </button>

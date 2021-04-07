@@ -4,13 +4,33 @@ import {StorageUtil} from "../utils/storage.util.mjs";
 import {AppUtil} from "../utils/app.util.mjs";
 import {ComponentService} from "../services/component.service.mjs";
 import {PageService} from "../services/page.service.mjs";
+import {ServicesService} from "../services/services.service.mjs";
+import {StylesService} from "../services/styles.service.mjs";
+import {StateService} from "../services/state.service.mjs";
+import {GuardsService} from "../services/guards.service.mjs";
+import {ModelsService} from "../services/models.service.mjs";
 
 const {bfast} = bfastnode;
-const storage = new StorageUtil();
+const storageUtil = new StorageUtil();
 const appUtil = new AppUtil();
-const componentService = new ComponentService(storage, appUtil);
-const pageService = new PageService(storage, appUtil);
-const moduleService = new ModuleService(storage, componentService, pageService, appUtil);
+const componentService = new ComponentService(storageUtil, appUtil);
+const pageService = new PageService(storageUtil, appUtil);
+const servicesService = new ServicesService(storageUtil, appUtil);
+const styleService = new StylesService(storageUtil, appUtil);
+const stateService = new StateService(storageUtil, appUtil);
+const guardsService = new GuardsService(storageUtil, appUtil);
+const modelsService = new ModelsService(storageUtil, appUtil);
+const moduleService = new ModuleService(
+    storageUtil,
+    componentService,
+    pageService,
+    servicesService,
+    guardsService,
+    styleService,
+    stateService,
+    modelsService,
+    appUtil
+);
 
 export const mainModuleSync = bfast.functions().onGuard(
     '/project/:project/modules',
