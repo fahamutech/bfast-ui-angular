@@ -32,7 +32,7 @@ export class ComponentService {
 
     /**
      *
-     * @param componentName - {string} component name
+     * @param component - {string} component name
      * @param project - {string} current project
      * @param module - {string} current module
      * @return {Promise<{
@@ -42,29 +42,29 @@ export class ComponentService {
      *     styles: Array<string>,
      *     methods: Array<*>,
      *     imports: Array<*>
-     * }>}
+     * } | object>}
      */
-    async componentFileToJson(project, module, componentName) {
-        if (componentName.toString().includes('.component.ts')) {
-            componentName = componentName.toString().split('.')[0];
+    async componentFileToJson(project, module, component) {
+        if (component.toString().includes('.component')) {
+            component = component.toString().split('.')[0];
         }
         const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
         const componentFile = await promisify(readFile)(join(
-            projectPath, 'modules', module, 'components', `${componentName}.component.ts`)
+            projectPath, 'modules', module, 'components', `${component}.component.ts`)
         );
-        const componentJsonFile = {};
-        componentJsonFile.name = componentName;
-        componentJsonFile.imports = this.getUserImportsFromComponentFile(componentFile);
-        componentJsonFile.injections = this.appUtil.getInjectionsFromFile(
-            componentFile,
-            componentJsonFile.imports.map(x => x.name),
+        const componentJson = {};
+        componentJson.name = component;
+        componentJson.imports = this.getUserImportsFromComponentFile(componentFile);
+        componentJson.injections = this.appUtil.getInjectionsFromFile(
+            componentFile.toString(),
+            componentJson.imports.map(x => x.name),
             'State'
         );
-        componentJsonFile.styles = this.geStylesFromComponentFile(componentFile);
-        componentJsonFile.template = this.getTemplateFromComponentFile(componentFile);
-        componentJsonFile.fields = this.getComponentFieldFromComponentFile(componentFile);
-        componentJsonFile.methods = this.appUtil.getMethodsFromFile(componentFile);
-        return componentJsonFile;
+        componentJson.styles = this.geStylesFromComponentFile(componentFile);
+        componentJson.template = this.getTemplateFromComponentFile(componentFile);
+        componentJson.fields = this.getComponentFieldFromComponentFile(componentFile);
+        componentJson.methods = this.appUtil.getMethodsFromFile(componentFile);
+        return componentJson;
     }
 
     /**
@@ -102,16 +102,29 @@ export class ComponentService {
             component.methods.push({
                 name: 'ngOnInit',
                 inputs: '',
-                return: 'void',
+                return: 'any',
                 body: ''
             });
         }
+
+
+        const ngAfterViewInitExist = component.methods.filter(x => x.name === 'ngAfterViewInit');
+        if (ngAfterViewInitExist.length === 0) {
+            component.methods.push({
+                name: 'ngAfterViewInit',
+                inputs: '',
+                return: 'any',
+                body: ''
+            });
+        }
+
+
         const onDestroyExist = component.methods.filter(x => x.name === 'ngOnDestroy');
         if (onDestroyExist.length === 0) {
             component.methods.push({
                 name: 'ngOnDestroy',
                 inputs: '',
-                return: 'void',
+                return: 'any',
                 body: ''
             });
         }
@@ -124,7 +137,7 @@ export class ComponentService {
 
         await promisify(writeFile)(join(projectPath, 'modules', module, 'components', `${component.name}.component.ts`),
             `import {bfast, BFast} from 'bfastjs';
-import {Component, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
+import {Component, AfterViewInit, EventEmitter, Input, OnDestroy, OnInit, Output, ViewChild} from '@angular/core';
 ${this.getStateImports(component.injections)}
 ${this.getLibImports(component.imports.filter(s => typeof s.readonly === "boolean" && s.readonly === false))}
 
@@ -133,7 +146,7 @@ ${this.getLibImports(component.imports.filter(s => typeof s.readonly === "boolea
     template: \`${component.template}\`,
     styleUrls: [${this.getComponentStylesFromJson(component.styles)}]
 })
-export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(component.name))}Component implements OnInit, OnDestroy{
+export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(component.name))}Component implements OnInit, OnDestroy, AfterViewInit {
 
     ${fields}
     

@@ -1,8 +1,12 @@
-import {readdir, stat} from 'fs';
+import {mkdir, readdir, stat} from 'fs';
 import {join} from 'path';
 import {promisify} from 'util';
+import {homedir} from "os";
+import {exec} from 'child_process';
 
 export class ProjectService {
+
+    _baseProjectsPath = join(homedir(), 'BFastProjects');
 
     /**
      *
@@ -52,22 +56,26 @@ export class ProjectService {
         }
     }
 
-    async ensureProjectFolder() {
-        // const projectsPath = join(homedir(), 'BFastProjects1');
-        // try{
-        //     const r = await promisify(stat)(projectsPath);
-        //     console.log(r);
-        // }catch (e){
-        //     await promisify(mkdir)(projectsPath)
-        // }
+    async ensureBaseProjectFolder() {
+        try {
+            await promisify(stat)(this._baseProjectsPath);
+        } catch (e) {
+            await promisify(mkdir)(this._baseProjectsPath)
+        }
     }
 
     /**
      * create bfast ui project
      * @param project {string}
-     * @return {Promise<*>}
+     * @return {Promise<string>}
      */
     async createProject(project) {
-
+        project = project.replace(new RegExp('[^\\w]', 'ig'), '').toLowerCase();
+        await this.ensureBaseProjectFolder();
+        const r = await promisify(exec)(`bfast ui create ${project}`, {
+            cwd: this._baseProjectsPath
+        });
+        console.log(r.toString());
+        return project;
     }
 }

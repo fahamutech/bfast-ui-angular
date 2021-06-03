@@ -8,7 +8,8 @@ export class AppUtil {
         'Output',
         'OnInit',
         'OnDestroy',
-        'ViewChild'
+        'ViewChild',
+        'AfterViewInit'
     ];
     static readonlyModulesImport = [
         'BrowserModule',
@@ -17,8 +18,7 @@ export class AppUtil {
         'CommonModule',
         'NgModule',
         'RouterModule',
-        'Routes',
-        'BrowserModule'
+        'Routes'
     ];
 
     /**

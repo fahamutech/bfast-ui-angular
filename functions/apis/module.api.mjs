@@ -43,13 +43,22 @@ const modulePage = new ModulePage(moduleService, servicesService, componentServi
 export const moduleHome = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules',
     (request, response) => {
+        const mode = request.query.mode;
         const project = request.params.project;
-        const modulePage = new ModulePage(moduleService, servicesService, componentService, pageService, guardsService);
-        modulePage.indexPage(project, request.query.error).then(value => {
-            response.send(value);
-        }).catch(reason => {
-            response.status(400).send(reason);
-        });
+        if (mode === 'json') {
+            moduleService.mainModuleFileToJson(project).then(value => {
+                response.send(value);
+            }).catch(reason => {
+                response.status(400).send(reason);
+            });
+        } else {
+            const modulePage = new ModulePage(moduleService, servicesService, componentService, pageService, guardsService);
+            modulePage.indexPage(project, request.query.error).then(value => {
+                response.send(value);
+            }).catch(reason => {
+                response.status(400).send(reason);
+            });
+        }
     }
 );
 
@@ -153,7 +162,7 @@ export const exportMainModule = bfastnode.bfast.functions().onGetHttpRequest(
     (request, response) => {
         const project = request.params.project;
         moduleService.exportMainModule(project).then(value => {
-            response.setHeader('Content-Disposition',`attachment; filename="bfast-ui-${project}.json"`);
+            response.setHeader('Content-Disposition', `attachment; filename="bfast-ui-${project}.json"`);
             response.json(value);
         }).catch(reason => {
             console.log(reason);

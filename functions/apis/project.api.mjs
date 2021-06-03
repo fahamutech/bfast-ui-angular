@@ -8,7 +8,7 @@ const {bfast} = bfastnode;
 const appUtil = new AppUtil();
 const projectService = new ProjectService(new StorageUtil());
 
-function addProject(name, module, path, response) {
+function _addProject(name, module, path, response) {
     projectService.addProject({
         name: name,
         module: module,
@@ -26,7 +26,7 @@ export const projectAll = bfast.functions().onGetHttpRequest('/project',
         const module = request.query.module;
         const path = request.query.path;
         if (name && module && path && name !== '' && module !== '' && path !== '') {
-            addProject(appUtil.camelCaseToKebal(name).toLowerCase(), module, path, response);
+            _addProject(appUtil.camelCaseToKebal(name).toLowerCase(), module, path, response);
         } else {
             new ProjectPage(projectService).indexPage(request.query.error).then(value => {
                 response.send(value);
@@ -40,10 +40,9 @@ export const projectAll = bfast.functions().onGetHttpRequest('/project',
 
 export const projectAdd = bfast.functions().onPostHttpRequest('/project',
     (request, response) => {
-        const projectService = new ProjectService(new StorageUtil());
         const body = JSON.parse(JSON.stringify(request.body));
         if (body && body.name && body.module && body.projectPath && body.name !== '' && body.module !== '' && body.projectPath !== '') {
-            addProject(appUtil.camelCaseToKebal(body.name).toLowerCase(), body.module, body.projectPath, response);
+            _addProject(appUtil.camelCaseToKebal(body.name).toLowerCase(), body.module, body.projectPath, response);
         } else {
             response.redirect(`/project?error=${encodeURIComponent('fill all require fields')}`);
         }
@@ -52,12 +51,27 @@ export const projectAdd = bfast.functions().onPostHttpRequest('/project',
 
 export const projectDelete = bfast.functions().onPostHttpRequest('/project/:project/delete',
     (request, response) => {
-        const projectService = new ProjectService(new StorageUtil());
         const project = request.params.project;
         projectService.deleteProject(project).then(_ => {
             response.redirect('/project');
         }).catch(reason => {
             response.redirect('/project?error=' + encodeURIComponent(reason && reason.message ? reason.message : reason.toString()))
         })
+    }
+);
+
+
+export const projectCreate = bfast.functions().onPostHttpRequest('/project/create',
+    (request, response) => {
+        const body = JSON.parse(JSON.stringify(request.body));
+        if (body && body.name && body.name !== '') {
+            projectService.createProject(body.name).then(_name => {
+                response.redirect(`/project/${_name}/modules`);
+            }).catch(reason => {
+                response.redirect(`/project?error=${encodeURIComponent(reason && reason.message ? reason.message : reason.toString())}`);
+            });
+        } else {
+            response.redirect(`/project?error=${encodeURIComponent('fill all require fields')}`);
+        }
     }
 );

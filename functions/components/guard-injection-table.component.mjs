@@ -30,12 +30,12 @@ function getTableContents(project, module, guard, injections = []) {
         row += `<tr style="cursor: pointer">
                   <th scope="row">${injections.indexOf(injection) + 1}</th>
                   <td>${injection.name}</td>
-                  <td style="flex-grow: 1">${injection.service}.guard.ts</td>
+                  <td style="flex-grow: 1">${injection.service}</td>
                   <td>
                     <div class="d-flex flex-row">
-                        <form method="post" action="/project/${project}/modules/${module}/resources/guards/${guard}/injections/${injection.service}.guard.ts/delete">
+                        ${injection.name==='router'?'readonly':`<form method="post" action="/project/${project}/modules/${module}/resources/guards/${guard}/injections/${injection.service}.guard.ts/delete">
                             <button type="submit" class="btn-sm btn btn-danger">Delete</button>
-                        </form>
+                        </form>`}
                     </div>
                   </td>
                 </tr>`
