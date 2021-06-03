@@ -1,7 +1,6 @@
-
 export const sideNavComponent = async function (project, module, modules = []) {
     async function versionName() {
-return '';
+        return '';
     }
 
     function getModuleMenus(_menus) {
@@ -42,10 +41,9 @@ return '';
         <div class="side-nav-content">
             <div class="d-flex flex-column justify-content-center align-items-center" style="padding: 24px">
                 <i style="font-size: 60px; width: 60px; height: 60px; color: #007bff" class="material-icons">receipt_long</i>
-                <h3>${project}</h3>
+                <h3>${project ? project : 'Welcome'}</h3>
             </div>
             <hr style="margin: 8px; padding: 0 16px">
-            
             <div class="accordion" id="accordionMenu">
               ${getModuleMenus(modules)}
             </div>

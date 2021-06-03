@@ -74,7 +74,7 @@ export const viewModuleGuard = bfastnode.bfast.functions().onGetHttpRequest(
     }
 );
 
-export const updateModuleGuardView = bfastnode.bfast.functions().onGetHttpRequest(
+export const updateModuleGuardMethodView = bfastnode.bfast.functions().onGetHttpRequest(
     '/project/:project/modules/:module/resources/guards/:guard/method/:method',
     (request, response) => {
         const project = request.params.project;
@@ -88,7 +88,7 @@ export const updateModuleGuardView = bfastnode.bfast.functions().onGetHttpReques
     }
 );
 
-export const updateModuleGuard = bfastnode.bfast.functions().onPostHttpRequest(
+export const updateModuleGuardMethod = bfastnode.bfast.functions().onPostHttpRequest(
     '/project/:project/modules/:module/resources/guards/:guard/method/:method',
     (request, response) => {
         const project = request.params.project;
@@ -119,8 +119,8 @@ export const addInjectionInAGuardSubmit = bfastnode.bfast.functions().onPostHttp
         const injection = request.params.injection;
         guardsService.getGuard(project, module, guard).then(async value => {
             if (value && value.injections && Array.isArray(value.injections)) {
-                const exist = value.injections.filter(x => x.service.toString().toLowerCase()
-                    === injection.toString().split('.')[0].toLowerCase());
+                const exist = value.injections
+                    .filter(x => x.name.toString().toLowerCase() === injection.toString().split('.')[0].concat('Service').toLowerCase());
                 if (exist.length === 0) {
                     value.injections.push({
                         name: injection.toString().split('.')[0].toString().toLowerCase() + 'Service'.trim(),

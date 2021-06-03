@@ -174,7 +174,7 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(nam
      *     imports: Array<{name: string, ref: string}>,
      *     injections: Array<{name: string, service: string}>,
      *     constructor: string
-     * }>}
+     * } | *>}
      */
     async moduleFileToJson(project, module) {
         if (module.toString().includes('.module.ts')) {
@@ -210,7 +210,7 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(nam
      *     imports: Array<{name: string, ref: string}>,
      *     injections: Array<{name: string, service: string}>,
      *     constructor: string
-     * }>}
+     * } | *>}
      */
     async mainModuleFileToJson(project) {
         const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
@@ -223,7 +223,7 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(nam
         moduleJson.name = this.appUtil.camelCaseToKebal(module);
         moduleJson.routes = this.getRoutesFromMainModuleFile(moduleFile);
         moduleJson.exports = this.getExportsFromModuleFile(moduleFile);
-        moduleJson.imports = this.getUserImportsFromModuleFile(moduleFile).filter(x => x.name.toLowerCase() !== 'appcomponent');
+        moduleJson.imports = this.getUserImportsFromModuleFile(moduleFile);
         moduleJson.injections = this.appUtil.getInjectionsFromFile(moduleFile, [], 'Service');
         moduleJson.constructor = this.appUtil.getConstructorBodyFromModuleFile(moduleFile);
         return moduleJson;
@@ -457,7 +457,7 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(nam
                 // remove guards imports
                 .replace(new RegExp('(import).*(\\.\/guard).*', 'ig'), '')
                 // remove bfast imports
-                //.replace(new RegExp('(import).*(bfastjs).*', 'ig'), '')
+                //.replace(new RegExp('(import).*(bfastjs).*', 'ig'), '');
                 // remove service import
                 .replace(new RegExp('(import).*(\\.\/service).*', 'ig'), '')
                 // remove space left behind
@@ -479,7 +479,9 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(nam
                         ref: xParts[1] ? xParts[1].replace(new RegExp('[\'\"]', 'ig'), '').trim() : null
                     }
                 });
-            return this.appUtil.multipleImportToSingleImportOfLib(results, AppUtil.readonlyModulesImport)
+            return this.appUtil
+                .multipleImportToSingleImportOfLib(results, AppUtil.readonlyModulesImport)
+                .filter(x => x.name.toLowerCase() !== 'appcomponent');
         }
         return [];
     }
@@ -597,6 +599,7 @@ export class AppComponent {
 
         const moduleInString = `import {bfast} from 'bfastjs';
 import {CommonModule} from '@angular/common';
+import {BrowserModule} from '@angular/platform-browser';
 import {NgModule} from '@angular/core';
 import {AppComponent} from './app.component';
 import {RouterModule} from '@angular/router';
@@ -610,6 +613,7 @@ const routes: Routes = [
 @NgModule({
   declarations: [AppComponent],
   imports: [
+    BrowserModule,
     CommonModule,
     RouterModule.forRoot(routes),
     ${moduleJson.imports.filter(i => typeof i.readonly === "boolean" && i.readonly === false).map(x => x.name.concat(',')).join('\n    ')}
@@ -771,7 +775,7 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(mod
         const _modulesMap = {};
         for (const module of modules.modules) {
             _modulesMap[module] = {
-                module: await this.moduleFileToJson(project,module),
+                module: await this.moduleFileToJson(project, module),
                 services: await Promise.all(
                     (await this.serviceService.getServices(project, module)).map(async x => {
                         x = x.toString().replace(new RegExp('\\.(service).*'), '');

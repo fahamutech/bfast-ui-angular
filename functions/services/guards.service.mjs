@@ -35,7 +35,7 @@ export class GuardsService {
      * @param guard - {string} guard name
      * @param project - {string} current project
      * @param module - {string} current module
-     * @return {Promise<void>}
+     * @return {Promise<*>}
      */
     async guardFileToJson(project, module, guard) {
         if (guard.toString().includes('.guard.ts')) {
@@ -70,8 +70,8 @@ export class GuardsService {
      */
     async jsonToGuardFile(project, module, guard) {
         const projectPath = await this.storageService.getConfig(`${project}:projectPath`);
+        guard.injections = guard.injections.filter(f => f.name !== 'router');
         let serviceInjectionsWithType = guard.injections
-            .filter(f => f.name !== 'router')
             .map(x => {
                 return 'private readonly '
                     .concat(this.appUtil.firstCaseLower(this.appUtil.kebalCaseToCamelCase(x.name)))

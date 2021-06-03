@@ -52,7 +52,6 @@ export const appLayoutComponent = async function (body, project, module, childMo
               <meta charset="utf-8">
               <title>Bfast::Ui</title>
               <base href="/">
-            
               <meta name="viewport" content="width=device-width, initial-scale=1">
               <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500" rel="stylesheet">
               <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
@@ -63,14 +62,13 @@ export const appLayoutComponent = async function (body, project, module, childMo
              integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
             
               <meta name="theme-color" content="#0b2e13">
-              <!--  <meta name="theme-color" content="#1976d2">-->
             </head>
                 <body style="font-family: Roboto,serif">
                     <div class="main">
-                       <aside class="${project ? 'side-nav' : 'side-nav-hide'}">
+                       <aside id="sidenav" style="display: none" class="${project ? 'side-nav' : 'side-nav-hide'}">
                             ${await sideNavComponent(project, module, await getModules())}
                        </aside>
-                       <div class="${project ? 'main-side-nav' : 'main-full'}">
+                       <div id="mainview" class="${project ? 'main-side-nav' : 'main-full'}">
                             ${appToolBarComponent(project)}
                             <div class="container" style="padding-bottom: 400px">
                                 ${body}
@@ -82,8 +80,10 @@ export const appLayoutComponent = async function (body, project, module, childMo
                  <script src="/assets/js/xterm.js"></script>
                  <script src="/assets/js/bfastjs.js"></script>
                  <script src="/assets/js/terminal.js"></script>
+                 <script src="/assets/js/ui.js"></script>
                  <script>
                     autoStartTerminal('${project}');
+                    autoHideSidenav();
                  </script>
                  <!-- JavaScript Bundle with Popper -->
                  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" 
