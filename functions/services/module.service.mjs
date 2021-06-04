@@ -429,7 +429,7 @@ export class ${this.appUtil.firstCaseUpper(this.appUtil.kebalCaseToCamelCase(nam
     }
 
     getExportsFromModuleFile(moduleFile) {
-        const reg = new RegExp('(exports.*:.*\\[)((.|\\n)+?)(\].*\,)', 'ig');
+        const reg = new RegExp('(exports.*:.*\\[)((.|\\n)*?)(\].*\,)', 'ig');
         let results = moduleFile.toString().match(reg) ? moduleFile.toString().match(reg)[0] : [];
         if (results) {
             results = results.toString().replace(new RegExp('(exports.*:.*\\[)', 'ig'), '')
